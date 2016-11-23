@@ -1,6 +1,10 @@
-#include <iostream>
+#include <cstdio>
+
+#include <il/Array.h>
 
 int main() {
-  std::cout << "Hello, World!" << std::endl;
+  int n = 1000;
+  il::Array<double> v{n};
+
   return 0;
 }
