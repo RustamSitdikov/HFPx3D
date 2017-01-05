@@ -1010,10 +1010,9 @@ il::StaticArray3D<std::complex<double>, 6, 4, 3> SijLimH(double nu, std::complex
     // double H0Lim = 0.5*(std::log(1.0+SinX)-std::log(1.0-SinX)); // std::complex<double> ?
 
     double D1 = std::abs(d); // double D2 = D1*D1; double D4 = D2*D2;
-    std::complex<double> D0 = std::polar(1.0,std::arg(d)); // = d/D1
-    std::complex<double> D02 = D0*D0; //  = d^2/D1^2
-    std::complex<double> D03 = D0*D02; //  = d^3/D1^3
-    std::complex<double> D04 = D02*D02; //  = d^4/D1^4
+    std::complex<double> D0 = std::polar(1.0,std::arg(d)), // = d/D1
+    D02 = D0*D0, D03 = D0*D02, D04 = D02*D02,
+    P1, P2;
 
     il::StaticArray3D<std::complex<double>, 6, 4, 3> C{0.0};
 
@@ -1036,8 +1035,9 @@ il::StaticArray3D<std::complex<double>, 6, 4, 3> SijLimH(double nu, std::complex
     for (int j = 0; j < C.size(0); ++j) {
         C(j, 0, 2) = 0.5*C1_2*V1[j];
         C(j, 1, 2) = C1m2*V2[j];
-        C(j, 2, 0) = 0.25*C2m1*V1[j];
-        C(j, 2, 1) = 0.5*nu*V2[j];
+        P1 = 0.25*C2m1*V1[j]; P2 = I*0.5*nu*V2[j];
+        C(j, 2, 0) = P1 + P2;
+        C(j, 2, 1) = P1 - P2;
         C(j, 3, 2) = V1[j];
     }
 
