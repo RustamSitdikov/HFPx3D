@@ -1015,7 +1015,7 @@ il::StaticArray3D<std::complex<double>, 6, 4, 3> SijLimH(double nu, std::complex
     std::complex<double> D03 = D0*D02; //  = d^3/D1^3
     std::complex<double> D04 = D02*D02; //  = d^4/D1^4
 
-    il::StaticArray3D<std::complex<double>, 6, 3, 4> C{0.0};
+    il::StaticArray3D<std::complex<double>, 6, 4, 3> C{0.0};
 
     il::StaticArray<std::complex<double>, 6> V1{0.0}, V2{0.0};
 
