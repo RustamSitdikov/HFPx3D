@@ -11,7 +11,7 @@
 #include <il/StaticArray.h>
 #include <il/StaticArray3D.h>
 #include <complex>
-// #include <cmath>
+#include <cmath>
 
 // General case (h!=0, collocation point projected into or outside the element)
 
