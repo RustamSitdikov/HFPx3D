@@ -1,5 +1,5 @@
 //
-// Created by nikolski on 12/31/2016.
+// Created by D. Nikolski on 12/31/2016.
 //
 
 #ifndef INC_3D_BEM_SIJH_H
