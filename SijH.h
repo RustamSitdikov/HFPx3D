@@ -15,4 +15,4 @@ il::StaticArray3D<std::complex<double>, 6, 3, 9> S13_23H(double, std::complex<do
 il::StaticArray3D<std::complex<double>, 6, 3, 5> S13_23H_red(double, std::complex<double>, double, std::complex<double>);
 il::StaticArray3D<std::complex<double>, 6, 3, 9> S33H(double, std::complex<double>, double, std::complex<double>);
 il::StaticArray3D<std::complex<double>, 6, 3, 5> S33H_red(double, std::complex<double>, double, std::complex<double>);
-il::StaticArray3D<std::complex<double>, 6, 3, 4> SijLimH(double, std::complex<double>, std::complex<double>);
+il::StaticArray3D<std::complex<double>, 6, 4, 3> SijLimH(double, std::complex<double>, std::complex<double>);
