@@ -39,7 +39,7 @@ il::StaticArray3D<std::complex<double>, 6, 3, 9> S11_22H(double nu, std::complex
     double h2 = h*h; double h4 = h2*h2;
     double sgh = (( h < 0 )? -1.0 : double(( h > 0 ))); // sign(h)
 
-    double D1 = std::abs(d); double D2 = D1*D1; double D4 = D2*D2;
+    double D1 = std::fabs(d); double D2 = D1*D1; double D4 = D2*D2;
     // std::complex<double> dC = std::conj(d);
     std::complex<double> D0 = std::polar(1.0,std::arg(d)); //  = d/D1
     std::complex<double> D02 = D0*D0; //  = d^2/D1^2
@@ -198,7 +198,7 @@ il::StaticArray3D<std::complex<double>, 6, 3, 9> S11_22_12H(double nu, std::comp
     double h2 = h*h; double h4 = h2*h2;
     double sgh = (( h < 0 )? -1.0 : double(( h > 0 ))); // sign(h)
 
-    double D1 = std::abs(d); double D2 = D1*D1; double D4 = D2*D2;
+    double D1 = std::fabs(d); double D2 = D1*D1; double D4 = D2*D2;
     std::complex<double> dC = std::conj(d);
     std::complex<double> D0 = std::polar(1.0,std::arg(d)); //  = d/D1
     std::complex<double> D0C = std::conj(D0);
@@ -419,7 +419,7 @@ il::StaticArray3D<std::complex<double>, 6, 3, 9> S13_23H(double nu, std::complex
     double h2 = h*h; double h3 = h2*h; double h4 = h2*h2;
 //  double sgh = (( h < 0 )? -1.0 : double(( h > 0 ))); // sign(h)
 
-    double D1 = std::abs(d); double D2 = D1*D1; double D4 = D2*D2;
+    double D1 = std::fabs(d); double D2 = D1*D1; double D4 = D2*D2;
     std::complex<double> dC = std::conj(d);
     std::complex<double> D0 = std::polar(1.0,std::arg(d)); // =d/D1
     std::complex<double> D0C = std::conj(D0);
@@ -606,7 +606,7 @@ il::StaticArray3D<std::complex<double>, 6, 3, 9> S33H(double nu, std::complex<do
     double h2 = h*h; double h3 = h*h2; double h4 = h2*h2;
 //  double sgh = (( h < 0 )? -1.0 : double(( h > 0 ))); // sign(h)
 
-    double D1 = std::abs(d); double D2 = D1*D1; double D4 = D2*D2;
+    double D1 = std::fabs(d); double D2 = D1*D1; double D4 = D2*D2;
     // std::complex<double> dC = std::conj(d);
     std::complex<double> D0 = std::polar(1.0,std::arg(d)); //  = d/D1
     std::complex<double> D02 = D0*D0; //  = d^2/D1^2
@@ -1009,7 +1009,7 @@ il::StaticArray3D<std::complex<double>, 6, 4, 3> SijLimH(double nu, std::complex
     double H0Lim = std::atanh(SinX); // std::complex<double> ?
     // double H0Lim = 0.5*(std::log(1.0+SinX)-std::log(1.0-SinX)); // std::complex<double> ?
 
-    double D1 = std::abs(d); // double D2 = D1*D1; double D4 = D2*D2;
+    double D1 = std::fabs(d); // double D2 = D1*D1; double D4 = D2*D2;
     std::complex<double> D0 = std::polar(1.0,std::arg(d)), // = d/D1
     D02 = D0*D0, D03 = D0*D02, D04 = D02*D02,
     P1, P2;
