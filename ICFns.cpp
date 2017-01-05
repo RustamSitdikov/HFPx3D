@@ -20,15 +20,15 @@
 // General case (h!=0, collocation point projected into or outside the element)
 // powers of r, G0=arctan((ah)/(dr)), H0=arctanh(a/r) and its derivatives w.r. to h
 
-il::StaticArray<double, 9> ICFns(double h, double d, double a, double x, std::complex<double> eix) {
+il::StaticArray<double, 9> ICFns(double h, std::complex<double> d, double a, double x, std::complex<double> eix) {
 
     double D1 = std::fabs(d), D2 = D1*D1, a2 = a*a,
             r = std::sqrt(h*h + a2 + D2),
             r2 = r*r, r3 = r2*r, r5 = r3*r2,
             ar = a/r, ar2 = ar*ar,
             hr = std::fabs(h/r),
-            B = 1.0/(r2 - a2), B2=B*B, B3=B2*B,
-            TanHi = std::imag(eix)/std::real(eix), tr = hr*TanHi,
+            B = 1.0/(r2 - a2), B2=B*B, B3=B2*B;
+    double TanHi = std::imag(eix)/std::real(eix), tr = hr*TanHi,
             G0 = std::atan(tr), H0 = std::atanh(ar),
             H1 = -0.5*ar*B, H2 = 0.25*(3.0 - ar2)*ar*B2,
             H3 = -0.125*(15.0 - 10.0*ar2 + 3.0*ar2*ar2)*ar*B3;
@@ -42,7 +42,7 @@ il::StaticArray<double, 9> ICFns(double h, double d, double a, double x, std::co
 
 // Special case (reduced summation, collocation point projected onto the element contour) - additional terms
 
-il::StaticArray<double, 5> ICFns_red(double h, double d, double a) {
+il::StaticArray<double, 5> ICFns_red(double h, std::complex<double> d, double a) {
 
     double h2 = h*h, h4 = h2*h2, h6 = h4*h2,
             D1 = std::fabs(d), D2 = D1*D1, a2 = a*a,
