@@ -22,7 +22,7 @@
 
 il::StaticArray<double, 9> ICFns(double h, std::complex<double> d, double a, double x, std::complex<double> eix) {
 
-    double D1 = std::fabs(d), D2 = D1*D1, a2 = a*a,
+    double D1 = std::abs(d), D2 = D1*D1, a2 = a*a,
             r = std::sqrt(h*h + a2 + D2),
             r2 = r*r, r3 = r2*r, r5 = r3*r2,
             ar = a/r, ar2 = ar*ar,
@@ -45,7 +45,7 @@ il::StaticArray<double, 9> ICFns(double h, std::complex<double> d, double a, dou
 il::StaticArray<double, 5> ICFns_red(double h, std::complex<double> d, double a) {
 
     double h2 = h*h, h4 = h2*h2, h6 = h4*h2,
-            D1 = std::fabs(d), D2 = D1*D1, a2 = a*a,
+            D1 = std::abs(d), D2 = D1*D1, a2 = a*a,
             ro = std::sqrt(a2 + D2),
             r = std::sqrt(h2 + a2 + D2),
             rr = ro/r, rr2 = rr*rr, rr4 = rr2*rr2,
