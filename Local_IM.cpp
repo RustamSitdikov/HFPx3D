@@ -7,6 +7,8 @@
 // See the LICENSE.TXT file for more details. 
 //
 
+// Calculation of local element-to-point influence matrices
+
 #include <il/StaticArray.h>
 #include <il/StaticArray2D.h>
 #include <il/StaticArray3D.h>
@@ -17,9 +19,9 @@
 
 il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, il::StaticArray<std::complex<double>,3> tz, il::StaticArray<std::complex<double>,3> d, il::StaticArray2D<std::complex<double>,6,6> SFM) {
     // This function constructs components
-    // of the "stiffness" (stress vs DD) matrix
+    // of the local "stiffness" matrix
+    // (influence of DD at the element nodes to stresses at the point z)
     // in element's local coordinates
-    // using complex representation of in-plane variabes
 
     // scaling ("-" sign comes from traction Somigliana ID, H-term)
     double scale = -mu/(4.0*M_PI*(1.0-nu));

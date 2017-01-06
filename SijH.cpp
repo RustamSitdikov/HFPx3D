@@ -1,6 +1,12 @@
 //
-// Created by D. Nikolski on 1/5/2017.
+// This file is part of 3d_bem.
 //
+// Created by D. Nikolski on 1/5/2017.
+// Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
+// Geo-Energy Laboratory, 2016-2017.  All rights reserved.
+// See the LICENSE.TXT file for more details.
+//
+
 // Integration of the hypersingular kernel of the elasticity equation
 // over a part of a polygonal element (a sector associated with one edge)
 // with 2nd order polynomial approximating (shape) functions.

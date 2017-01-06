@@ -1,5 +1,10 @@
 //
-// Created by D. Nikolski on 12/31/2016.
+// This file is part of 3d_bem.
+//
+// Created by D. Nikolski on 1/5/2017.
+// Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
+// Geo-Energy Laboratory, 2016-2017.  All rights reserved.
+// See the LICENSE.TXT file for more details.
 //
 
 #ifndef INC_3D_BEM_SIJH_H
