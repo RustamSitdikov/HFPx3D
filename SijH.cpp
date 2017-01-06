@@ -3,7 +3,12 @@
 //
 // Integration of the hypersingular kernel of the elasticity equation
 // over a part of a polygonal element (a sector associated with one edge)
-// with 2nd order polynomial approximating (shape) functions
+// with 2nd order polynomial approximating (shape) functions.
+//
+// To be contracted (via right multiplication) with the vector of
+// constituing functions defined in ICFNS.cpp
+// and (via left multiplication) with the vector of
+// shape function coefficients associated with each node of the element
 //
 // Stress components (vs local Cartesian coordinate system of the element)
 // combined as S11+S22, S11-S22+2*I*S12, S13+I*S23, S33
