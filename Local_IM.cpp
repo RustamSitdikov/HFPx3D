@@ -17,7 +17,7 @@
 //#include <cmath>
 #include <complex>
 #include <SijH.h>
-#include <Local_IM.h>
+#include <ICFns.h>
 //#include <il/linear_algebra/dense/blas/blas.h>
 #include <il/linear_algebra/dense/blas/dot.h>
 
