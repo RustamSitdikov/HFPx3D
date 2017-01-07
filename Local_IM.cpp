@@ -67,13 +67,13 @@ il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std:
     // also, "shifted" SFM from z, tau[m], and local SFM
     il::StaticArray2D<std::complex<double>, 6, 6> ShiftZ {0.0};
     ShiftZ(0, 0) = 1.0;
-    ShiftZ(1, 0) = -z; ShiftZ(1, 1) = 1.0;
-    ShiftZ(2, 0) = -zc; ShiftZ(2, 2) = 1.0;
-    ShiftZ(3, 0) = z*z; ShiftZ(3, 1) = -2.0*z; ShiftZ(3, 3) = 1.0;
-    ShiftZ(4, 0) = zc*zc; ShiftZ(4, 2) =  -2.0*zc; ShiftZ(4, 4) = 1.0;
-    ShiftZ(5, 0) = z*zc; ShiftZ(5, 1) = -zc; ShiftZ(5, 2) = -z; ShiftZ(5, 5) = 1.0;
+    ShiftZ(1, 0) = z; ShiftZ(1, 1) = 1.0;
+    ShiftZ(2, 0) = zc; ShiftZ(2, 2) = 1.0;
+    ShiftZ(3, 0) = z*z; ShiftZ(3, 1) = 2.0*z; ShiftZ(3, 3) = 1.0;
+    ShiftZ(4, 0) = zc*zc; ShiftZ(4, 2) =  2.0*zc; ShiftZ(4, 4) = 1.0;
+    ShiftZ(5, 0) = z*zc; ShiftZ(5, 1) = zc; ShiftZ(5, 2) = z; ShiftZ(5, 5) = 1.0;
 
-    il::StaticArray2D<std::complex<double>, 6, 6> SFMz = il::dot(ShiftZ, SFM);
+    il::StaticArray2D<std::complex<double>, 6, 6> SFMz = il::dot(SFM, ShiftZ);
     il::StaticArray2D<double, 6, 18> LIM {0.0};
 
     // searching for "degenerate" edges: point x (collocation pt) projects onto an edge or a vertex
