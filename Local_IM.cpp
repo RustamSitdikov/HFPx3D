@@ -22,15 +22,14 @@
 #include <il/linear_algebra/dense/blas/dot.h>
 
 il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std::complex<double> z, il::StaticArray<std::complex<double>,3> tau, il::StaticArray2D<std::complex<double>,6,6> SFM) {
-    // This function constructs components
-    // of the local "stiffness" matrix
+    // This function assembles a local "stiffness" sub-matrix
     // (influence of DD at the element nodes to stresses at the point z)
     // in terms of a triangular element's local coordinates
     //
-    // tau (3) are element's vertices in its own local coordinate system;
+    // tau (3) are coordinates of element's vertices and
     // the rows of SFM (6*6) are coefficients of shape functions
-    // in terms of tau-coordinates of the element;
-    // h and z define the position of the (collocation) point x
+    // in terms of the element's own local coordinate system (tau-coordinates);
+    // h and z define the position of the (collocation) point x in the same coordinates
 
     const std::complex<double> I(0.0,1.0);
 
@@ -40,7 +39,27 @@ il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std:
     double HTol = 1.0E-9, DTol = 1.0E-8;
     // geometrical
     double an, am;
-    std::complex<double> eixm, eixn, eipm, eipn, zc=conj(z);
+    std::complex<double> eixm, eixn, eipm, eipn, zc=std::conj(z), ntau2;
+    // tz[m] and d[m] can be calculated here
+    il::StaticArray<std::complex<double>,3> tz, d, dtau;
+    int j, k, l, m, n;
+    for (j=0; j<=2; ++j) {
+        tz[j] = tau[j] - z;
+        l = (j+1)%3;
+        dtau[j]=tau[l]-tau[j];
+        ntau2=dtau[j]/std::conj(dtau[j]);
+        d[j]=0.5*(tz[j]-std::conj(tz[j])*ntau2);
+    }
+    // also, "shifted" SFM from z, tau[m], and local SFM
+    il::StaticArray2D<std::complex<double>, 6, 6> ShiftZ {0.0};
+    ShiftZ(0, 0) = 1.0;
+    ShiftZ(1, 0) = z; ShiftZ(1, 1) = 1.0;
+    ShiftZ(2, 0) = zc; ShiftZ(2, 2) = 1.0;
+    ShiftZ(3, 0) = z*z; ShiftZ(3, 1) = 2.0*z; ShiftZ(3, 3) = 1.0;
+    ShiftZ(4, 0) = zc*zc; ShiftZ(4, 2) =  2.0*zc; ShiftZ(4, 4) = 1.0;
+    ShiftZ(5, 0) = z*zc; ShiftZ(5, 1) = zc; ShiftZ(5, 2) = z; ShiftZ(5, 5) = 1.0;
+    il::StaticArray2D<std::complex<double>, 6, 6> SFMz = il::dot(SFM, ShiftZ);
+
     // constituents of the integrals
     il::StaticArray<std::complex<double>, 9> Fn, Fm;
     il::StaticArray3D<std::complex<double>, 6, 3, 9> Cn, Cm;
@@ -54,26 +73,6 @@ il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std:
     // increment of DD-to-stress influence
     il::StaticArray2D<std::complex<double>, 6, 3> Sincm {0.0}, Sincn {0.0};
 
-    // tz[m] and d[m] can be calculated here
-    il::StaticArray<std::complex<double>,3> tz, d, dtau, ntau2;
-    for (int j=0; j<=2; ++j) {
-        tz[j] = tau[j] - z;
-        int l = (j+1)%3;
-        dtau[j]=tau[l]-tau[j];
-        ntau2[j]=dtau[j]*dtau[j]/(dtau[j]*std::conj(dtau[j]));
-        d[j]=0.5*(tz[j]-std::conj(tz[j])*(ntau2[j]));
-    }
-
-    // also, "shifted" SFM from z, tau[m], and local SFM
-    il::StaticArray2D<std::complex<double>, 6, 6> ShiftZ {0.0};
-    ShiftZ(0, 0) = 1.0;
-    ShiftZ(1, 0) = z; ShiftZ(1, 1) = 1.0;
-    ShiftZ(2, 0) = zc; ShiftZ(2, 2) = 1.0;
-    ShiftZ(3, 0) = z*z; ShiftZ(3, 1) = 2.0*z; ShiftZ(3, 3) = 1.0;
-    ShiftZ(4, 0) = zc*zc; ShiftZ(4, 2) =  2.0*zc; ShiftZ(4, 4) = 1.0;
-    ShiftZ(5, 0) = z*zc; ShiftZ(5, 1) = zc; ShiftZ(5, 2) = z; ShiftZ(5, 5) = 1.0;
-
-    il::StaticArray2D<std::complex<double>, 6, 6> SFMz = il::dot(SFM, ShiftZ);
     il::StaticArray2D<double, 6, 18> LIM {0.0};
 
     // searching for "degenerate" edges: point x (collocation pt) projects onto an edge or a vertex
@@ -82,13 +81,13 @@ il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std:
     // calculating angles (phi, psi, chi)
     il::StaticArray<double,3> phi {0.0}, psi {0.0};
     il::StaticArray2D<double, 2, 3> chi {0.0};
-    for (int j=0; j<=2; ++j){
+    for (j=0; j<=2; ++j) {
         phi[j] = std::arg(tz[j]);
         // make sure it's between -pi and pi (add or subtract 2*pi)
         // phi[j]=(std::fmod(phi[j]/M_PI+1.0, 2.0)-1.0)*M_PI;
         psi[j] = std::arg(d[j]);
-        for (int k=0; k<=1; ++k){
-            int l = (j+k)%3;
+        for (k=0; k<=1; ++k) {
+            l = (j+k)%3;
             chi(k,j) = phi[l]-psi[j];
             // make sure it's between -pi and pi (add or subtract 2*pi)
             chi(k,j)=(std::fmod(chi(k,j)/M_PI+1.0, 2.0)-1.0)*M_PI;
@@ -98,16 +97,16 @@ il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std:
     }
 
     // summation over edges
-    for (int m=0; m<=2; ++m) {
-        int n = (m+1)%3;
+    for (m=0; m<=2; ++m) {
+        n = (m+1)%3;
         if (std::abs(d[m])>=DTol && chi(0,m)>=DTol && chi(1,m)>=DTol) {
             eixm = std::exp(I*chi(0,m)); eixn = std::exp(I*chi(1,m));
             if(std::fabs(h)<HTol) { // limit case (point x on the element's plane)
                 SincLn = SijLimH(nu, eixn, d[m]);
                 SincLm = SijLimH(nu, eixm, d[m]);
-                for (int j=0; j<=5; ++j) {
-                    for (int l=0; l<=3; ++l) {
-                        for (int k=0; k<=2; ++k) {
+                for (j=0; j<=5; ++j) {
+                    for (l=0; l<=3; ++l) {
+                        for (k=0; k<=2; ++k) {
                             Sij_M(j, l, k) += SincLn(j, l, k) - SincLm(j, l, k);
                         }
                     }
@@ -124,8 +123,8 @@ il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std:
                 //il::blas(1.0, Cn, Fn, 0.0, il::io, Sinc);
                 //il::blas(-1.0, Cm, Fm, 0.0, il::io, Sinc);
                 Sincn = il::dot(Cn, Fn); Sincm = il::dot(Cm, Fm);
-                for (int j=0; j<=5; ++j) {
-                    for (int k=0; k<=2; ++k) {
+                for (j=0; j<=5; ++j) {
+                    for (k=0; k<=2; ++k) {
                         Sij_M(j, 0, k) += Sincn(j, k) - Sincm(j, k);
                     }
                 }
@@ -138,8 +137,8 @@ il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std:
                     //il::blas(1.0, CnD, FnD, 0.0, il::io, Sinc);
                     //il::blas(-1.0, CmD, FmD, 0.0, il::io, Sinc);
                     Sincn = il::dot(CnD, FnD); Sincm = il::dot(CmD, FmD);
-                    for (int j=0; j<=5; ++j) {
-                        for (int k=0; k<=2; ++k) {
+                    for (j=0; j<=5; ++j) {
+                        for (k=0; k<=2; ++k) {
                             Sij_M(j, 0, k) += Sincn(j, k) - Sincm(j, k);
                         }
                     }
@@ -150,8 +149,8 @@ il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std:
                 //il::blas(1.0, Cn, Fn, 0.0, il::io, Sinc);
                 //il::blas(-1.0, Cm, Fm, 0.0, il::io, Sinc);
                 Sincn = il::dot(Cn, Fn); Sincm = il::dot(Cm, Fm);
-                for (int j=0; j<=5; ++j) {
-                    for (int k=0; k<=2; ++k) {
+                for (j=0; j<=5; ++j) {
+                    for (k=0; k<=2; ++k) {
                         Sij_M(j, 1, k) += Sincn(j, k) - Sincm(j, k);
                     }
                 }
@@ -161,8 +160,8 @@ il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std:
                     //il::blas(1.0, CnD, FnD, 0.0, il::io, Sinc);
                     //il::blas(-1.0, CmD, FmD, 0.0, il::io, Sinc);
                     Sincn = il::dot(CnD, FnD); Sincm = il::dot(CmD, FmD);
-                    for (int j=0; j<=5; ++j) {
-                        for (int k=0; k<=2; ++k) {
+                    for (j=0; j<=5; ++j) {
+                        for (k=0; k<=2; ++k) {
                             Sij_M(j, 1, k) += Sincn(j, k) - Sincm(j, k);
                         }
                     }
@@ -173,8 +172,8 @@ il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std:
                 //il::blas(1.0, Cn, Fn, 0.0, il::io, Sinc);
                 //il::blas(-1.0, Cm, Fm, 0.0, il::io, Sinc);
                 Sincn = il::dot(Cn, Fn); Sincm = il::dot(Cm, Fm);
-                for (int j=0; j<=5; ++j) {
-                    for (int k=0; k<=2; ++k) {
+                for (j=0; j<=5; ++j) {
+                    for (k=0; k<=2; ++k) {
                         Sij_M(j, 2, k) += Sincn(j, k) - Sincm(j, k);
                     }
                 }
@@ -184,8 +183,8 @@ il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std:
                     //il::blas(1.0, CnD, FnD, 0.0, il::io, Sinc);
                     //il::blas(-1.0, CmD, FmD, 0.0, il::io, Sinc);
                     Sincn = il::dot(CnD, FnD); Sincm = il::dot(CmD, FmD);
-                    for (int j=0; j<=5; ++j) {
-                        for (int k=0; k<=2; ++k) {
+                    for (j=0; j<=5; ++j) {
+                        for (k=0; k<=2; ++k) {
                             Sij_M(j, 2, k) += Sincn(j, k) - Sincm(j, k);
                         }
                     }
@@ -196,8 +195,8 @@ il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std:
                 //il::blas(1.0, Cn, Fn, 0.0, il::io, Sinc);
                 //il::blas(-1.0, Cm, Fm, 0.0, il::io, Sinc);
                 Sincn = il::dot(Cn, Fn); Sincm = il::dot(Cm, Fm);
-                for (int j=0; j<=5; ++j) {
-                    for (int k=0; k<=2; ++k) {
+                for (j=0; j<=5; ++j) {
+                    for (k=0; k<=2; ++k) {
                         Sij_M(j, 3, k) += Sincn(j, k) - Sincm(j, k);
                     }
                 }
@@ -207,8 +206,8 @@ il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std:
                     //il::blas(1.0, CnD, FnD, 0.0, il::io, Sinc);
                     //il::blas(-1.0, CmD, FmD, 0.0, il::io, Sinc);
                     Sincn = il::dot(CnD, FnD); Sincm = il::dot(CmD, FmD);
-                    for (int j=0; j<=5; ++j) {
-                        for (int k=0; k<=2; ++k) {
+                    for (j=0; j<=5; ++j) {
+                        for (k=0; k<=2; ++k) {
                             Sij_M(j, 3, k) += Sincn(j, k) - Sincm(j, k);
                         }
                     }
@@ -222,9 +221,9 @@ il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std:
 
     // re-shaping of the resulting matrix
     // and scaling (comment out if not necessary)
-    for (int j=0; j<=5; ++j) {
+    for (j=0; j<=5; ++j) {
         int q = j*3;
-        for (int k=0; k<=2; ++k) {
+        for (k=0; k<=2; ++k) {
             // [S11; S22; S12; S13; S23; S33] vs \delta{u}_k at j-th node
             LIM(0,q+k) = scale*(std::real(Sij_N(j,0,k))+std::real(Sij_N(j,1,k)));
             LIM(1,q+k) = scale*(std::real(Sij_N(j,0,k))-std::real(Sij_N(j,1,k)));

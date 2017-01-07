@@ -61,6 +61,8 @@ il::StaticArray3D<std::complex<double>, 6, 3, 9> S11_22H(double nu, std::complex
 
     std::complex<double> P0, P1, P2;
 
+    int j, k;
+
     il::StaticArray3D<std::complex<double>, 6, 3, 9> C{0.0};
 
     C(0, 0, 2) = h*std::imag(d);
@@ -104,8 +106,8 @@ il::StaticArray3D<std::complex<double>, 6, 3, 9> S11_22H(double nu, std::complex
     C(1, 0, 8) = -P0*(P1+P2);
     C(1, 1, 8) = I*P0*(-P1+P2);
 
-    for (int k = 0; k < C.size(2); ++k) {
-        for (int j = 0; j < C.size(1); ++j) {
+    for (k = 0; k < C.size(2); ++k) {
+        for (j = 0; j < C.size(1); ++j) {
             C(2, j, k) = std::conj(C(1, j, k));
         }
     }
@@ -137,8 +139,8 @@ il::StaticArray3D<std::complex<double>, 6, 3, 9> S11_22H(double nu, std::complex
     C(3, 0, 8) = -P0*(P1+P2);
     C(3, 1, 8) = I*P0*(P1-P2);
 
-    for (int k = 0; k < C.size(2); ++k) {
-        for (int j = 0; j < C.size(1); ++j) {
+    for (k = 0; k < C.size(2); ++k) {
+        for (j = 0; j < C.size(1); ++j) {
             C(4, j, k) = std::conj(C(3, j, k));
         }
     }
@@ -628,6 +630,8 @@ il::StaticArray3D<std::complex<double>, 6, 3, 9> S33H(double nu, std::complex<do
 
     std::complex<double> P0, P1, P2;
 
+    int j, k;
+
     il::StaticArray3D<std::complex<double>, 6, 3, 9> C{0.0};
 
     C(0, 0, 6) = -2.0*h*std::real(D0);
@@ -656,8 +660,8 @@ il::StaticArray3D<std::complex<double>, 6, 3, 9> S33H(double nu, std::complex<do
     C(1, 0, 8) = -2.0/3.0*h3*D1*D1_h1;
     C(1, 1, 8) = I*C(1, 0, 8);
 
-    for (int k = 0; k < C.size(2); ++k) {
-        for (int j = 0; j < C.size(1); ++j) {
+    for (k = 0; k < C.size(2); ++k) {
+        for (j = 0; j < C.size(1); ++j) {
             C(2, j, k) = std::conj(C(1, j, k));
         }
     }
@@ -690,8 +694,8 @@ il::StaticArray3D<std::complex<double>, 6, 3, 9> S33H(double nu, std::complex<do
     C(3, 0, 8) = -P0*(P1+P2);
     C(3, 1, 8) = I*P0*(-P1+P2);
 
-    for (int k = 0; k < C.size(2); ++k) {
-        for (int j = 0; j < C.size(1); ++j) {
+    for (k = 0; k < C.size(2); ++k) {
+        for (j = 0; j < C.size(1); ++j) {
             C(4, j, k) = std::conj(C(3, j, k));
         }
     }
@@ -750,6 +754,8 @@ il::StaticArray3D<std::complex<double>, 6, 3, 5> S11_22H_red(double nu, std::com
 
     std::complex<double> P1, P2, P3, P4;
 
+    int j, k;
+
     il::StaticArray3D<std::complex<double>, 6, 3, 5> C{0.0};
 
     C(0, 0, 2) = -C7_2*h*SinX; C(0, 1, 2) = C7_2*h*CosX;
@@ -761,8 +767,8 @@ il::StaticArray3D<std::complex<double>, 6, 3, 5> S11_22H_red(double nu, std::com
     C(1, 2, 2) = 2.0*I*C2_1*h2*eix;
     C(1, 2, 3) = 2.0*I*h4*eix;
 
-    for (int k = 0; k < C.size(2); ++k) {
-        for (int j = 0; j < C.size(1); ++j) {
+    for (k = 0; k < C.size(2); ++k) {
+        for (j = 0; j < C.size(1); ++j) {
             C(2, j, k) = std::conj(C(1, j, k));
         }
     }
@@ -775,8 +781,8 @@ il::StaticArray3D<std::complex<double>, 6, 3, 5> S11_22H_red(double nu, std::com
     C(3, 0, 3) = -I*P3*Ce1x3_1; C(3, 1, 3) = P3*Ce1x3m1;
     C(3, 0, 4) = -I*P4/3.0*Ce1x3_1; C(3, 1, 4) = P4/3.0*Ce1x3m1;
 
-    for (int k = 0; k < C.size(2); ++k) {
-        for (int j = 0; j < C.size(1); ++j) {
+    for (k = 0; k < C.size(2); ++k) {
+        for (j = 0; j < C.size(1); ++j) {
             C(4, j, k) = std::conj(C(3, j, k));
         }
     }
@@ -972,6 +978,8 @@ il::StaticArray3D<std::complex<double>, 6, 3, 5> S33H_red(double nu, std::comple
     double h5 = h4*h; double h7 = h5*h2;
     // double sgh = (( h < 0 )? -1.0 : double(( h > 0 ))); // sign(h)
 
+    int j, k;
+
     il::StaticArray3D<std::complex<double>, 6, 3, 5> C{0.0};
 
     C(0, 0, 2) = 2.0*h*SinX; C(0, 1, 2) = -2.0*h*CosX;
@@ -981,7 +989,7 @@ il::StaticArray3D<std::complex<double>, 6, 3, 5> S33H_red(double nu, std::comple
     C(1, 2, 2) = -4.0*I*h2*eix;
     C(1, 2, 3) = -4.0*I*h4*eix;
 
-    for (int j = 1; j < C.size(2)-1; ++j) {
+    for (j = 1; j < C.size(2)-1; ++j) {
         C(2, 2, j) = std::conj(C(1, 2, j));
     }
 
@@ -990,8 +998,8 @@ il::StaticArray3D<std::complex<double>, 6, 3, 5> S33H_red(double nu, std::comple
     C(3, 0, 3) = 3.25*I*h5*Ce1x3_1; C(3, 1, 3) = -3.25*h5*Ce1x3m1;
     C(3, 0, 4) = 0.5*I*h7*Ce1x3_1; C(3, 1, 4) = -0.5*h7*Ce1x3m1;
 
-    for (int k = 1; k < C.size(2); ++k) {
-        for (int j = 0; j < C.size(1)-1; ++j) {
+    for (k = 1; k < C.size(2); ++k) {
+        for (j = 0; j < C.size(1)-1; ++j) {
             C(4, j, k) = std::conj(C(3, j, k));
         }
     }
