@@ -13,4 +13,6 @@
 #endif //INC_3D_BEM_LOCAL_IM_H
 
 il::StaticArray2D<double, 6, 18> Local_IM_H(double, double, std::complex<double>, il::StaticArray<std::complex<double>,3>, il::StaticArray2D<std::complex<double>,6,6>);
+il::StaticArray2D<double, 6, 18> Local_IM_B_H(double, double, std::complex<double>, il::StaticArray<std::complex<double>,3>, il::StaticArray2D<std::complex<double>,6,6>);
 //il::StaticArray2D<double, 6, 18> Local_IM_T(double, double, std::complex<double>, il::StaticArray<std::complex<double>,3>, il::StaticArray2D<std::complex<double>,6,6>);
+//il::StaticArray2D<double, 6, 18> Local_IM_B_T(double, double, std::complex<double>, il::StaticArray<std::complex<double>,3>, il::StaticArray2D<std::complex<double>,6,6>);

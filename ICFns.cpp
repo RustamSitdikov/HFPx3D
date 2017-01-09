@@ -1,5 +1,9 @@
 //
-// Created by D. Nikolski on 1/5/2017.
+// This file is part of 3d_bem.
+//
+// Created by nikolski on 1/5/2017.
+// Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland, Geo-Energy Laboratory, 2016-2017.  All rights reserved.
+// See the LICENSE.TXT file for more details. 
 //
 // Constituing functions for the integrals
 // of any kernel of the elasticity equation
@@ -20,7 +24,7 @@
 // General case (h!=0, collocation point projected into or outside the element)
 // powers of r, G0=arctan((ah)/(dr)), H0=arctanh(a/r) and its derivatives w.r. to h
 
-il::StaticArray<double, 9> ICFns(double h, std::complex<double> d, double a, double x, std::complex<double> eix) {
+il::StaticArray<std::complex<double>, 9> ICFns(double h, std::complex<double> d, double a, double x, std::complex<double> eix) {
 
     double D1 = std::abs(d), D2 = D1*D1, a2 = a*a,
             r = std::sqrt(h*h + a2 + D2),
@@ -28,12 +32,13 @@ il::StaticArray<double, 9> ICFns(double h, std::complex<double> d, double a, dou
             ar = a/r, ar2 = ar*ar,
             hr = std::fabs(h/r),
             B = 1.0/(r2 - a2), B2=B*B, B3=B2*B;
+    // evaluation of x and eix can be added here; then change arguments to pointer type
     double TanHi = std::imag(eix)/std::real(eix), tr = hr*TanHi,
             G0 = std::atan(tr), H0 = std::atanh(ar),
             H1 = -0.5*ar*B, H2 = 0.25*(3.0 - ar2)*ar*B2,
             H3 = -0.125*(15.0 - 10.0*ar2 + 3.0*ar2*ar2)*ar*B3;
 
-    il::StaticArray<double, 9> BCE {0.0};
+    il::StaticArray<std::complex<double>, 9> BCE {0.0};
     BCE[0] = r; BCE[1] = 1.0/r; BCE[2] = 1.0/r3; BCE[3] = 1.0/r5;
     BCE[4] = G0-x; BCE[5] = H0; BCE[6] = H1; BCE[7] = H2; BCE[8] = H3;
 
@@ -42,7 +47,7 @@ il::StaticArray<double, 9> ICFns(double h, std::complex<double> d, double a, dou
 
 // Special case (reduced summation, collocation point projected onto the element contour) - additional terms
 
-il::StaticArray<double, 5> ICFns_red(double h, std::complex<double> d, double a) {
+il::StaticArray<std::complex<double>, 5> ICFns_red(double h, std::complex<double> d, double a) {
 
     double h2 = h*h, h4 = h2*h2, h6 = h4*h2,
             D1 = std::abs(d), D2 = D1*D1, a2 = a*a,
@@ -52,7 +57,7 @@ il::StaticArray<double, 5> ICFns_red(double h, std::complex<double> d, double a)
             L0 = std::atanh(rr), L1 = -0.5*rr/h2, L2 = 0.25*(3.0 - rr2)*rr/h4,
             L3 = -0.125*(15.0 - 10.0*rr2 + 3.0*rr4)*rr/h6;
 
-    il::StaticArray<double, 5> BCE {0.0};
+    il::StaticArray<std::complex<double>, 5> BCE {0.0};
     BCE[0] = 1.0; BCE[1] = L0; BCE[2] = L1; BCE[3] = L2; BCE[4] = L3;
 
     return BCE;
