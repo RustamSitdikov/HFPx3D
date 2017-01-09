@@ -14,7 +14,7 @@
 #include <il/StaticArray.h>
 #include <il/StaticArray2D.h>
 #include <il/StaticArray3D.h>
-#include <cmath>
+//#include <cmath>
 #include <complex>
 #include <SijH.h>
 #include <ICFns.h>
