@@ -14,6 +14,8 @@
 #include <cstring>
 // <initializer_list> is needed for std::initializer_list<T>
 #include <initializer_list>
+// <type_traits> is needed for std::is_pod
+#include <type_traits>
 
 #include <il/base.h>
 
@@ -25,6 +27,7 @@ class StaticArray {
 
  private:
   T data_[n > 0 ? n : 1];
+  il::int_t size_ = n;
 
  public:
   /* \brief The default constructor
@@ -55,7 +58,7 @@ class StaticArray {
   // in debug mode. In release mode, if the length do not match, the result
   // is undefined behavior.
   */
-  explicit StaticArray(il::value_t, std::initializer_list<T> list);
+  StaticArray(il::value_t, std::initializer_list<T> list);
 
   /* \brief Accessor for a const il::StaticArray<T, n>
   // \details Access (read only) the i-th element of the array. Bound

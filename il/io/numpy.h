@@ -12,8 +12,9 @@
 
 #include <il/Array.h>
 #include <il/Array2D.h>
-#include <il/core/Error.h>
+#include <il/core/Status.h>
 
+#include <il/SparseMatrixCSR.h>
 #include <zlib.h>
 #include <cassert>
 #include <cstdio>
@@ -42,7 +43,7 @@ struct npz_t : public std::map<std::string, NpyArray> {
   }
 };
 
-char BigEndianTest();
+//char BigEndianTest();
 char map_type(const std::type_info& t);
 template <typename T>
 std::vector<char> create_npy_header(const T* data, const unsigned int* shape,
@@ -84,7 +85,7 @@ std::string tostring(T i, int pad = 0, char padval = ' ') {
 template <typename T>
 void npy_save(std::string fname, const T* data, const unsigned int* shape,
               const unsigned int ndims, bool fortran_order, std::string mode,
-              il::io_t, il::Error& error) {
+              il::io_t, il::Status &status) {
   FILE* fp = NULL;
 
   if (mode == "a") fp = fopen(fname.c_str(), "r+b");
@@ -143,9 +144,9 @@ void npy_save(std::string fname, const T* data, const unsigned int* shape,
     }
     fwrite(data, sizeof(T), nels, fp);
     fclose(fp);
-    error.set(il::ErrorCode::ok);
+    status.set(il::ErrorCode::ok);
   } else {
-    error.set(il::ErrorCode::not_found);
+    status.set(il::ErrorCode::not_found);
   }
 }
 
@@ -260,7 +261,7 @@ std::vector<char> create_npy_header(const T* data, const unsigned int* shape,
   (void)data;
   std::vector<char> dict;
   dict += "{'descr': '";
-  dict += BigEndianTest();
+  dict += '<'; //BigEndianTest();
   dict += map_type(typeid(T));
   dict += tostring(sizeof(T));
   dict += "', 'fortran_order': ";
@@ -295,31 +296,60 @@ namespace il {
 
 template <typename T>
 void save(const il::Array<T>& v, const std::string& filename, il::io_t,
-          il::Error& error) {
+          il::Status &status) {
   il::Array<unsigned int> shape{il::value,
                                 {static_cast<unsigned int>(v.size())}};
   bool fortran_order = false;
   cnpy::npy_save(filename, v.data(), shape.data(), shape.size(), fortran_order,
-                 "w", il::io, error);
+                 "w", il::io, status);
 }
 
 template <typename T>
 void save(const il::Array2D<T>& v, const std::string& filename, il::io_t,
-          il::Error& error) {
+          il::Status &status) {
   il::Array<unsigned int> shape{il::value,
                                 {static_cast<unsigned int>(v.size(0)),
                                  static_cast<unsigned int>(v.size(1))}};
   bool fortran_order = true;
   cnpy::npy_save(filename, v.data(), shape.data(), shape.size(), fortran_order,
-                 "w", il::io, error);
+                 "w", il::io, status);
+}
+
+inline void save(const il::SparseMatrixCSR<il::int_t, double>& A,
+                 const std::string& filename, il::io_t, il::Status &status) {
+  bool fortran_order = false;
+  il::Array<unsigned int> shape_column{
+      il::value, {static_cast<unsigned int>(A.nb_nonzeros())}};
+  cnpy::npy_save(filename + std::string{".column"}, A.column_data(),
+                 shape_column.data(), shape_column.size(), fortran_order, "w",
+                 il::io, status);
+
+  il::Array<unsigned int> shape_row{il::value,
+                                    {static_cast<unsigned int>(A.size(0) + 1)}};
+  cnpy::npy_save(filename + std::string{".row"}, A.row_data(), shape_row.data(),
+                 shape_row.size(), fortran_order, "w", il::io, status);
+
+  il::Array<unsigned int> shape_element{
+      il::value, {static_cast<unsigned int>(A.nb_nonzeros())}};
+  cnpy::npy_save(filename + std::string{".element"}, A.element_data(),
+                 shape_element.data(), shape_element.size(), fortran_order, "w",
+                 il::io, status);
 }
 
 template <typename T>
-void load(const std::string& filename, il::io_t, il::Array<T>& v, il::Error& error) {
+T load(const std::string& filename, il::io_t, il::Status &status) {
+  (void)filename;
+  status.set(il::ErrorCode::unimplemented);
+  return T{};
+}
+
+template <>
+inline il::Array<int> load(const std::string& filename, il::io_t,
+                           il::Status &status) {
   FILE* fp = fopen(filename.c_str(), "rb");
   if (!fp) {
-    error.set(il::ErrorCode::not_found);
-    return;
+    status.set(il::ErrorCode::not_found);
+    return il::Array<int>{};
   }
 
   unsigned int* shape;
@@ -335,27 +365,28 @@ void load(const std::string& filename, il::io_t, il::Array<T>& v, il::Error& err
   }
 
   IL_ASSERT(ndims == 1);
-  IL_ASSERT(word_size == sizeof(T));
+  IL_ASSERT(word_size == sizeof(int));
 
-  v.resize(size);
+  il::Array<int> v{static_cast<il::int_t>(size)};
   std::size_t nread = fread(v.data(), word_size, size, fp);
   if (nread != size) {
-    error.set(il::ErrorCode::wrong_file_format);
-    return;
+    status.set(il::ErrorCode::wrong_file_format);
+    return v;
   }
 
   fclose(fp);
 
-  error.set(il::ErrorCode::ok);
+  status.set(il::ErrorCode::ok);
+  return v;
 }
 
-template <typename T>
-void load(const std::string& filename, il::io_t, il::Array2D<T>& A,
-          il::Error& error) {
+template <>
+inline il::Array<double> load(const std::string& filename, il::io_t,
+                              il::Status &status) {
   FILE* fp = fopen(filename.c_str(), "rb");
   if (!fp) {
-    error.set(il::ErrorCode::not_found);
-    return;
+    status.set(il::ErrorCode::not_found);
+    return il::Array<double>{};
   }
 
   unsigned int* shape;
@@ -363,9 +394,46 @@ void load(const std::string& filename, il::io_t, il::Array2D<T>& A,
   bool fortran_order;
   char type;
   cnpy::parse_npy_header(fp, word_size, shape, ndims, fortran_order, &type);
-  if (type != cnpy::map_type(typeid(T))) {
-    error.set(il::ErrorCode::wrong_type);
-    return;
+
+  unsigned long long size =
+      1;  // long long so no overflow when multiplying by word_size
+  for (unsigned int i = 0; i < ndims; ++i) {
+    size *= shape[i];
+  }
+
+  IL_ASSERT(ndims == 1);
+  IL_ASSERT(word_size == sizeof(double));
+
+  il::Array<double> v{static_cast<il::int_t>(size)};
+  std::size_t nread = fread(v.data(), word_size, size, fp);
+  if (nread != size) {
+    status.set(il::ErrorCode::wrong_file_format);
+    return v;
+  }
+
+  fclose(fp);
+
+  status.set(il::ErrorCode::ok);
+  return v;
+}
+
+template <>
+inline il::Array2D<int> load(const std::string& filename, il::io_t,
+                             il::Status &status) {
+  FILE* fp = fopen(filename.c_str(), "rb");
+  if (!fp) {
+    status.set(il::ErrorCode::not_found);
+    return il::Array2D<int>{};
+  }
+
+  unsigned int* shape;
+  unsigned int ndims, word_size;
+  bool fortran_order;
+  char type;
+  cnpy::parse_npy_header(fp, word_size, shape, ndims, fortran_order, &type);
+  if (type != cnpy::map_type(typeid(int))) {
+    status.set(il::ErrorCode::wrong_type);
+    return il::Array2D<int>{};
   }
 
   unsigned long long size =
@@ -375,22 +443,84 @@ void load(const std::string& filename, il::io_t, il::Array2D<T>& A,
   }
 
   IL_ASSERT(ndims == 2);
-  IL_ASSERT(word_size == sizeof(T));
+  IL_ASSERT(word_size == sizeof(int));
   IL_ASSERT(fortran_order);
 
-  A.resize(shape[0], shape[1]);
-  IL_ASSERT(A.size(0) == A.capacity(0));
-  IL_ASSERT(A.size(1) == A.capacity(1));
+  il::Array2D<int> A{static_cast<il::int_t>(shape[0]),
+                     static_cast<il::int_t>(shape[1])};
 
   std::size_t nread = fread(A.data(), word_size, size, fp);
   if (nread != size) {
-    error.set(il::ErrorCode::wrong_file_format);
-    return;
+    status.set(il::ErrorCode::wrong_file_format);
+    return A;
   }
 
   fclose(fp);
-  error.set(il::ErrorCode::ok);
+  status.set(il::ErrorCode::ok);
+  return A;
 }
 
+template <>
+inline il::Array2D<double> load(const std::string& filename, il::io_t,
+                                il::Status &status) {
+  FILE* fp = fopen(filename.c_str(), "rb");
+  if (!fp) {
+    status.set(il::ErrorCode::not_found);
+    return il::Array2D<double>{};
+  }
+
+  unsigned int* shape;
+  unsigned int ndims, word_size;
+  bool fortran_order;
+  char type;
+  cnpy::parse_npy_header(fp, word_size, shape, ndims, fortran_order, &type);
+  if (type != cnpy::map_type(typeid(double))) {
+    status.set(il::ErrorCode::wrong_type);
+    return il::Array2D<double>{};
+  }
+
+  unsigned long long size =
+      1;  // long long so no overflow when multiplying by word_size
+  for (unsigned int i = 0; i < ndims; ++i) {
+    size *= shape[i];
+  }
+
+  IL_ASSERT(ndims == 2);
+  IL_ASSERT(word_size == sizeof(double));
+  IL_ASSERT(fortran_order);
+
+  il::Array2D<double> A{static_cast<il::int_t>(shape[0]),
+                        static_cast<il::int_t>(shape[1])};
+
+  std::size_t nread = fread(A.data(), word_size, size, fp);
+  if (nread != size) {
+    status.set(il::ErrorCode::wrong_file_format);
+    return A;
+  }
+
+  fclose(fp);
+  status.set(il::ErrorCode::ok);
+  return A;
+}
+
+template <>
+inline il::SparseMatrixCSR<il::int_t, double> load(const std::string& filename, il::io_t,
+                                      il::Status &status) {
+  il::Status local_status{};
+  auto row =
+      il::load<il::Array<il::int_t>>(filename + std::string{".row"}, il::io, local_status);
+  local_status.abort_on_error();
+  auto column = il::load<il::Array<il::int_t>>(filename + std::string{".column"},
+                                         il::io, local_status);
+  local_status.abort_on_error();
+  auto element = il::load<il::Array<double>>(filename + std::string{".element"},
+                                             il::io, local_status);
+  local_status.abort_on_error();
+
+  const il::int_t n = row.size() - 1;
+  status.set(il::ErrorCode::ok);
+  return il::SparseMatrixCSR<il::int_t, double>{n, n, std::move(column), std::move(row),
+                                   std::move(element)};
+}
 }
 #endif  // IL_NUMPY_H

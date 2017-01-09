@@ -16,6 +16,8 @@
 #include <initializer_list>
 // <new> is needed for ::operator new
 #include <new>
+// <type_traits> is needed for std::is_pod
+#include <type_traits>
 // <utility> is needed for std::move
 #include <utility>
 
@@ -174,7 +176,7 @@ class SmallArray {
   // \details Reallocation is done only if it is needed. In case reallocation
   // happens, then new capacity is roughly (3/2) the previous capacity.
   */
-  void push_back(const T& x);
+  void append(const T& x);
 
   /* \brief Construct an element at the end of the array
   // \details Reallocation is done only if it is needed. In case reallocation
@@ -602,7 +604,7 @@ void SmallArray<T, small_size>::reserve(il::int_t r) {
 }
 
 template <typename T, il::int_t small_size>
-void SmallArray<T, small_size>::push_back(const T& x) {
+void SmallArray<T, small_size>::append(const T& x) {
   if (size_ == capacity_) {
     const il::int_t n{size()};
     increase_capacity(n > 1 ? (3 * n) / 2 : n + 1);
@@ -683,7 +685,7 @@ void SmallArray<T, small_size>::increase_capacity(il::int_t r) {
   data_ = new_data;
   size_ = data_ + n;
   capacity_ = data_ + r;
-};
+}
 
 template <typename T, il::int_t small_size>
 void SmallArray<T, small_size>::check_invariance() const {
