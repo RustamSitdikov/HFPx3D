@@ -21,7 +21,7 @@
 #include <il/linear_algebra/dense/blas/blas.h>
 #include <il/linear_algebra/dense/blas/dot.h>
 
-il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std::complex<double> z, il::StaticArray<std::complex<double>,3> tau, il::StaticArray2D<std::complex<double>,6,6> SFM) {
+il::StaticArray2D<double, 6, 18> Local_IM_B_H(double mu, double nu, double h, std::complex<double> z, il::StaticArray<std::complex<double>,3> tau, il::StaticArray2D<std::complex<double>,6,6> SFM) {
     // This function assembles a local "stiffness" sub-matrix
     // (influence of DD at the element nodes to stresses at the point z)
     // in terms of a triangular element's local coordinates
