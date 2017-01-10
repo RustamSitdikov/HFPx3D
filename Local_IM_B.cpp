@@ -88,21 +88,25 @@ il::StaticArray2D<double, 6, 18> Local_IM_B_H(double mu, double nu, double h, st
         // make sure it's between -pi and pi (add or subtract 2*pi)
         // phi[j] = (std::fmod(phi[j]/M_PI+1.0, 2.0)-1.0)*M_PI;
         psi[j] = std::arg(d[j]);
+    }
+    for (j=0; j<=2; ++j) {
         for (k=0; k<=1; ++k) {
             l = (j+k)%3;
             chi(k,j) = phi[l]-psi[j];
             // make sure it's between -pi and pi (add or subtract 2*pi)
-            // chi(k,j) = (std::fmod(chi(k,j)/M_PI+1.0, 2.0)-1.0)*M_PI;
+            //chi(k,j) = (std::fmod(chi(k,j)/M_PI+1.0, 2.0)-1.0)*M_PI;
             chi(k,j) = (chi(k,j)<=-M_PI)? chi(k,j)+M_PI : ((chi(k,j)>M_PI)? chi(k,j)-M_PI : chi(k,j));
             // reprooving for "degenerate" edges
-            if (chi(k,j)<DTol) IsDegen = true;
+            if (fabs(M_PI_2-std::fabs(chi(k,j)))<DTol) IsDegen = true;
         }
     }
 
     // summation over edges
     for (m=0; m<=2; ++m) {
         n = (m+1)%3;
-        if (std::abs(d[m])>=DTol && chi(0,m)>=DTol && chi(1,m)>=DTol) {
+        if (std::abs(d[m])>=DTol &&
+                std::fabs(M_PI_2-std::fabs(chi(0,m)))>=DTol &&
+                std::fabs(M_PI_2-std::fabs(chi(1,m)))>=DTol) {
             eixm = std::exp(I*chi(0,m)); eixn = std::exp(I*chi(1,m));
             if(std::fabs(h)<HTol) { // limit case (point x on the element's plane)
                 SincLn = SijLimH(nu, eixn, d[m]);

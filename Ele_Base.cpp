@@ -20,7 +20,7 @@ il::StaticArray<double, 3> cross(il::StaticArray<double, 3>, il::StaticArray<dou
 double VNorm(il::StaticArray<double, 3> a) {
     // L2 norm of a vector
     double N = 0.0;
-    for (int k=0; k<int(a.size); ++k) {
+    for (int k=0; k<a.size(); ++k) {
         N += a[k]*a[k];
     }
     N = std::sqrt(N);
@@ -31,7 +31,7 @@ il::StaticArray<double, 3> normalize(il::StaticArray<double, 3> a) {
     // normalized 3D vector
     il::StaticArray<double, 3> e;
     double N = VNorm(a);
-    for (int k=0; k<int(a.size); ++k) {
+    for (int k=0; k<a.size(); ++k) {
         e[k] = a[k]/N;
     }
     return e;
@@ -39,8 +39,8 @@ il::StaticArray<double, 3> normalize(il::StaticArray<double, 3> a) {
 
 il::StaticArray<double, 3> cross(il::StaticArray<double, 3> a, il::StaticArray<double, 3> b) {
     // cross product of two 3D vectors
-    IL_ASSERT(int(a.size) == 3);
-    IL_ASSERT(int(b.size) == 3);
+    IL_ASSERT(a.size() == 3);
+    IL_ASSERT(b.size() == 3);
     il::StaticArray<double, 3> c;
     c[0] = a[1]*b[2] - a[2]*b[1];
     c[1] = a[2]*b[0] - a[0]*b[2];
@@ -48,10 +48,11 @@ il::StaticArray<double, 3> cross(il::StaticArray<double, 3> a, il::StaticArray<d
     return c;
 };
 
-il::StaticArray2D<double, 3, 3> El_LB_RT(il::StaticArray2D<double,3,3> EV) {
+void El_LB_RT(il::StaticArray2D<double, 3, 3>& RM, il::StaticArray2D<double,3,3> EV) {
     // This function calculates the rotation tensor
     // of the element's local Cartesian coordinate system
     il::StaticArray<double, 3> a1{0.0}, a2{0.0}, a3{0.0}, e1{0.0}, e2{0.0}, e3{0.0};
+    //il::StaticArray2D<double, 3, 3> RM;
     for (int n=0; n<=2; ++n) {
         a1[n] = EV(n,1)-EV(n,0);
         a2[n] = EV(n,2)-EV(n,0);
@@ -59,31 +60,32 @@ il::StaticArray2D<double, 3, 3> El_LB_RT(il::StaticArray2D<double,3,3> EV) {
     e1=normalize(a1);
     a3=cross(e1,a2);
     e3=normalize(a3);
-    e2=cross(e3,e1);
-    il::StaticArray2D<double, 3, 3> RM;
-    for (int j=0; j<=3; ++j) {
+    e2=normalize(cross(e3,e1));
+    for (int j=0; j<=2; ++j) {
         RM(j, 0) = e1[j];
         RM(j, 1) = e2[j];
         RM(j, 2) = e3[j];
     }
-    return RM;
+    //return RM;
 };
 
-il::StaticArray2D<std::complex<double>, 2, 2> El_CT(il::StaticArray2D<double,3,3> EV) {
+il::StaticArray2D<std::complex<double>, 2, 2> El_CT(il::StaticArray2D<double, 3, 3>& RM, il::StaticArray2D<double,3,3> EV) {
     // This function calculates the coordinate transform
     // from local Cartesian coordinates to "master element"
     // ([tau, conj(tau)] to [x,y])
     il::StaticArray<std::complex<double>, 2> z23{0.0};
     il::StaticArray<double, 3> xsi{0.0}, VV{0.0};
     std::complex<double> Dt;
-    il::StaticArray2D<double, 3, 3> RM = El_LB_RT(EV);
+    //il::StaticArray2D<double, 3, 3> RM;
     il::StaticArray2D<std::complex<double>, 2, 2> MI{0.0};
+    El_LB_RT(RM, EV);
+    //RM = El_LB_RT(EV);
     for (int k=0; k<=1; ++k) {
         for (int n=0; n<=2; ++n) {
             VV[n] = EV(n,k+1)-EV(n,0);
         }
         xsi = il::dot(VV, RM); // or transposed RM dot VV
-        z23[k] = std::complex(xsi[1], xsi[2]);
+        z23[k] = std::complex<double>(xsi[0], xsi[1]);
     }
     Dt=z23[0]*std::conj(z23[1])-z23[1]*std::conj(z23[0]);
     MI(0, 0) = std::conj(z23[1])/Dt; MI(0, 1) = -z23[1]/Dt;
@@ -91,7 +93,7 @@ il::StaticArray2D<std::complex<double>, 2, 2> El_CT(il::StaticArray2D<double,3,3
     return MI;
 };
 
-il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_S(il::StaticArray2D<double,3,3> EV) {
+il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_S(il::StaticArray2D<double, 3, 3>& RT, il::StaticArray2D<double,3,3> EV) {
     // This function calculates the basis (shape) functions' coefficients
     // in terms of complex (tau, conj(tau)) representation of local element's coordinates
     // for trivial (middle) distribution of edge nodes
@@ -101,7 +103,7 @@ il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_S(il::StaticArray2D<double,
     // common denominator (determinant)
     // CD=(z(3)-z(2)).*zc(1)+(z(1)-z(3)).*zc(2)+(z(2)-z(1)).*zc(3);
     // CT=[zc(3)-zc(1), z(1)-z(3);/ zc(1)-zc(2), z(2)-z(1)]./CD;
-    il::StaticArray2D<std::complex<double>, 2, 2> CT = El_CT(EV);
+    il::StaticArray2D<std::complex<double>, 2, 2> CT = El_CT(RT, EV);
     il::StaticArray2D<std::complex<double>, 3, 3> CQ{0.0};
     il::StaticArray2D<std::complex<double>, 6, 6> SFM{0.0}, SFM_M{0.0}, CTau{0.0};
 
@@ -138,7 +140,7 @@ il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_S(il::StaticArray2D<double,
     return SFM;
 };
 
-il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_N(il::StaticArray2D<double,3,3> EV, il::StaticArray<double,3> VW) {
+il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_N(il::StaticArray2D<double, 3, 3>& RT, il::StaticArray2D<double,3,3> EV, il::StaticArray<double,3> VW) {
     // This function calculates the basis (shape) functions' coefficients
     // in terms of complex (tau, conj(tau)) representation of local element's coordinates
     // for non-trivial distribution of edge nodes defined by "weights" VW
@@ -158,7 +160,7 @@ il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_N(il::StaticArray2D<double,
     // common denominator (determinant)
     // CD=(z(3)-z(2)).*zc(1)+(z(1)-z(3)).*zc(2)+(z(2)-z(1)).*zc(3);
     // CT=[zc(3)-zc(1), z(1)-z(3);/ zc(1)-zc(2), z(2)-z(1)]./CD;
-    il::StaticArray2D<std::complex<double>, 2, 2> CT = El_CT(EV);
+    il::StaticArray2D<std::complex<double>, 2, 2> CT = El_CT(RT, EV);
     il::StaticArray2D<std::complex<double>, 3, 3> CQ{0.0};
     il::StaticArray2D<std::complex<double>, 6, 6> SFM{0.0}, SFM_M{0.0}, CTau{0.0};
 
@@ -195,7 +197,7 @@ il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_N(il::StaticArray2D<double,
     return SFM;
 };
 
-//il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_C(il::StaticArray2D<double,3,3> EV, il::StaticArray<double,3> VW, double beta) {
+//il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_C(il::StaticArray2D<double, 3, 3>& RT, il::StaticArray2D<double,3,3> EV, il::StaticArray<double,3> VW, double beta) {
 // This function calculates the basis (shape) functions' coefficients
 // in terms of complex (tau, conj(tau)) representation of local element's coordinates
 // for nodes' offset (e.g. at collocation points) defined by beta
