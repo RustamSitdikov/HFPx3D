@@ -49,8 +49,9 @@ il::StaticArray<double, 3> cross(il::StaticArray<double, 3> a, il::StaticArray<d
 };
 
 void El_LB_RT(il::StaticArray2D<double, 3, 3>& RM, il::StaticArray2D<double,3,3> EV) {
-    // This function calculates the rotation tensor
-    // of the element's local Cartesian coordinate system
+    // This function calculates the rotation tensor -
+    // coordinate transform from the element's local Cartesian coordinate system
+    // to the "global" (reference) Cartesian coordinate system
     il::StaticArray<double, 3> a1{0.0}, a2{0.0}, a3{0.0}, e1{0.0}, e2{0.0}, e3{0.0};
     //il::StaticArray2D<double, 3, 3> RM;
     for (int n=0; n<=2; ++n) {
@@ -76,10 +77,9 @@ il::StaticArray2D<std::complex<double>, 2, 2> El_CT(il::StaticArray2D<double, 3,
     il::StaticArray<std::complex<double>, 2> z23{0.0};
     il::StaticArray<double, 3> xsi{0.0}, VV{0.0};
     std::complex<double> Dt;
-    //il::StaticArray2D<double, 3, 3> RM;
     il::StaticArray2D<std::complex<double>, 2, 2> MI{0.0};
+    //il::StaticArray2D<double, 3, 3> RM = El_LB_RT(EV);
     El_LB_RT(RM, EV);
-    //RM = El_LB_RT(EV);
     for (int k=0; k<=1; ++k) {
         for (int n=0; n<=2; ++n) {
             VV[n] = EV(n,k+1)-EV(n,0);
@@ -87,7 +87,9 @@ il::StaticArray2D<std::complex<double>, 2, 2> El_CT(il::StaticArray2D<double, 3,
         xsi = il::dot(VV, RM); // or transposed RM dot VV
         z23[k] = std::complex<double>(xsi[0], xsi[1]);
     }
+    // common denominator (determinant)
     Dt=z23[0]*std::conj(z23[1])-z23[1]*std::conj(z23[0]);
+    // inverse transform
     MI(0, 0) = std::conj(z23[1])/Dt; MI(0, 1) = -z23[1]/Dt;
     MI(1, 0) = -std::conj(z23[0])/Dt; MI(1, 1) = z23[0]/Dt;
     return MI;
@@ -99,10 +101,7 @@ il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_S(il::StaticArray2D<double,
     // for trivial (middle) distribution of edge nodes
     // returns the same as El_SFM_N(EV, {1.0, 1.0, 1.0})
 
-    // CT defines inverse coordinate transform [tau, conj(tau)] to [x,y]
-    // common denominator (determinant)
-    // CD=(z(3)-z(2)).*zc(1)+(z(1)-z(3)).*zc(2)+(z(2)-z(1)).*zc(3);
-    // CT=[zc(3)-zc(1), z(1)-z(3);/ zc(1)-zc(2), z(2)-z(1)]./CD;
+    // CT defines inverse coordinate transform [tau, conj(tau)] to [x,y] (see El_CT)
     il::StaticArray2D<std::complex<double>, 2, 2> CT = El_CT(RT, EV);
     il::StaticArray2D<std::complex<double>, 3, 3> CQ{0.0};
     il::StaticArray2D<std::complex<double>, 6, 6> SFM{0.0}, SFM_M{0.0}, CTau{0.0};
@@ -136,6 +135,7 @@ il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_S(il::StaticArray2D<double,
             CTau(j+3, k+3) = CQ(j,k);
         }
     }
+    // assembly of SFM
     SFM=il::dot(SFM_M, CTau);
     return SFM;
 };
@@ -156,10 +156,7 @@ il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_N(il::StaticArray2D<double,
     C131=1.0/P13+1.0,	// (VW[0]+w(3))/VW[0];
     C13q=C131+C133;
 
-    // CT defines inverse coordinate transform [tau, conj(tau)] to [x,y]
-    // common denominator (determinant)
-    // CD=(z(3)-z(2)).*zc(1)+(z(1)-z(3)).*zc(2)+(z(2)-z(1)).*zc(3);
-    // CT=[zc(3)-zc(1), z(1)-z(3);/ zc(1)-zc(2), z(2)-z(1)]./CD;
+    // CT defines inverse coordinate transform [tau, conj(tau)] to [x,y] (see El_CT)
     il::StaticArray2D<std::complex<double>, 2, 2> CT = El_CT(RT, EV);
     il::StaticArray2D<std::complex<double>, 3, 3> CQ{0.0};
     il::StaticArray2D<std::complex<double>, 6, 6> SFM{0.0}, SFM_M{0.0}, CTau{0.0};
@@ -193,6 +190,7 @@ il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_N(il::StaticArray2D<double,
             CTau(j+3, k+3) = CQ(j,k);
         }
     }
+    // assembly of SFM
     SFM=il::dot(SFM_M, CTau);
     return SFM;
 };
