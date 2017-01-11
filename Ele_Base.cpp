@@ -11,6 +11,7 @@
 #include <il/StaticArray2D.h>
 #include <il/linear_algebra/dense/blas/dot.h>
 #include <complex>
+#include <Ele_Base.h>
 //#include <Submatrix.h>
 
 double VNorm(il::StaticArray<double, 3>);
@@ -25,7 +26,7 @@ double VNorm(il::StaticArray<double, 3> a) {
     }
     N = std::sqrt(N);
     return N;
-};
+}
 
 il::StaticArray<double, 3> normalize(il::StaticArray<double, 3> a) {
     // normalized 3D vector
@@ -35,7 +36,7 @@ il::StaticArray<double, 3> normalize(il::StaticArray<double, 3> a) {
         e[k] = a[k]/N;
     }
     return e;
-};
+}
 
 il::StaticArray<double, 3> cross(il::StaticArray<double, 3> a, il::StaticArray<double, 3> b) {
     // cross product of two 3D vectors
@@ -46,7 +47,7 @@ il::StaticArray<double, 3> cross(il::StaticArray<double, 3> a, il::StaticArray<d
     c[1] = a[2]*b[0] - a[0]*b[2];
     c[2] = a[0]*b[1] - a[1]*b[0];
     return c;
-};
+}
 
 void El_LB_RT(il::StaticArray2D<double, 3, 3>& RM, il::StaticArray2D<double,3,3> EV) {
     // This function calculates the rotation tensor -
@@ -69,7 +70,29 @@ void El_LB_RT(il::StaticArray2D<double, 3, 3>& RM, il::StaticArray2D<double,3,3>
         RM(j, 2) = e3[j];
     }
     //return RM;
-};
+}
+
+void El_RT_Tr(il::StaticArray<std::complex<double>, 3>& tau, il::StaticArray2D<double, 3, 3>& RMt, il::StaticArray2D<double, 3, 3>& RM, il::StaticArray2D<double,3,3> EV) {
+    // This function calculates the inverse (transposed) element's rotation tensor
+    // and tau-coordinates of the element's vertices
+    il::StaticArray<double, 3> V0; //, NV;
+    il::StaticArray2D<double, 3, 3> EVr{0.0};
+    for (int j=0; j<=2; ++j) {
+        for (int k=0; k<=2; ++k) {
+            RMt(k,j) = RM(j,k);
+        }
+    }
+    for (int k = 0; k<=2; ++k) {
+        V0[k] = EV(k, 0);
+        //NV[k] = -RMt(k, 2);
+        EVr(k, 1) = EV(k, 1) - V0[k];
+        EVr(k, 2) = EV(k, 2) - V0[k];
+    }
+    EVr = il::dot(RMt,EVr);
+    for (int j=0; j<=2; ++j) {
+        tau[j] = std::complex<double>(EVr(0,j), EVr(1,j));
+    }
+}
 
 il::StaticArray2D<std::complex<double>, 2, 2> El_CT(il::StaticArray2D<double, 3, 3>& RM, il::StaticArray2D<double,3,3> EV) {
     // This function calculates the coordinate transform
@@ -95,7 +118,24 @@ il::StaticArray2D<std::complex<double>, 2, 2> El_CT(il::StaticArray2D<double, 3,
     MI(0, 0) = std::conj(z23[1])/Dt; MI(0, 1) = -z23[1]/Dt;
     MI(1, 0) = -std::conj(z23[0])/Dt; MI(1, 1) = z23[0]/Dt;
     return MI;
-};
+}
+
+void El_X_CR(el_x_cr& h_z, il::StaticArray2D<double, 3, 3>& RMt, il::StaticArray2D<double, 3, 3> EV, il::StaticArray<double, 3> X0) {
+    // This function calculates the h- and tau-coordinates of the point X0
+    // with respect to the element's local Cartesian coordinate system
+    // with origin at the first vertex of the element (EV(j, 0))
+    il::StaticArray<double, 3> V0, X0r;
+    //el_x_cr h_z;
+    for (int k = 0; k<=2; ++k) {
+        V0[k] = EV(k, 0);
+        //NV[k] = -RTt(k, 2);
+        X0r[k] = X0[k] - V0[k];
+    }
+    X0r = il::dot(RMt,X0r);
+    h_z.h = -X0r[2];
+    h_z.z = std::complex<double>(X0r[0], X0r[1]);
+    //return h_z;
+}
 
 il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_S(il::StaticArray2D<double, 3, 3>& RT, il::StaticArray2D<double,3,3> EV) {
     // This function calculates the basis (shape) functions' coefficients (rows of SFM)
@@ -141,7 +181,7 @@ il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_S(il::StaticArray2D<double,
     // assembly of SFM
     SFM=il::dot(SFM_M, CTau);
     return SFM;
-};
+}
 
 il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_N(il::StaticArray2D<double, 3, 3>& RT, il::StaticArray2D<double,3,3> EV, il::StaticArray<double,3> VW) {
     // This function calculates the basis (shape) functions' coefficients (rows of SFM)
@@ -197,7 +237,7 @@ il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_N(il::StaticArray2D<double,
     // assembly of SFM
     SFM=il::dot(SFM_M, CTau);
     return SFM;
-};
+}
 
 //il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_C(il::StaticArray2D<double, 3, 3>& RT, il::StaticArray2D<double,3,3> EV, il::StaticArray<double,3> VW, double beta) {
 // This function calculates the basis (shape) functions' coefficients (rows of SFM)
