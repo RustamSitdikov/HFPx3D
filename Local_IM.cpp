@@ -86,6 +86,8 @@ il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std:
         // make sure it's between -pi and pi (add or subtract 2*pi)
         // phi[j] = (std::fmod(phi[j]/M_PI+1.0, 2.0)-1.0)*M_PI;
         psi[j] = std::arg(d[j]);
+    }
+    for (j=0; j<=2; ++j) {
         for (k=0; k<=1; ++k) {
             l = (j+k)%3;
             chi(k,j) = phi[l]-psi[j];
@@ -93,14 +95,16 @@ il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std:
             // chi(k,j) = (std::fmod(chi(k,j)/M_PI+1.0, 2.0)-1.0)*M_PI;
             chi(k,j) = (chi(k,j)<=-M_PI)? chi(k,j)+M_PI : ((chi(k,j)>M_PI)? chi(k,j)-M_PI : chi(k,j));
             // reprooving for "degenerate" edges
-            if (chi(k,j)<DTol) IsDegen = true;
+            if (fabs(M_PI_2-std::fabs(chi(k,j)))<DTol) IsDegen = true;
         }
     }
 
     // summation over edges
     for (m=0; m<=2; ++m) {
         n = (m+1)%3;
-        if (std::abs(d[m])>=DTol && chi(0,m)>=DTol && chi(1,m)>=DTol) {
+        if (std::abs(d[m])>=DTol &&
+                std::fabs(M_PI_2-std::fabs(chi(0,m)))>=DTol &&
+                std::fabs(M_PI_2-std::fabs(chi(1,m)))>=DTol) {
             eixm = std::exp(I*chi(0,m)); eixn = std::exp(I*chi(1,m));
             if(std::fabs(h)<HTol) { // limit case (point x on the element's plane)
                 SincLn = SijLimH(nu, eixn, d[m]);
@@ -121,8 +125,6 @@ il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std:
                 // S11+S22
                 Cn = S11_22H(nu, eixn, h, d[m]);
                 Cm = S11_22H(nu, eixm, h, d[m]);
-                //il::blas(1.0, Cn, Fn, 0.0, il::io, Sinc);
-                //il::blas(-1.0, Cm, Fm, 0.0, il::io, Sinc);
                 Sincn = il::dot(Cn, Fn); Sincm = il::dot(Cm, Fm);
                 for (j=0; j<=5; ++j) {
                     for (k=0; k<=2; ++k) {
@@ -135,8 +137,6 @@ il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std:
                     FmD = ICFns_red(h, d[m], am);
                     CnD = S11_22H_red(nu, eipn, h, d[m]);
                     CmD = S11_22H_red(nu, eipm, h, d[m]);
-                    //il::blas(1.0, CnD, FnD, 0.0, il::io, Sinc);
-                    //il::blas(-1.0, CmD, FmD, 0.0, il::io, Sinc);
                     Sincn = il::dot(CnD, FnD); Sincm = il::dot(CmD, FmD);
                     for (j=0; j<=5; ++j) {
                         for (k=0; k<=2; ++k) {
@@ -147,8 +147,6 @@ il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std:
                 // S11-S22+2*I*S12
                 Cn = S11_22_12H(nu, eixn, h, d[m]);
                 Cm = S11_22_12H(nu, eixm, h, d[m]);
-                //il::blas(1.0, Cn, Fn, 0.0, il::io, Sinc);
-                //il::blas(-1.0, Cm, Fm, 0.0, il::io, Sinc);
                 Sincn = il::dot(Cn, Fn); Sincm = il::dot(Cm, Fm);
                 for (j=0; j<=5; ++j) {
                     for (k=0; k<=2; ++k) {
@@ -158,8 +156,6 @@ il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std:
                 if (IsDegen) { // "degenerate" case
                     CnD = S11_22_12H_red(nu, eipn, h, d[m]);
                     CmD = S11_22_12H_red(nu, eipm, h, d[m]);
-                    //il::blas(1.0, CnD, FnD, 0.0, il::io, Sinc);
-                    //il::blas(-1.0, CmD, FmD, 0.0, il::io, Sinc);
                     Sincn = il::dot(CnD, FnD); Sincm = il::dot(CmD, FmD);
                     for (j=0; j<=5; ++j) {
                         for (k=0; k<=2; ++k) {
@@ -170,8 +166,6 @@ il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std:
                 // S13+I*S23
                 Cn = S13_23H(nu, eixn, h, d[m]);
                 Cm = S13_23H(nu, eixm, h, d[m]);
-                //il::blas(1.0, Cn, Fn, 0.0, il::io, Sinc);
-                //il::blas(-1.0, Cm, Fm, 0.0, il::io, Sinc);
                 Sincn = il::dot(Cn, Fn); Sincm = il::dot(Cm, Fm);
                 for (j=0; j<=5; ++j) {
                     for (k=0; k<=2; ++k) {
@@ -181,8 +175,6 @@ il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std:
                 if (IsDegen) { // "degenerate" case
                     CnD = S13_23H_red(nu, eipn, h, d[m]);
                     CmD = S13_23H_red(nu, eipm, h, d[m]);
-                    //il::blas(1.0, CnD, FnD, 0.0, il::io, Sinc);
-                    //il::blas(-1.0, CmD, FmD, 0.0, il::io, Sinc);
                     Sincn = il::dot(CnD, FnD); Sincm = il::dot(CmD, FmD);
                     for (j=0; j<=5; ++j) {
                         for (k=0; k<=2; ++k) {
@@ -193,8 +185,6 @@ il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std:
                 // S33
                 Cn = S33H(nu, eixn, h, d[m]);
                 Cm = S33H(nu, eixm, h, d[m]);
-                //il::blas(1.0, Cn, Fn, 0.0, il::io, Sinc);
-                //il::blas(-1.0, Cm, Fm, 0.0, il::io, Sinc);
                 Sincn = il::dot(Cn, Fn); Sincm = il::dot(Cm, Fm);
                 for (j=0; j<=5; ++j) {
                     for (k=0; k<=2; ++k) {
@@ -204,8 +194,6 @@ il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std:
                 if (IsDegen) { // "degenerate" case
                     CnD = S33H_red(nu, eipn, h, d[m]);
                     CmD = S33H_red(nu, eipm, h, d[m]);
-                    //il::blas(1.0, CnD, FnD, 0.0, il::io, Sinc);
-                    //il::blas(-1.0, CmD, FmD, 0.0, il::io, Sinc);
                     Sincn = il::dot(CnD, FnD); Sincm = il::dot(CmD, FmD);
                     for (j=0; j<=5; ++j) {
                         for (k=0; k<=2; ++k) {

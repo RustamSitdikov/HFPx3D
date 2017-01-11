@@ -7,9 +7,9 @@
 // See the LICENSE.TXT file for more details. 
 //
 
-// Calculation of local element-to-point influence matrices
+// Assembly of local element-to-point influence matrices
 // for a triangular boundary element with
-// 2nd order polynomial approximation of unknowns
+// 2nd order polynomial approximation of unknowns;
 // a version using il::blas function
 
 #include <il/StaticArray.h>

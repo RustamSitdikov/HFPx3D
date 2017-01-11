@@ -51,6 +51,7 @@ il::StaticArray<double, 3> cross(il::StaticArray<double, 3> a, il::StaticArray<d
 void El_LB_RT(il::StaticArray2D<double, 3, 3>& RM, il::StaticArray2D<double,3,3> EV) {
     // This function calculates the rotation tensor -
     // coordinate transform from the element's local Cartesian coordinate system
+    // with origin at the first vertex of the element (EV(j, 0))
     // to the "global" (reference) Cartesian coordinate system
     il::StaticArray<double, 3> a1{0.0}, a2{0.0}, a3{0.0}, e1{0.0}, e2{0.0}, e3{0.0};
     //il::StaticArray2D<double, 3, 3> RM;
@@ -73,7 +74,8 @@ void El_LB_RT(il::StaticArray2D<double, 3, 3>& RM, il::StaticArray2D<double,3,3>
 il::StaticArray2D<std::complex<double>, 2, 2> El_CT(il::StaticArray2D<double, 3, 3>& RM, il::StaticArray2D<double,3,3> EV) {
     // This function calculates the coordinate transform
     // from local Cartesian coordinates to "master element"
-    // ([tau, conj(tau)] to [x,y])
+    // ([tau, conj(tau)] to [x,y]) with origin at the first vertex
+    // of the element (EV(j, 0))
     il::StaticArray<std::complex<double>, 2> z23{0.0};
     il::StaticArray<double, 3> xsi{0.0}, VV{0.0};
     std::complex<double> Dt;
@@ -96,9 +98,10 @@ il::StaticArray2D<std::complex<double>, 2, 2> El_CT(il::StaticArray2D<double, 3,
 };
 
 il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_S(il::StaticArray2D<double, 3, 3>& RT, il::StaticArray2D<double,3,3> EV) {
-    // This function calculates the basis (shape) functions' coefficients
+    // This function calculates the basis (shape) functions' coefficients (rows of SFM)
+    // for a triangular boundary element with 2nd order polynomial approximation of unknowns
     // in terms of complex (tau, conj(tau)) representation of local element's coordinates
-    // for trivial (middle) distribution of edge nodes
+    // with trivial (middle) edge partitioning;
     // returns the same as El_SFM_N(EV, {1.0, 1.0, 1.0})
 
     // CT defines inverse coordinate transform [tau, conj(tau)] to [x,y] (see El_CT)
@@ -141,9 +144,10 @@ il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_S(il::StaticArray2D<double,
 };
 
 il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_N(il::StaticArray2D<double, 3, 3>& RT, il::StaticArray2D<double,3,3> EV, il::StaticArray<double,3> VW) {
-    // This function calculates the basis (shape) functions' coefficients
+    // This function calculates the basis (shape) functions' coefficients (rows of SFM)
+    // for a triangular boundary element with 2nd order polynomial approximation of unknowns
     // in terms of complex (tau, conj(tau)) representation of local element's coordinates
-    // for non-trivial distribution of edge nodes defined by "weights" VW
+    // with non-trivial edge partitioning defined by "weights" VW
 
     double P12=VW[0]/VW[1], P13=VW[0]/VW[2], P23=VW[1]/VW[2],
     C122=P12+1.0,     // (VW[0]+w(2))/VW[1];
@@ -196,8 +200,9 @@ il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_N(il::StaticArray2D<double,
 };
 
 //il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_C(il::StaticArray2D<double, 3, 3>& RT, il::StaticArray2D<double,3,3> EV, il::StaticArray<double,3> VW, double beta) {
-// This function calculates the basis (shape) functions' coefficients
+// This function calculates the basis (shape) functions' coefficients (rows of SFM)
+// for a triangular boundary element with 2nd order polynomial approximation of unknowns
 // in terms of complex (tau, conj(tau)) representation of local element's coordinates
-// for nodes' offset (e.g. at collocation points) defined by beta
-// and non-trivial distribution of edge nodes
+// with nodes' offset to the centroid (e.g. at collocation points) defined by beta
+// and non-trivial edge partitioning
 //}
