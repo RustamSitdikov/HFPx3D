@@ -84,7 +84,7 @@ void BEMatrix_H_S(il::StaticArray2D& IM_H, double Mu, double Nu, double beta, il
                 // Shifting to the N_T-th collocation pt
                 El_X_CR(hz, RT_S_t, EV_S, CP_T[N_T]);
                 // Calculating DD-to stress influence w.r. to the source element's local coordinate system
-                S_H_CP_L = Local_IM_B_H(Mu, Nu, hz.h, hz.z, tau, SFM);
+                S_H_CP_L = Local_IM_H(Mu, Nu, hz.h, hz.z, tau, SFM);
                 // Multiplication by N_CP
                 // Alternative 1: rotating stress at CP to the reference ("global") coordinate system
                 //S_H_CP_G = SIM_P_R(RT_S, RT_S_t, S_H_CP_L);

@@ -54,7 +54,7 @@ int main() {
     El_RT_Tr(tau, RTt, RT, EV);
     // the rest is recalculated for every CP
     El_X_CR(hz, RTt, EV, X0);
-    L_IM_H_1 = Local_IM_B_H(Mu, Nu, hz.h, hz.z, tau, SFM_1);
+    L_IM_H_1 = Local_IM_H(Mu, Nu, hz.h, hz.z, tau, SFM_1);
 
     //for (int j=0; j<=2; ++j) {
     //    for (int k=0; k<=2; ++k) {

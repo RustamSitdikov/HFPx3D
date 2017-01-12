@@ -1,16 +1,15 @@
 //
 // This file is part of 3d_bem.
 //
-// Created by nikolski on 1/9/2017.
+// Created by D. Nikolski on 1/6/2017.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
 // Geo-Energy Laboratory, 2016-2017.  All rights reserved.
 // See the LICENSE.TXT file for more details. 
 //
 
-// Assembly of local element-to-point influence matrices
+// Calculation of local element-to-point influence matrices
 // for a triangular boundary element with
-// 2nd order polynomial approximation of unknowns;
-// a version using il::blas function
+// 2nd order polynomial approximation of unknowns
 
 #include <il/StaticArray.h>
 #include <il/StaticArray2D.h>
@@ -19,10 +18,10 @@
 #include <complex>
 #include <SijH.h>
 #include <ICFns.h>
-#include <il/linear_algebra/dense/blas/blas.h>
+//#include <il/linear_algebra/dense/blas/blas.h>
 #include <il/linear_algebra/dense/blas/dot.h>
 
-il::StaticArray2D<double, 6, 18> Local_IM_B_H(double mu, double nu, double h, std::complex<double> z, il::StaticArray<std::complex<double>,3> tau, il::StaticArray2D<std::complex<double>,6,6> SFM) {
+il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std::complex<double> z, il::StaticArray<std::complex<double>,3> tau, il::StaticArray2D<std::complex<double>,6,6> SFM) {
     // This function assembles a local "stiffness" sub-matrix
     // (influence of DD at the element nodes to stresses at the point z)
     // in terms of a triangular element's local coordinates
@@ -37,7 +36,7 @@ il::StaticArray2D<double, 6, 18> Local_IM_B_H(double mu, double nu, double h, st
     // scaling ("-" sign comes from traction Somigliana ID, H-term)
     double scale = -mu/(4.0*M_PI*(1.0-nu));
     // tolerance parameters
-    const double HTol = 1.0E-9, DTol = 1.0E-8;
+    double HTol = 1.0E-9, DTol = 1.0E-8;
     // geometrical
     double an, am;
     std::complex<double> eixm, eixn, eipm, eipn, zc=std::conj(z), ntau2;
@@ -69,11 +68,10 @@ il::StaticArray2D<double, 6, 18> Local_IM_B_H(double mu, double nu, double h, st
     // DD-to-stress influence
     // [(S11+S22)/2; (S11-S22)/2+i*S12; (S13+i*S23)/2; S33]
     // vs SF monomials (Sij_M) and nodal values (Sij_N)
-    il::StaticArray2D<std::complex<double>, 6, 3> Sij_M_1 {0.0}, Sij_N_1 {0.0},
-            Sij_M_2 {0.0}, Sij_N_2 {0.0},
-            Sij_M_3 {0.0}, Sij_N_3 {0.0},
-            Sij_M_4 {0.0}, Sij_N_4 {0.0};
-    il::StaticArray3D<std::complex<double>, 6, 4, 3> SincLn {0.0}, SincLm {0.0};
+    il::StaticArray3D<std::complex<double>, 6, 4, 3> Sij_M {0.0}, Sij_N {0.0},
+            SincLn {0.0}, SincLm {0.0};
+    // increment of DD-to-stress influence
+    il::StaticArray2D<std::complex<double>, 6, 3> Sincm {0.0}, Sincn {0.0};
 
     il::StaticArray2D<double, 6, 18> LIM {0.0};
 
@@ -94,7 +92,7 @@ il::StaticArray2D<double, 6, 18> Local_IM_B_H(double mu, double nu, double h, st
             l = (j+k)%3;
             chi(k,j) = phi[l]-psi[j];
             // make sure it's between -pi and pi (add or subtract 2*pi)
-            //chi(k,j) = (std::fmod(chi(k,j)/M_PI+1.0, 2.0)-1.0)*M_PI;
+            // chi(k,j) = (std::fmod(chi(k,j)/M_PI+1.0, 2.0)-1.0)*M_PI;
             chi(k,j) = (chi(k,j)<=-M_PI)? chi(k,j)+M_PI : ((chi(k,j)>M_PI)? chi(k,j)-M_PI : chi(k,j));
             // reprooving for "degenerate" edges
             if (fabs(M_PI_2-std::fabs(chi(k,j)))<DTol) IsDegen = true;
@@ -112,11 +110,10 @@ il::StaticArray2D<double, 6, 18> Local_IM_B_H(double mu, double nu, double h, st
                 SincLn = SijLimH(nu, eixn, d[m]);
                 SincLm = SijLimH(nu, eixm, d[m]);
                 for (j=0; j<=5; ++j) {
-                    for (k=0; k<=2; ++k) {
-                        Sij_M_1(j, k) += SincLn(j, 0, k) - SincLm(j, 0, k);
-                        Sij_M_2(j, k) += SincLn(j, 1, k) - SincLm(j, 1, k);
-                        Sij_M_3(j, k) += SincLn(j, 2, k) - SincLm(j, 2, k);
-                        Sij_M_4(j, k) += SincLn(j, 3, k) - SincLm(j, 3, k);
+                    for (l=0; l<=3; ++l) {
+                        for (k=0; k<=2; ++k) {
+                            Sij_M(j, l, k) += SincLn(j, l, k) - SincLm(j, l, k);
+                        }
                     }
                 }
             }
@@ -128,59 +125,88 @@ il::StaticArray2D<double, 6, 18> Local_IM_B_H(double mu, double nu, double h, st
                 // S11+S22
                 Cn = S11_22H(nu, eixn, h, d[m]);
                 Cm = S11_22H(nu, eixm, h, d[m]);
-                il::blas(1.0, Cn, Fn, 1.0, il::io, Sij_M_1);
-                il::blas(-1.0, Cm, Fm, 1.0, il::io, Sij_M_1);
+                Sincn = il::dot(Cn, Fn); Sincm = il::dot(Cm, Fm);
+                for (j=0; j<=5; ++j) {
+                    for (k=0; k<=2; ++k) {
+                        Sij_M(j, 0, k) += Sincn(j, k) - Sincm(j, k);
+                    }
+                }
                 if (IsDegen) { // "degenerate" case
                     eipm = std::exp(I*phi[n]); eipn = std::exp(I*phi[m]);
                     FnD = ICFns_red(h, d[m], an);
                     FmD = ICFns_red(h, d[m], am);
                     CnD = S11_22H_red(nu, eipn, h, d[m]);
                     CmD = S11_22H_red(nu, eipm, h, d[m]);
-                    il::blas(1.0, CnD, FnD, 1.0, il::io, Sij_M_1);
-                    il::blas(-1.0, CmD, FmD, 1.0, il::io, Sij_M_1);
+                    Sincn = il::dot(CnD, FnD); Sincm = il::dot(CmD, FmD);
+                    for (j=0; j<=5; ++j) {
+                        for (k=0; k<=2; ++k) {
+                            Sij_M(j, 0, k) += Sincn(j, k) - Sincm(j, k);
+                        }
+                    }
                 }
                 // S11-S22+2*I*S12
                 Cn = S11_22_12H(nu, eixn, h, d[m]);
                 Cm = S11_22_12H(nu, eixm, h, d[m]);
-                il::blas(1.0, Cn, Fn, 1.0, il::io, Sij_M_2);
-                il::blas(-1.0, Cm, Fm, 1.0, il::io, Sij_M_2);
+                Sincn = il::dot(Cn, Fn); Sincm = il::dot(Cm, Fm);
+                for (j=0; j<=5; ++j) {
+                    for (k=0; k<=2; ++k) {
+                        Sij_M(j, 1, k) += Sincn(j, k) - Sincm(j, k);
+                    }
+                }
                 if (IsDegen) { // "degenerate" case
                     CnD = S11_22_12H_red(nu, eipn, h, d[m]);
                     CmD = S11_22_12H_red(nu, eipm, h, d[m]);
-                    il::blas(1.0, CnD, FnD, 1.0, il::io, Sij_M_2);
-                    il::blas(-1.0, CmD, FmD, 1.0, il::io, Sij_M_2);
+                    Sincn = il::dot(CnD, FnD); Sincm = il::dot(CmD, FmD);
+                    for (j=0; j<=5; ++j) {
+                        for (k=0; k<=2; ++k) {
+                            Sij_M(j, 1, k) += Sincn(j, k) - Sincm(j, k);
+                        }
+                    }
                 }
                 // S13+I*S23
                 Cn = S13_23H(nu, eixn, h, d[m]);
                 Cm = S13_23H(nu, eixm, h, d[m]);
-                il::blas(1.0, Cn, Fn, 1.0, il::io, Sij_M_3);
-                il::blas(-1.0, Cm, Fm, 1.0, il::io, Sij_M_3);
+                Sincn = il::dot(Cn, Fn); Sincm = il::dot(Cm, Fm);
+                for (j=0; j<=5; ++j) {
+                    for (k=0; k<=2; ++k) {
+                        Sij_M(j, 2, k) += Sincn(j, k) - Sincm(j, k);
+                    }
+                }
                 if (IsDegen) { // "degenerate" case
                     CnD = S13_23H_red(nu, eipn, h, d[m]);
                     CmD = S13_23H_red(nu, eipm, h, d[m]);
-                    il::blas(1.0, CnD, FnD, 1.0, il::io, Sij_M_3);
-                    il::blas(-1.0, CmD, FmD, 1.0, il::io, Sij_M_3);
+                    Sincn = il::dot(CnD, FnD); Sincm = il::dot(CmD, FmD);
+                    for (j=0; j<=5; ++j) {
+                        for (k=0; k<=2; ++k) {
+                            Sij_M(j, 2, k) += Sincn(j, k) - Sincm(j, k);
+                        }
+                    }
                 }
                 // S33
                 Cn = S33H(nu, eixn, h, d[m]);
                 Cm = S33H(nu, eixm, h, d[m]);
-                il::blas(1.0, Cn, Fn, 1.0, il::io, Sij_M_4);
-                il::blas(-1.0, Cm, Fm, 1.0, il::io, Sij_M_4);
+                Sincn = il::dot(Cn, Fn); Sincm = il::dot(Cm, Fm);
+                for (j=0; j<=5; ++j) {
+                    for (k=0; k<=2; ++k) {
+                        Sij_M(j, 3, k) += Sincn(j, k) - Sincm(j, k);
+                    }
+                }
                 if (IsDegen) { // "degenerate" case
                     CnD = S33H_red(nu, eipn, h, d[m]);
                     CmD = S33H_red(nu, eipm, h, d[m]);
-                    il::blas(1.0, CnD, FnD, 1.0, il::io, Sij_M_4);
-                    il::blas(-1.0, CmD, FmD, 1.0, il::io, Sij_M_4);
+                    Sincn = il::dot(CnD, FnD); Sincm = il::dot(CmD, FmD);
+                    for (j=0; j<=5; ++j) {
+                        for (k=0; k<=2; ++k) {
+                            Sij_M(j, 3, k) += Sincn(j, k) - Sincm(j, k);
+                        }
+                    }
                 }
             }
         }
     }
 
     // here comes contraction with "shifted" SFM (left)
-    Sij_N_1 = il::dot(SFMz, Sij_M_1);
-    Sij_N_2 = il::dot(SFMz, Sij_M_2);
-    Sij_N_3 = il::dot(SFMz, Sij_M_3);
-    Sij_N_4 = il::dot(SFMz, Sij_M_4);
+    Sij_N = il::dot(SFMz, Sij_M);
 
     // re-shaping of the resulting matrix
     // and scaling (comment out if not necessary)
@@ -188,15 +214,68 @@ il::StaticArray2D<double, 6, 18> Local_IM_B_H(double mu, double nu, double h, st
         int q = j*3;
         for (k=0; k<=2; ++k) {
             // [S11; S22; S33; S12; S13; S23] vs \delta{u}_k at j-th node
-            LIM(0,q+k) = scale*(std::real(Sij_N_1(j,k))+std::real(Sij_N_2(j,k))); // S11
-            LIM(1,q+k) = scale*(std::real(Sij_N_1(j,k))-std::real(Sij_N_2(j,k))); // S22
-            LIM(2,q+k) = scale*std::real(Sij_N_4(j,k)); // S33
-            LIM(3,q+k) = scale*std::imag(Sij_N_2(j,k)); // S12
-            LIM(4,q+k) = scale*2.0*std::real(Sij_N_3(j,k)); // S13
-            LIM(5,q+k) = scale*2.0*std::imag(Sij_N_3(j,k)); // S23
+            LIM(0,q+k) = scale*(std::real(Sij_N(j,0,k))+std::real(Sij_N(j,1,k)));
+            LIM(1,q+k) = scale*(std::real(Sij_N(j,0,k))-std::real(Sij_N(j,1,k)));
+            LIM(2,q+k) = scale*std::real(Sij_N(j,3,k));
+            LIM(3,q+k) = scale*std::imag(Sij_N(j,1,k));
+            LIM(4,q+k) = scale*2.0*std::real(Sij_N(j,2,k));
+            LIM(5,q+k) = scale*2.0*std::imag(Sij_N(j,2,k));
         }
     }
 
     return LIM;
 }
 
+// Constituing functions for the integrals
+// of any kernel of the elasticity equation
+// over a part of a polygonal element.
+// Example of usage:
+// dot(S11_22H(nu, eix, h, d), ICFns(h, d, a, x, eix))
+// dot(S11_22H_red(nu, eip, h, d), ICFns_red(h, d, a))
+// dot(S13_23T(nu, eix, h, d), ICFns(h, d, a, x, eix))
+// dot(S33T_red(nu, eip, h, d), ICFns_red(h, d, a))
+// where eip = std::exp(I*std::arg(t-z));
+// eix = std::exp(I*x); x = std::arg(t-z)-std::arg(d);
+// a = std::fabs(t-z-d)*sign(x);
+
+// General case (h!=0, collocation point projected into or outside the element)
+// powers of r, G0=arctan((ah)/(dr)), H0=arctanh(a/r) and its derivatives w.r. to h
+
+il::StaticArray<std::complex<double>, 9> ICFns(double h, std::complex<double> d, double a, double x, std::complex<double> eix) {
+
+    double D1 = std::abs(d), D2 = D1*D1, a2 = a*a,
+            r = std::sqrt(h*h + a2 + D2),
+            r2 = r*r, r3 = r2*r, r5 = r3*r2,
+            ar = a/r, ar2 = ar*ar,
+            hr = std::fabs(h/r),
+            B = 1.0/(r2 - a2), B2=B*B, B3=B2*B;
+    // evaluation of x and eix can be added here; then change arguments to pointer type
+    double TanHi = std::imag(eix)/std::real(eix), tr = hr*TanHi,
+            G0 = std::atan(tr), H0 = std::atanh(ar),
+            H1 = -0.5*ar*B, H2 = 0.25*(3.0 - ar2)*ar*B2,
+            H3 = -0.125*(15.0 - 10.0*ar2 + 3.0*ar2*ar2)*ar*B3;
+
+    il::StaticArray<std::complex<double>, 9> BCE {0.0};
+    BCE[0] = r; BCE[1] = 1.0/r; BCE[2] = 1.0/r3; BCE[3] = 1.0/r5;
+    BCE[4] = G0-x; BCE[5] = H0; BCE[6] = H1; BCE[7] = H2; BCE[8] = H3;
+
+    return BCE;
+}
+
+// Special case (reduced summation, collocation point projected onto the element contour) - additional terms
+
+il::StaticArray<std::complex<double>, 5> ICFns_red(double h, std::complex<double> d, double a) {
+
+    double h2 = h*h, h4 = h2*h2, h6 = h4*h2,
+            D1 = std::abs(d), D2 = D1*D1, a2 = a*a,
+            ro = std::sqrt(a2 + D2),
+            r = std::sqrt(h2 + a2 + D2),
+            rr = ro/r, rr2 = rr*rr, rr4 = rr2*rr2,
+            L0 = std::atanh(rr), L1 = -0.5*rr/h2, L2 = 0.25*(3.0 - rr2)*rr/h4,
+            L3 = -0.125*(15.0 - 10.0*rr2 + 3.0*rr4)*rr/h6;
+
+    il::StaticArray<std::complex<double>, 5> BCE {0.0};
+    BCE[0] = 1.0; BCE[1] = L0; BCE[2] = L1; BCE[3] = L2; BCE[4] = L3;
+
+    return BCE;
+}
