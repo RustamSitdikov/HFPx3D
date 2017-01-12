@@ -5,7 +5,14 @@ set(CMAKE_CXX_STANDARD 11)
 
 set(SOURCE_FILES
     il/io/numpy.cpp
-    main.cpp SijH.cpp ICFns.cpp Ele_Base.cpp Local_IM.cpp Tensor_Oper.cpp Submatrix.cpp Matrix_Asm.cpp)
+    main.cpp
+        SijH.cpp
+        ICFns.cpp
+        Ele_Base.cpp
+        Local_IM.cpp
+        Tensor_Oper.cpp
+        Submatrix.cpp
+        Matrix_Asm.cpp)
 
 add_executable(3d_bem ${SOURCE_FILES})
 target_include_directories(3d_bem PRIVATE ${CMAKE_SOURCE_DIR})

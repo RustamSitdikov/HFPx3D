@@ -30,7 +30,7 @@ void BEMatrix_H_S(il::StaticArray2D& IM_H, double Mu, double Nu, double beta, il
     IL_ASSERT(Node_Crd.size(0) >= 3);
     IL_ASSERT(Node_Crd.size(1) >= 3); // at least 3 nodes
 
-    long Num_El = Conn_Mtr.size(1);
+    long Num_El = Conn_Mtr.size(1), Sn, Tn;
 
     IL_ASSERT(IM_H.size(0) == 18*Num_El);
     IL_ASSERT(IM_H.size(1) == 18*Num_El);
@@ -56,8 +56,9 @@ void BEMatrix_H_S(il::StaticArray2D& IM_H, double Mu, double Nu, double beta, il
     for (long S_El=0; S_El<Num_El; ++S_El) {
         // "Source" element
         for (int j=0; j<3; ++j) {
-            get_submatrix(V,0,2,Conn_Mtr(j, S_El),Conn_Mtr(j, S_El),Node_Crd);
-            set_submatrix_2_static(EV_S,0,j,V);
+            Sn = Conn_Mtr(j, S_El);
+            get_submatrix(V, 0, 2, Sn, Sn, Node_Crd);
+            set_submatrix_2_static(EV_S, 0, j, V);
             // set VW_S[j]
         }
         // Rotational tensor and basis (shape) functions for the source element
@@ -67,18 +68,19 @@ void BEMatrix_H_S(il::StaticArray2D& IM_H, double Mu, double Nu, double beta, il
         for (long T_El=0; T_El<Num_El; ++T_El) {
             // "Target" element
             for (int j=0; j<3; ++j) {
-                get_submatrix(V,0,2,Conn_Mtr(j, T_El),Conn_Mtr(j, T_El),Node_Crd);
-                set_submatrix_2_static(EV_T,0,j,V);
+                Tn = Conn_Mtr(j, T_El);
+                get_submatrix(V, 0, 2, Tn, Tn, Node_Crd);
+                set_submatrix_2_static(EV_T, 0, j, V);
                 // set VW_T[j]
             }
             // Rotational tensor for the target element
             El_LB_RT(RT_T, EV_T);
             // Normal vector
             for (int k=0; k<3; ++k) {
-                N_CP[k] = -RT_T(k,2);
+                N_CP[k] = -RT_T(k, 2);
             }
             // Collocation points' coordinates
-            CP_T = El_CP_S(EV_T,beta);
+            CP_T = El_CP_S(EV_T, beta);
             //CP_T = El_CP_N(EV_T,VW_T,beta);
             for (int N_T=0; N_T<6; ++N_T) {
                 // Shifting to the N_T-th collocation pt
