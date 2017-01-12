@@ -32,21 +32,22 @@ il::StaticArray2D<double, 6, 18> SIM_P_R(il::StaticArray2D<double, 3, 3> RTl, il
     // Triple product (RTl dot S dot RTr) for stress influence matrix (SIM, 6*18)
     il::StaticArray2D<double, 3, 3> STM, STM_I, STM_R;
     il::StaticArray2D<double, 6, 18> SIM_R{0.0};
-    for (int k=0; k<SIM.size(1); ++k){
-        for (int j=0; j<3; ++j) {
-            int l = (j+1)%3;
-            int m = (l+1)%3;
-            int n = 3+m;
+    int j, k, l, m, n;
+    for (k=0; k<SIM.size(1); ++k){
+        for (j=0; j<3; ++j) {
+            l = (j+1)%3;
+            m = (l+1)%3;
+            n = 3+m;
             STM(j, j) = SIM(j, k);
             STM(l, m) = SIM(n, k);
             STM(m, l) = STM(l, m);
         }
         STM_I = il::dot(STM, RTr);
         STM_R = il::dot(RTl, STM_I);
-        for (int j=0; j<3; ++j) {
-            int l = (j+1)%3;
-            int m = (l+1)%3;
-            int n = 3+m;
+        for (j=0; j<3; ++j) {
+            l = (j+1)%3;
+            m = (l+1)%3;
+            n = 3+m;
             SIM_R(j, k) = STM_R(j, j);
             SIM_R(n, k) = STM_R(l, m); // STM_R(m, l);
         }

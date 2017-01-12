@@ -21,6 +21,7 @@ struct el_x_cr {
 double VNorm(il::StaticArray<double, 3>);
 il::StaticArray<double, 3> normalize(il::StaticArray<double, 3>);
 il::StaticArray<double, 3> cross(il::StaticArray<double, 3>, il::StaticArray<double, 3>);
+//il::StaticArray<il::StaticArray<double, 3>, 6> El_CP_N(il::StaticArray2D<double,3,3>, il::StaticArray<double,3>, double);
 
 double VNorm(il::StaticArray<double, 3> a) {
     // L2 norm of a vector
@@ -259,15 +260,54 @@ il::StaticArray<il::StaticArray<double, 3>, 6> El_CP_S(il::StaticArray2D<double,
     // offset of the points to the centroid is defined by beta;
     // returns the same as El_CP_N(EV, {1.0, 1.0, 1.0}, beta)
     il::StaticArray<il::StaticArray<double, 3>, 6> CP;
+    il::StaticArray<double, 3> EC;
+    int j, k, l, m, n;
 
+    for (j=0; j<3; ++j) {
+        for (k=0; k<3; ++k) {
+            EC[j] += EV(j, k)/3.0;
+        }
+    }
+    for (n=0; n<3; ++n) {
+        for (j=0; j<3; ++j) {
+            (CP[n])[j] = (1.0 - beta)*EV(j, n) + beta*EC[j];
+        }
+    }
+    for (n=3; n<6; ++n) {
+        m = (n-2)&3; l = (m+1)&3; // the edge across the (n-3)-th node
+        for (j=0; j<3; ++j) {
+            (CP[n])[j] = 0.5*(1.0 - beta)*(EV(j, m) + EV(j, l)) + beta*EC[j];
+        }
+    }
     return CP;
 }
 
-//il::StaticArray<il::StaticArray<double, 3>, 6> El_CP_N(il::StaticArray2D<double,3,3> EV, il::StaticArray<double,3> VW, double beta) {
+il::StaticArray<il::StaticArray<double, 3>, 6> El_CP_N(il::StaticArray2D<double,3,3> EV, il::StaticArray<double,3> VW, double beta) {
     // This function calculates the coordinates
     // of the collocation points on a triangular boundary element
     // with 2nd order polynomial approximation of unknowns
     // and non-trivial (middle) edge partitioning;
     // offset of the points to the centroid is defined by beta;
     // returns the same as El_CP_N(EV, {1.0, 1.0, 1.0}, beta)
-//}
+    il::StaticArray<il::StaticArray<double, 3>, 6> CP;
+    il::StaticArray<double, 3> EC;
+    int j, k, l, m, n;
+
+    for (j=0; j<3; ++j) {
+        for (k=0; k<3; ++k) {
+            EC[j] += EV(j, k)/3.0;
+        }
+    }
+    for (n=0; n<3; ++n) {
+        for (j=0; j<3; ++j) {
+            (CP[n])[j] = (1.0 - beta)*EV(j, n) + beta*EC[j];
+        }
+    }
+    for (n=3; n<6; ++n) {
+        m = (n-2)&3; l = (m+1)&3; // the edge across the (n-3)-th node
+        for (j=0; j<3; ++j) {
+            (CP[n])[j] = (1.0 - beta)*(VW[m]*EV(j, m) + VW[l]*EV(j, l))/(VW[m] + VW[l]) + beta*EC[j];
+        }
+    }
+    return CP;
+}

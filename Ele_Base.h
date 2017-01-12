@@ -30,4 +30,4 @@ il::StaticArray2D<std::complex<double>,6,6> El_SFM_N(il::StaticArray2D<double,3,
 //il::StaticArray2D<std::complex<double>,6,6> El_SFM_C(il::StaticArray2D<double,3,3>&, il::StaticArray2D<double,3,3>, il::StaticArray<double,3>, double);
 //il::StaticArray2D<std::complex<double>,6,6> El_SFM_C(il::StaticArray2D<double,3,3>, il::StaticArray<double,3>, double);
 il::StaticArray<il::StaticArray<double, 3>, 6> El_CP_S(il::StaticArray2D<double,3,3>, double);
-//il::StaticArray<il::StaticArray<double, 3>, 6> El_CP_N(il::StaticArray2D<double,3,3>, il::StaticArray<double,3>, double);
+il::StaticArray<il::StaticArray<double, 3>, 6> El_CP_N(il::StaticArray2D<double,3,3>, il::StaticArray<double,3>, double);

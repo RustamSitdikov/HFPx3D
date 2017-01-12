@@ -30,7 +30,8 @@ void BEMatrix_H_S(il::StaticArray2D& IM_H, double Mu, double Nu, double beta, il
     IL_ASSERT(Node_Crd.size(0) >= 3);
     IL_ASSERT(Node_Crd.size(1) >= 3); // at least 3 nodes
 
-    long Num_El = Conn_Mtr.size(1), Sn, Tn;
+    long Num_El = Conn_Mtr.size(1), S_N, T_N, S_El, T_El;
+    int j, n_S, n_T;
 
     IL_ASSERT(IM_H.size(0) == 18*Num_El);
     IL_ASSERT(IM_H.size(1) == 18*Num_El);
@@ -53,11 +54,11 @@ void BEMatrix_H_S(il::StaticArray2D& IM_H, double Mu, double Nu, double beta, il
     il::StaticArray2D<double, 18, 18> IM_H_L;
     //il::StaticArray<double, 18> IM_T_L;
 
-    for (long S_El=0; S_El<Num_El; ++S_El) {
+    for (S_El=0; S_El<Num_El; ++S_El) {
         // "Source" element
-        for (int j=0; j<3; ++j) {
-            Sn = Conn_Mtr(j, S_El);
-            get_submatrix(V, 0, 2, Sn, Sn, Node_Crd);
+        for (j=0; j<3; ++j) {
+            S_N = Conn_Mtr(j, S_El);
+            get_submatrix(V, 0, 2, S_N, S_N, Node_Crd);
             set_submatrix_2_static(EV_S, 0, j, V);
             // set VW_S[j]
         }
@@ -65,26 +66,26 @@ void BEMatrix_H_S(il::StaticArray2D& IM_H, double Mu, double Nu, double beta, il
         SFM = El_SFM_S(RT_S, EV_S);
         //SFM = El_SFM_N(RT, EV, VW_S);
         El_RT_Tr(tau, RT_S_t, RT_S, EV_S);
-        for (long T_El=0; T_El<Num_El; ++T_El) {
+        for (T_El=0; T_El<Num_El; ++T_El) {
             // "Target" element
-            for (int j=0; j<3; ++j) {
-                Tn = Conn_Mtr(j, T_El);
-                get_submatrix(V, 0, 2, Tn, Tn, Node_Crd);
+            for (j=0; j<3; ++j) {
+                T_N = Conn_Mtr(j, T_El);
+                get_submatrix(V, 0, 2, T_N, T_N, Node_Crd);
                 set_submatrix_2_static(EV_T, 0, j, V);
                 // set VW_T[j]
             }
             // Rotational tensor for the target element
             El_LB_RT(RT_T, EV_T);
             // Normal vector
-            for (int k=0; k<3; ++k) {
-                N_CP[k] = -RT_T(k, 2);
+            for (j=0; j<3; ++j) {
+                N_CP[j] = -RT_T(j, 2);
             }
             // Collocation points' coordinates
             CP_T = El_CP_S(EV_T, beta);
             //CP_T = El_CP_N(EV_T,VW_T,beta);
-            for (int N_T=0; N_T<6; ++N_T) {
-                // Shifting to the N_T-th collocation pt
-                El_X_CR(hz, RT_S_t, EV_S, CP_T[N_T]);
+            for (n_T=0; n_T<6; ++n_T) {
+                // Shifting to the n_T-th collocation pt
+                El_X_CR(hz, RT_S_t, EV_S, CP_T[n_T]);
                 // Calculating DD-to stress influence w.r. to the source element's local coordinate system
                 S_H_CP_L = Local_IM_H(Mu, Nu, hz.h, hz.z, tau, SFM);
                 // Multiplication by N_CP
@@ -95,16 +96,16 @@ void BEMatrix_H_S(il::StaticArray2D& IM_H, double Mu, double Nu, double beta, il
                 N_CP_L = il::dot(RT_S_t, N_CP);
                 T_H_CP_L = N_dot_SIM(N_CP_L, S_H_CP_L);
                 T_H_CP_G = il::dot(RT_S, T_H_CP_L);
-                for (int N_S=0; N_S<6; ++N_S) {
-                    get_static_sub_from_static(TI_NN,0,3*N_S,T_H_CP_G);
+                for (n_S=0; n_S<6; ++n_S) {
+                    get_static_sub_from_static(TI_NN, 0, 3*n_S, T_H_CP_G);
                     // Re- to traction vs DD w.r. to the reference coordinate system
                     TI_NN_G = il::dot(TI_NN, RT_S_t);
                     // Adding the block to element-to-element influence sub-matrix
-                    set_static_sub_2_static(IM_H_L,3*N_T,3*N_S,TI_NN_G);
+                    set_static_sub_2_static(IM_H_L, 3*n_T, 3*n_S, TI_NN_G);
                 }
             }
             // Adding the block to the global influence matrix
-            set_static_sub_2_static(IM_H,18*T_El,18*S_El,IM_H_L);
+            set_static_sub_2_static(IM_H, 18*T_El, 18*S_El, IM_H_L);
         }
     }
     //return &IM_H;
