@@ -11,8 +11,12 @@
 #include <il/StaticArray2D.h>
 #include <il/linear_algebra/dense/blas/dot.h>
 #include <complex>
-#include <Ele_Base.h>
 //#include <Submatrix.h>
+
+struct el_x_cr {
+    double h;
+    std::complex<double> z;
+};
 
 double VNorm(il::StaticArray<double, 3>);
 il::StaticArray<double, 3> normalize(il::StaticArray<double, 3>);
@@ -84,7 +88,7 @@ void El_RT_Tr(il::StaticArray<std::complex<double>, 3>& tau, il::StaticArray2D<d
     }
     for (int k = 0; k<=2; ++k) {
         V0[k] = EV(k, 0);
-        //NV[k] = -RMt(k, 2);
+        //NV[k] = -RM(k, 2);
         EVr(k, 1) = EV(k, 1) - V0[k];
         EVr(k, 2) = EV(k, 2) - V0[k];
     }
@@ -240,9 +244,30 @@ il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_N(il::StaticArray2D<double,
 }
 
 //il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_C(il::StaticArray2D<double, 3, 3>& RT, il::StaticArray2D<double,3,3> EV, il::StaticArray<double,3> VW, double beta) {
-// This function calculates the basis (shape) functions' coefficients (rows of SFM)
-// for a triangular boundary element with 2nd order polynomial approximation of unknowns
-// in terms of complex (tau, conj(tau)) representation of local element's coordinates
-// with nodes' offset to the centroid (e.g. at collocation points) defined by beta
-// and non-trivial edge partitioning
+    // This function calculates the basis (shape) functions' coefficients (rows of SFM)
+    // for a triangular boundary element with 2nd order polynomial approximation of unknowns
+    // in terms of complex (tau, conj(tau)) representation of local element's coordinates
+    // with nodes' offset to the centroid (e.g. at collocation points) defined by beta
+    // and non-trivial edge partitioning
+//}
+
+il::StaticArray<il::StaticArray<double, 3>, 6> El_CP_S(il::StaticArray2D<double,3,3> EV, double beta) {
+    // This function calculates the coordinates
+    // of the collocation points on a triangular boundary element
+    // with 2nd order polynomial approximation of unknowns
+    // and trivial (middle) edge partitioning;
+    // offset of the points to the centroid is defined by beta;
+    // returns the same as El_CP_N(EV, {1.0, 1.0, 1.0}, beta)
+    il::StaticArray<il::StaticArray<double, 3>, 6> CP;
+
+    return CP;
+}
+
+//il::StaticArray<il::StaticArray<double, 3>, 6> El_CP_N(il::StaticArray2D<double,3,3> EV, il::StaticArray<double,3> VW, double beta) {
+    // This function calculates the coordinates
+    // of the collocation points on a triangular boundary element
+    // with 2nd order polynomial approximation of unknowns
+    // and non-trivial (middle) edge partitioning;
+    // offset of the points to the centroid is defined by beta;
+    // returns the same as El_CP_N(EV, {1.0, 1.0, 1.0}, beta)
 //}

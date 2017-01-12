@@ -37,7 +37,7 @@ il::StaticArray2D<double, 6, 18> Local_IM_B_H(double mu, double nu, double h, st
     // scaling ("-" sign comes from traction Somigliana ID, H-term)
     double scale = -mu/(4.0*M_PI*(1.0-nu));
     // tolerance parameters
-    double HTol = 1.0E-9, DTol = 1.0E-8;
+    const double HTol = 1.0E-9, DTol = 1.0E-8;
     // geometrical
     double an, am;
     std::complex<double> eixm, eixn, eipm, eipn, zc=std::conj(z), ntau2;
@@ -187,13 +187,13 @@ il::StaticArray2D<double, 6, 18> Local_IM_B_H(double mu, double nu, double h, st
     for (j=0; j<=5; ++j) {
         int q = j*3;
         for (k=0; k<=2; ++k) {
-            // [S11; S22; S12; S13; S23; S33] vs \delta{u}_k at j-th node
-            LIM(0,q+k) = scale*(std::real(Sij_N_1(j,k))+std::real(Sij_N_2(j,k)));
-            LIM(1,q+k) = scale*(std::real(Sij_N_1(j,k))-std::real(Sij_N_2(j,k)));
-            LIM(2,q+k) = scale*std::imag(Sij_N_2(j,k));
-            LIM(3,q+k) = scale*2.0*std::real(Sij_N_3(j,k));
-            LIM(4,q+k) = scale*2.0*std::imag(Sij_N_3(j,k));
-            LIM(5,q+k) = scale*std::real(Sij_N_4(j,k));
+            // [S11; S22; S33; S12; S13; S23] vs \delta{u}_k at j-th node
+            LIM(0,q+k) = scale*(std::real(Sij_N_1(j,k))+std::real(Sij_N_2(j,k))); // S11
+            LIM(1,q+k) = scale*(std::real(Sij_N_1(j,k))-std::real(Sij_N_2(j,k))); // S22
+            LIM(2,q+k) = scale*std::real(Sij_N_4(j,k)); // S33
+            LIM(3,q+k) = scale*std::imag(Sij_N_2(j,k)); // S12
+            LIM(4,q+k) = scale*2.0*std::real(Sij_N_3(j,k)); // S13
+            LIM(5,q+k) = scale*2.0*std::imag(Sij_N_3(j,k)); // S23
         }
     }
 
