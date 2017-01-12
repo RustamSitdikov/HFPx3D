@@ -22,8 +22,9 @@
 #include <complex>
 
 void BEMatrix_H_S(il::StaticArray2D& IM_H, double Mu, double Nu, double beta, il::Array2D& Conn_Mtr, il::Array2D& Node_Crd) {
-    // Naive BEM matrix assembly from boundary mesh geometry data:
+    // BEM matrix assembly from boundary mesh geometry data:
     // mesh connectivity (Conn_Mtr) and nodes' coordinates (Node_Crd)
+    // Naive way: no parallelization, no ACA
 
     IL_ASSERT(Conn_Mtr.size(0) >= 3);
     IL_ASSERT(Conn_Mtr.size(1) >= 1); // at least 1 element
