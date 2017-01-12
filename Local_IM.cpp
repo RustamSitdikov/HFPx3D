@@ -213,13 +213,13 @@ il::StaticArray2D<double, 6, 18> Local_IM_H(double mu, double nu, double h, std:
     for (j=0; j<=5; ++j) {
         int q = j*3;
         for (k=0; k<=2; ++k) {
-            // [S11; S22; S12; S13; S23; S33] vs \delta{u}_k at j-th node
+            // [S11; S22; S33; S12; S13; S23] vs \delta{u}_k at j-th node
             LIM(0,q+k) = scale*(std::real(Sij_N(j,0,k))+std::real(Sij_N(j,1,k)));
             LIM(1,q+k) = scale*(std::real(Sij_N(j,0,k))-std::real(Sij_N(j,1,k)));
-            LIM(2,q+k) = scale*std::imag(Sij_N(j,1,k));
-            LIM(3,q+k) = scale*2.0*std::real(Sij_N(j,2,k));
-            LIM(4,q+k) = scale*2.0*std::imag(Sij_N(j,2,k));
-            LIM(5,q+k) = scale*std::real(Sij_N(j,3,k));
+            LIM(2,q+k) = scale*std::real(Sij_N(j,3,k));
+            LIM(3,q+k) = scale*std::imag(Sij_N(j,1,k));
+            LIM(4,q+k) = scale*2.0*std::real(Sij_N(j,2,k));
+            LIM(5,q+k) = scale*2.0*std::imag(Sij_N(j,2,k));
         }
     }
 
