@@ -7,14 +7,18 @@
 // See the LICENSE.TXT file for more details. 
 //
 
+// Matrix assembly for the hypersingular BEM (DDM)
+// on a triangular boundary mesh with 2nd order
+// polynomial approximation of unknowns
+
 #ifndef INC_3D_BEM_MATRIX_ASM_H
 #define INC_3D_BEM_MATRIX_ASM_H
 
 #endif //INC_3D_BEM_MATRIX_ASM_H
 
-#include <il/Array2D.h>
-#include <il/StaticArray2D.h>
-#include <ICFns.h>
+//#include <il/Array2D.h>
+//#include <il/StaticArray2D.h>
+//#include <ICFns.h>
 //#include <Ele_Base.h>
 #include <Submatrix.h>
 #include <Tensor_Oper.h>

@@ -24,7 +24,7 @@
 
 #endif //INC_3D_BEM_ICFNS_H
 
-#include <il/StaticArray.h>
+//#include <il/StaticArray.h>
 #include <complex>
 #include <cmath>
 

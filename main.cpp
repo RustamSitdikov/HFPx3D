@@ -11,7 +11,7 @@
 //#include <complex>
 //#include <cmath>
 #include <SijH.h>
-//#include <ICFns.h>
+#include <ICFns.h>
 #include <Ele_Base.h>
 #include <Matrix_asm.h>
 
