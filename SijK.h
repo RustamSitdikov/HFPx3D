@@ -11,20 +11,18 @@
 
 #endif //INC_3D_BEM_SIJK_H
 
-//#include <il/StaticArray.h>
 //#include <il/StaticArray2D.h>
-//#include <il/StaticArray3D.h>
-//#include <il/linear_algebra/dense/blas/blas.h>
-//#include <il/linear_algebra/dense/blas/dot.h>
-//#include <cmath>
-//#include <complex>
+#include <il/StaticArray.h>
+#include <il/StaticArray3D.h>
+#include <cmath>
+#include <complex>
 
 // Integration of a kernel of the elasticity equation
 // over a part of a polygonal element (a sector associated with one edge)
 // with 2nd order polynomial approximating (shape) functions.
 //
 // Coefficient matrices (rank 3) to be contracted (via right multiplication)
-// with the vector of constituing functions defined in ICFNS.cpp (via right multiplication)
+// with the vector of constituing functions defined below (via right multiplication)
 // and with the vector of shape function coefficients
 // associated with each node of the element (via left multiplication)
 //

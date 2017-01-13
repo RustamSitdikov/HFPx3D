@@ -12,7 +12,7 @@
 // with 2nd order polynomial approximating (shape) functions.
 //
 // To be contracted (via right multiplication) with the vector of
-// constituing functions defined in ICFNS.cpp
+// constituing functions defined in SijK.cpp
 // and (via left multiplication) with the vector of
 // shape function coefficients associated with each node of the element
 //
@@ -24,8 +24,6 @@
 
 #endif //INC_3D_BEM_SIJH_H
 
-//#include <il/StaticArray.h>
-//#include <il/StaticArray3D.h>
 #include <complex>
 #include <SijK.h>
 

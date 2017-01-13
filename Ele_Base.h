@@ -12,29 +12,43 @@
 
 #endif //INC_3D_BEM_ELE_BASE_H
 
+#include <il/StaticArray.h>
+#include <il/StaticArray2D.h>
+#include <cmath>
+#include <complex>
+
 struct el_x_cr {
     double h;
     std::complex<double> z;
 };
 
-void El_LB_RT(il::StaticArray2D<double,3,3>&, il::StaticArray2D<double,3,3>);
+void El_LB_RT(il::StaticArray2D<double, 3, 3>& RM, il::StaticArray2D<double, 3, 3> EV);
 //il::StaticArray2D<double,3,3> El_LB_RT(il::StaticArray2D<double,3,3>);
-void El_RT_Tr(il::StaticArray<std::complex<double>,3>&, il::StaticArray2D<double,3,3>&, il::StaticArray2D<double,3,3>&, il::StaticArray2D<double,3,3>);
-void El_X_CR(el_x_cr&, il::StaticArray2D<double, 3,3>&, il::StaticArray2D<double,3,3>, il::StaticArray<double,3>);
-il::StaticArray2D<std::complex<double>,2,2> El_CT(il::StaticArray2D<double,3,3>&, il::StaticArray2D<double,3,3>);
+void El_RT_Tr(il::StaticArray<std::complex<double>, 3>& tau, il::StaticArray2D<double, 3, 3>& RMt,
+              il::StaticArray2D<double, 3, 3>& RM, il::StaticArray2D<double,3,3> EV);
+void El_X_CR(el_x_cr& h_z, il::StaticArray2D<double, 3, 3>& RMt, il::StaticArray2D<double, 3, 3> EV,
+             il::StaticArray<double, 3> X0);
+
+il::StaticArray2D<std::complex<double>, 2, 2> El_CT(il::StaticArray2D<double, 3, 3>& RM,
+                                                    il::StaticArray2D<double,3,3> EV);
 //il::StaticArray2D<std::complex<double>,2,2> El_CT(il::StaticArray2D<double,3,3>);
-il::StaticArray2D<std::complex<double>,6,6> El_SFM_S(il::StaticArray2D<double,3,3>&, il::StaticArray2D<double,3,3>);
+il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_S(il::StaticArray2D<double, 3, 3>& RT,
+                                                       il::StaticArray2D<double,3,3> EV);
 //il::StaticArray2D<std::complex<double>,6,6> El_SFM_S(il::StaticArray2D<double,3,3>);
-il::StaticArray2D<std::complex<double>,6,6> El_SFM_N(il::StaticArray2D<double,3,3>&, il::StaticArray2D<double,3,3>, il::StaticArray<double,3>);
+il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_N(il::StaticArray2D<double, 3, 3>& RT,
+                                                       il::StaticArray2D<double,3,3> EV,
+                                                       il::StaticArray<double,3> VW);
 //il::StaticArray2D<std::complex<double>,6,6> El_SFM_N(il::StaticArray2D<double,3,3>, il::StaticArray<double,3>);
 //il::StaticArray2D<std::complex<double>,6,6> El_SFM_C(il::StaticArray2D<double,3,3>&, il::StaticArray2D<double,3,3>, il::StaticArray<double,3>, double);
 //il::StaticArray2D<std::complex<double>,6,6> El_SFM_C(il::StaticArray2D<double,3,3>, il::StaticArray<double,3>, double);
-il::StaticArray<il::StaticArray<double, 3>, 6> El_CP_S(il::StaticArray2D<double,3,3>, double);
-il::StaticArray<il::StaticArray<double, 3>, 6> El_CP_N(il::StaticArray2D<double,3,3>, il::StaticArray<double,3>, double);
 
-double VNorm(il::StaticArray<double, 3>);
-il::StaticArray<double, 3> normalize(il::StaticArray<double, 3>);
-il::StaticArray<double, 3> cross(il::StaticArray<double, 3>, il::StaticArray<double, 3>);
+il::StaticArray<il::StaticArray<double, 3>, 6> El_CP_S(il::StaticArray2D<double,3,3> EV, double beta);
+il::StaticArray<il::StaticArray<double, 3>, 6> El_CP_N(il::StaticArray2D<double,3,3> EV,
+                                                       il::StaticArray<double,3> VW, double beta);
+
+double VNorm(il::StaticArray<double, 3> a);
+il::StaticArray<double, 3> normalize(il::StaticArray<double, 3> a);
+il::StaticArray<double, 3> cross(il::StaticArray<double, 3> a, il::StaticArray<double, 3> b);
 //il::StaticArray<il::StaticArray<double, 3>, 6> El_CP_N(il::StaticArray2D<double,3,3>, il::StaticArray<double,3>, double);
 
 double VNorm(il::StaticArray<double, 3> a) {

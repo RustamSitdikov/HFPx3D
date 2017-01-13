@@ -16,12 +16,14 @@
 
 #endif //INC_3D_BEM_MATRIX_ASM_H
 
-//#include <il/Array2D.h>
-//#include <il/StaticArray2D.h>
-//#include <ICFns.h>
-//#include <Ele_Base.h>
+#include <il/Array2D.h>
+#include <il/StaticArray2D.h>
+#include <il/linear_algebra/dense/blas/dot.h>
+#include <il/linear_algebra/dense/blas/blas.h>
+#include <Ele_Base.h>
 #include <Submatrix.h>
 #include <Tensor_Oper.h>
+#include <SijH.h>
 
 template <class Kernel>
 il::StaticArray2D<double, 6, 18> Local_IM
@@ -307,6 +309,5 @@ il::StaticArray2D<double, 6, 18> Local_IM
             LIM(5,q+k) = scale*2.0*std::imag(Sij_N_3(j,k)); // S23
         }
     }
-
     return LIM;
 }

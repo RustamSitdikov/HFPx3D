@@ -1,18 +1,17 @@
 #include <cstdio>
 
-#include <il/Array.h>
+//#include <il/Array.h>
 #include <il/Array2D.h>
 #include <il/StaticArray.h>
 #include <il/StaticArray2D.h>
-#include <il/StaticArray3D.h>
-#include <il/linear_algebra/dense/blas/dot.h>
+//#include <il/StaticArray3D.h>
+//#include <il/linear_algebra/dense/blas/dot.h>
 //#include <il/linear_algebra/dense/blas/blas.h>
 #include <il/io/numpy.h>
 //#include <complex>
 //#include <cmath>
-#include <SijH.h>
-//#include <ICFns.h>
-#include <Ele_Base.h>
+//#include <SijH.h>
+//#include <Ele_Base.h>
 #include <Matrix_asm.h>
 
 // main.cpp will be used for testing the code parts under development
