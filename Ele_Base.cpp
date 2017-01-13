@@ -260,7 +260,7 @@ il::StaticArray<il::StaticArray<double, 3>, 6> El_CP_S(il::StaticArray2D<double,
     // offset of the points to the centroid is defined by beta;
     // returns the same as El_CP_N(EV, {1.0, 1.0, 1.0}, beta)
     il::StaticArray<il::StaticArray<double, 3>, 6> CP;
-    il::StaticArray<double, 3> EC;
+    il::StaticArray<double, 3> EC{0.0};
     int j, k, l, m, n;
 
     for (j=0; j<3; ++j) {
@@ -269,14 +269,10 @@ il::StaticArray<il::StaticArray<double, 3>, 6> El_CP_S(il::StaticArray2D<double,
         }
     }
     for (n=0; n<3; ++n) {
+        m = (n+1)%3; l = (m+1)%3; // the edge across the (n-3)-th node
         for (j=0; j<3; ++j) {
             (CP[n])[j] = (1.0 - beta)*EV(j, n) + beta*EC[j];
-        }
-    }
-    for (n=3; n<6; ++n) {
-        m = (n-2)&3; l = (m+1)&3; // the edge across the (n-3)-th node
-        for (j=0; j<3; ++j) {
-            (CP[n])[j] = 0.5*(1.0 - beta)*(EV(j, m) + EV(j, l)) + beta*EC[j];
+            (CP[n+3])[j] = 0.5*(1.0 - beta)*(EV(j, m) + EV(j, l)) + beta*EC[j];
         }
     }
     return CP;
@@ -290,7 +286,7 @@ il::StaticArray<il::StaticArray<double, 3>, 6> El_CP_N(il::StaticArray2D<double,
     // offset of the points to the centroid is defined by beta;
     // returns the same as El_CP_N(EV, {1.0, 1.0, 1.0}, beta)
     il::StaticArray<il::StaticArray<double, 3>, 6> CP;
-    il::StaticArray<double, 3> EC;
+    il::StaticArray<double, 3> EC{0.0};
     int j, k, l, m, n;
 
     for (j=0; j<3; ++j) {
@@ -299,14 +295,10 @@ il::StaticArray<il::StaticArray<double, 3>, 6> El_CP_N(il::StaticArray2D<double,
         }
     }
     for (n=0; n<3; ++n) {
+        m = (n+1)%3; l = (m+1)%3; // the edge across the (n-3)-th node
         for (j=0; j<3; ++j) {
             (CP[n])[j] = (1.0 - beta)*EV(j, n) + beta*EC[j];
-        }
-    }
-    for (n=3; n<6; ++n) {
-        m = (n-2)&3; l = (m+1)&3; // the edge across the (n-3)-th node
-        for (j=0; j<3; ++j) {
-            (CP[n])[j] = (1.0 - beta)*(VW[m]*EV(j, m) + VW[l]*EV(j, l))/(VW[m] + VW[l]) + beta*EC[j];
+            (CP[n+3])[j] = (1.0 - beta)*(VW[m]*EV(j, m) + VW[l]*EV(j, l))/(VW[m] + VW[l]) + beta*EC[j];
         }
     }
     return CP;

@@ -8,12 +8,11 @@
 #include <il/linear_algebra/dense/blas/dot.h>
 //#include <il/linear_algebra/dense/blas/blas.h>
 #include <il/io/numpy.h>
-#include <complex>
+//#include <complex>
 //#include <cmath>
-//#include <SijH.h>
+#include <SijH.h>
 //#include <ICFns.h>
 #include <Ele_Base.h>
-#include <Local_IM.h>
 #include <Matrix_asm.h>
 
 // main.cpp will be used for testing the code parts under development
@@ -33,6 +32,17 @@ int main() {
 
     double Mu = 1.0, Nu = 0.35, h0 = -1.21;
     std::complex<double> z0(1.0,0.4), z1(0.0,0.1), z2(1.8,0.0), z3(1.2,1.8);
+
+    il::Array2D<int> Ele(3, 1); //Ele.size[0] = 3; Ele.size[1] = 1;
+    il::Array2D<double> Nod(3, 3);
+
+    for (int n=0; n<3; ++n) {
+        Ele(n, 0) = n;
+        Nod(2, n) = 0.0;
+    }
+    Nod(0, 0) = std::real(z1); Nod(0, 1) = std::real(z2); Nod(0, 2) = std::real(z3);
+    Nod(1, 0) = std::imag(z1); Nod(1, 1) = std::imag(z2); Nod(1, 2) = z1.imag();
+
     il::StaticArray<std::complex<double>, 3> tau;
     il::StaticArray<double, 3> X0; //, V0, X0r, NV;
     X0[0] = std::real(z0); X0[1] = std::imag(z0); X0[2] = -h0;
@@ -54,7 +64,8 @@ int main() {
     El_RT_Tr(tau, RTt, RT, EV);
     // the rest is recalculated for every CP
     El_X_CR(hz, RTt, EV, X0);
-    L_IM_H_1 = Local_IM_H(Mu, Nu, hz.h, hz.z, tau, SFM_1);
+    H_Int H_I;
+    L_IM_H_1 = Local_IM<H_Int>(H_I, Mu, Nu, hz.h, hz.z, tau, SFM_1);
 
     //for (int j=0; j<=2; ++j) {
     //    for (int k=0; k<=2; ++k) {
@@ -76,22 +87,22 @@ int main() {
     //}
     //L_IM_H_1 = Local_IM_B_H(Mu, Nu, h0, z0, tau, SFM_1);
 
-    std::string path = WorkDirectory+std::string{"/Int_test_1_ele.csv"};
+    std::string path = WorkDirectory+std::string{"/test_integration_1_ele.csv"};
     FILE* of=std::fopen(path.c_str(),"w");
     for (int j=0; j<L_IM_H_1.size(0); ++j){
         for (int k=0; k<L_IM_H_1.size(1); ++k){
-            std::fprintf(of,"%.12g",L_IM_H_1(j,k));
+            std::fprintf(of,"%18.12g",L_IM_H_1(j,k));
             if (k<L_IM_H_1.size(1)-1) std::fprintf(of,",");
         }
         std::fprintf(of,"\n");
     }
     std::fclose(of);
 
-    path = WorkDirectory+std::string{"/SFM_test_1_ele.csv"};
+    path = WorkDirectory+std::string{"/test_SFM_1_ele.csv"};
     of=std::fopen(path.c_str(),"w");
     for (int j=0; j<SFM_1.size(0); ++j){
         for (int k=0; k<SFM_1.size(1); ++k){
-            std::fprintf(of,"%.12g%+.12g*I",SFM_1(j,k));
+            std::fprintf(of,"%18.12g%+.12g*I",SFM_1(j,k));
             if (k<SFM_1.size(1)-1) std::fprintf(of,",");
         }
         std::fprintf(of,"\n");
@@ -99,6 +110,47 @@ int main() {
     std::fclose(of);
 
     //il::save(L_IM_H_1, "C:/Users/nikolski/.spyder-py3/3DBEM/matrix_1_el.npy", il::io, status);
+    //status.abort_on_error();
+
+    il::Array2D<double> IM_1(18, 18);
+    IM_1 = BEMatrix_S<H_Int, il::Array2D<int>, il::Array2D<double>>(Mu, Nu, 0.25, Ele, Nod);
+
+    path = WorkDirectory+std::string{"/test_assembly_1_ele.csv"};
+    of=std::fopen(path.c_str(),"w");
+    for (int j=0; j<IM_1.size(0); ++j){
+        for (int k=0; k<IM_1.size(1); ++k){
+            std::fprintf(of,"%18.12g",IM_1(j,k));
+            if (k<IM_1.size(1)-1) std::fprintf(of,",");
+        }
+        std::fprintf(of,"\n");
+    }
+    std::fclose(of);
+
+    //il::save(IM_1, "C:/Users/nikolski/.spyder-py3/3DBEM/matrix_1_el.npy", il::io, status);
+    //status.abort_on_error();
+
+    il::int_t N_El = Conn_Mtr.size(1), N_DOF = 18*N_El;
+    // conversion from Matlab to C++
+    for (int n=0; n<N_El; ++n) {
+        for (int j=0; j<3; ++j) {
+            Conn_Mtr(j, n) -=1;
+        }
+    }
+    il::Array2D<double> IM_2(N_DOF, N_DOF);
+    IM_2 = BEMatrix_S<H_Int, il::Array2D<int>, il::Array2D<double>>(Mu, Nu, 0.25, Conn_Mtr, Node_Crd);
+
+    path = WorkDirectory+std::string{"/test_assembly_24_ele.csv"};
+    of=std::fopen(path.c_str(),"w");
+    for (int j=0; j<IM_2.size(0); ++j){
+        for (int k=0; k<IM_2.size(1); ++k){
+            std::fprintf(of,"%18.12g",IM_2(j,k));
+            if (k<IM_2.size(1)-1) std::fprintf(of,",");
+        }
+        std::fprintf(of,"\n");
+    }
+    std::fclose(of);
+
+    //il::save(IM_1, "C:/Users/nikolski/.spyder-py3/3DBEM/matrix_1_el.npy", il::io, status);
     //status.abort_on_error();
 
     return 0;

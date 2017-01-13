@@ -15,21 +15,21 @@
 #include <il/linear_algebra/dense/blas/blas.h>
 #include <il/linear_algebra/dense/blas/dot.h>
 //#include <il/norm.h>
-#include <cmath>
+//#include <cmath>
 
 il::StaticArray2D<double, 3, 18> N_dot_SIM(il::StaticArray<double, 3> NV, il::StaticArray2D<double, 6, 18> SIM) {
     // Normal vector (NV) multiplied by stress influence matrix (SIM, 6*18)
     il::StaticArray2D<double, 3, 6> NM{0.0};
     NM(0, 0) = NV[0]; NM(1, 1) = NV[1]; NM(2, 2) = NV[2];
-    NM(0, 3) = NV[1]; NM(1, 5) = NV[0];
-    NM(0, 4) = NV[2]; NM(2, 5) = NV[0];
+    NM(0, 3) = NV[1]; NM(1, 3) = NV[0];
+    NM(0, 4) = NV[2]; NM(2, 4) = NV[0];
     NM(1, 5) = NV[2]; NM(2, 5) = NV[1];
     il::StaticArray2D<double, 3, 18> TIM = il::dot(NM, SIM);
     return TIM;
 }
 
-il::StaticArray2D<double, 6, 18> SIM_P_R(il::StaticArray2D<double, 3, 3> RTl, il::StaticArray2D<double, 3, 3> RTr, il::StaticArray2D<double, 6, 18> SIM) {
-    // Triple product (RTl dot S dot RTr) for stress influence matrix (SIM, 6*18)
+il::StaticArray2D<double, 6, 18> SIM_P_R(il::StaticArray2D<double, 3, 3> RT_L, il::StaticArray2D<double, 3, 3> RT_R, il::StaticArray2D<double, 6, 18> SIM) {
+    // Triple product (RT_L dot S dot RT_R) for stress influence matrix (SIM, 6*18)
     il::StaticArray2D<double, 3, 3> STM, STM_I, STM_R;
     il::StaticArray2D<double, 6, 18> SIM_R{0.0};
     int j, k, l, m, n;
@@ -42,8 +42,8 @@ il::StaticArray2D<double, 6, 18> SIM_P_R(il::StaticArray2D<double, 3, 3> RTl, il
             STM(l, m) = SIM(n, k);
             STM(m, l) = STM(l, m);
         }
-        STM_I = il::dot(STM, RTr);
-        STM_R = il::dot(RTl, STM_I);
+        STM_I = il::dot(STM, RT_R);
+        STM_R = il::dot(RT_L, STM_I);
         for (j=0; j<3; ++j) {
             l = (j+1)%3;
             m = (l+1)%3;
