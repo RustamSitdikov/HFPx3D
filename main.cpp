@@ -18,7 +18,7 @@
 
 int main() {
     std::string MeshDirectory{"C:/Users/nikolski/.spyder-py3/3DBEM"};
-    std::string WorkDirectory{"C:/Users/nikolski/ClionProjects/3D-bem"};
+    std::string WorkDirectory{"C:/Users/nikolski/ClionProjects/3D-bem/Test_Output"};
 
     il::Status status{};
     il::Array2D<int> Conn_Mtr = il::load<il::Array2D<int>>(MeshDirectory + std::string{"/Elems_pennymesh24el.npy"}, il::io, status);
