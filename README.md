@@ -1,3 +1,3 @@
 # HFPx3D
 3D BEM
-natural & hydraulic fracture simulation
+static solver for traction-free and pressurized fracture simulation
