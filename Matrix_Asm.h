@@ -23,7 +23,6 @@
 #include <Submatrix.h>
 #include <Tensor_Oper.h>
 
-
 template <class Kernel>
 il::StaticArray2D<double, 6, 18> Local_IM
         (Kernel K_I, double mu, double nu, double h, std::complex<double> z,
@@ -114,15 +113,17 @@ il::Array2D<double> BEMatrix_S(double Mu, double Nu, double beta, C_array& Conn_
                 N_CP_L = il::dot(RT_S_t, N_CP);
                 T_H_CP_L = N_dot_SIM(N_CP_L, S_H_CP_L);
                 T_H_CP_G = il::dot(RT_S, T_H_CP_L);
+                // Alternative 3: keeping everything in terms of local coordinates
+                //T_H_CP_X = il::dot(RT_T_t, T_H_CP_G);
                 for (n_S=0; n_S<6; ++n_S) {
                     get_submatrix<il::StaticArray2D<double, 3, 3>, il::StaticArray2D<double, 3, 18>>(TI_NN, 0, 2, 3*n_S, 3*n_S+2, T_H_CP_G);
-                    // Re- to traction vs DD w.r. to the reference coordinate system
+                    // Re-relating DD-to traction influence to DD w.r. to the reference coordinate system
                     TI_NN_G = il::dot(TI_NN, RT_S_t);
-                    // Adding the block to element-to-element influence sub-matrix
+                    // Adding the block to the element-to-element influence sub-matrix
                     set_submatrix<il::StaticArray2D<double, 3, 3>, il::StaticArray2D<double, 18, 18>>(IM_H_L, 3*n_T, 3*n_S, TI_NN_G);
                 }
             }
-            // Adding the block to the global influence matrix
+            // Adding the element-to-element influence sub-matrix to the global influence matrix
             set_submatrix<il::StaticArray2D<double, 18, 18>, il::Array2D<double>>(IM_H, 18*T_El, 18*S_El, IM_H_L);
         }
     }
@@ -144,8 +145,6 @@ il::StaticArray2D<double, 6, 18> Local_IM
 
     const std::complex<double> I(0.0,1.0);
     
-    //Kernel K_I;
-
     // scaling ("-" sign comes from traction Somigliana ID, H-term)
     double scale = -mu/(4.0*M_PI*(1.0-nu));
     // tolerance parameters
