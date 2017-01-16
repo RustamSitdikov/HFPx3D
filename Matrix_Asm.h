@@ -30,11 +30,11 @@ il::StaticArray2D<double, 6, 18> Local_IM
         (Kernel K_I, double mu, double nu, double h, std::complex<double> z,
          il::StaticArray<std::complex<double>, 3> tau, il::StaticArray2D<std::complex<double>, 6, 6> SFM);
 
-template <class Kernel, typename C_array, typename N_array>
+template <typename C_array, typename N_array>
 il::Array2D<double> BEMatrix_S(double Mu, double Nu, double beta, C_array& Conn_Mtr, N_array& Node_Crd);
 //T BERHS_S(double Mu, double Nu, double beta, il::Array2D& Conn_Mtr, il::Array2D& Node_Crd);
 
-template <class Kernel, typename C_array, typename N_array>
+template <typename C_array, typename N_array>
 il::Array2D<double> BEMatrix_S(double Mu, double Nu, double beta, C_array& Conn_Mtr, N_array& Node_Crd) {
     // BEM matrix assembly from boundary mesh geometry data:
     // mesh connectivity (Conn_Mtr) and nodes' coordinates (Node_Crd)
@@ -57,7 +57,7 @@ il::Array2D<double> BEMatrix_S(double Mu, double Nu, double beta, C_array& Conn_
     //il::StaticArray2D<double, Num_DOF, Num_DOF> IM_H;
     //il::StaticArray<double, 18*Num_El> RHS;
 
-    Kernel K_I;
+    H_Int K_I; // Kernel K_I;
     il::StaticArray2D<std::complex<double>, 6, 6> SFM{0.0};
     //il::StaticArray<double, 6> VW_S, VW_T;
     il::StaticArray<std::complex<double>, 3> tau;
@@ -106,7 +106,7 @@ il::Array2D<double> BEMatrix_S(double Mu, double Nu, double beta, C_array& Conn_
                 // Shifting to the n_T-th collocation pt
                 El_X_CR(hz, RT_S_t, EV_S, CP_T[n_T]);
                 // Calculating DD-to stress influence w.r. to the source element's local coordinate system
-                S_H_CP_L = Local_IM<Kernel>(K_I, Mu, Nu, hz.h, hz.z, tau, SFM);
+                S_H_CP_L = Local_IM<H_Int>(K_I, Mu, Nu, hz.h, hz.z, tau, SFM);
                 // Multiplication by N_CP
                 // Alternative 1: rotating stress at CP to the reference ("global") coordinate system
                 //S_H_CP_G = SIM_P_R(RT_S, RT_S_t, S_H_CP_L);

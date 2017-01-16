@@ -21,7 +21,7 @@ int main() {
     std::string WorkDirectory{"C:/Users/nikolski/ClionProjects/3D-bem/Test_Output"};
 
     il::Status status{};
-    il::Array2D<int> Conn_Mtr = il::load<il::Array2D<int>>(MeshDirectory + std::string{"/Elems_pennymesh24el.npy"}, il::io, status);
+    il::Array2D<il::int_t> Conn_Mtr = il::load<il::Array2D<il::int_t>>(MeshDirectory + std::string{"/Elems_pennymesh24el.npy"}, il::io, status);
     status.abort_on_error();
 
     il::Array2D<double> Node_Crd = il::load<il::Array2D<double>>(MeshDirectory + std::string{"/Nodes_pennymesh24el.npy"}, il::io, status);
@@ -32,11 +32,11 @@ int main() {
     double Mu = 1.0, Nu = 0.35, h0 = -1.21;
     std::complex<double> z0(1.0,0.4), z1(0.0,0.1), z2(1.8,0.0), z3(1.2,1.8);
 
-    il::Array2D<int> Ele(3, 1); //Ele.size[0] = 3; Ele.size[1] = 1;
+    il::Array2D<il::int_t> Ele(3, 1); //Ele.size[0] = 3; Ele.size[1] = 1;
     il::Array2D<double> Nod(3, 3);
 
     for (int n=0; n<3; ++n) {
-        Ele(n, 0) = n;
+        Ele(n, 0) = il::int_t(n);
         Nod(2, n) = 0.0;
     }
     Nod(0, 0) = std::real(z1); Nod(0, 1) = std::real(z2); Nod(0, 2) = std::real(z3);
@@ -112,7 +112,7 @@ int main() {
     //status.abort_on_error();
 
     il::Array2D<double> IM_1(18, 18);
-    IM_1 = BEMatrix_S<H_Int, il::Array2D<int>, il::Array2D<double>>(Mu, Nu, 0.25, Ele, Nod);
+    IM_1 = BEMatrix_S<il::Array2D<il::int_t>, il::Array2D<double>>(Mu, Nu, 0.25, Ele, Nod);
 
     path = WorkDirectory+std::string{"/test_assembly_1_ele.csv"};
     of=std::fopen(path.c_str(),"w");
@@ -136,7 +136,7 @@ int main() {
         }
     }
     il::Array2D<double> IM_2(N_DOF, N_DOF);
-    IM_2 = BEMatrix_S<H_Int, il::Array2D<int>, il::Array2D<double>>(Mu, Nu, 0.25, Conn_Mtr, Node_Crd);
+    IM_2 = BEMatrix_S<il::Array2D<il::int_t>, il::Array2D<double>>(Mu, Nu, 0.25, Conn_Mtr, Node_Crd);
 
     path = WorkDirectory+std::string{"/test_assembly_24_ele.csv"};
     of=std::fopen(path.c_str(),"w");
