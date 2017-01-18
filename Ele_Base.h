@@ -1,7 +1,7 @@
 //
 // This file is part of 3d_bem.
 //
-// Created by nikolski on 1/10/2017.
+// Created by D. Nikolski on 1/10/2017.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
 // Geo-Energy Laboratory, 2016-2017.  All rights reserved.
 // See the LICENSE.TXT file for more details. 
@@ -41,6 +41,7 @@ il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_N(il::StaticArray2D<double,
 //il::StaticArray2D<std::complex<double>,6,6> El_SFM_N(il::StaticArray2D<double,3,3>, il::StaticArray<double,3>);
 //il::StaticArray2D<std::complex<double>,6,6> El_SFM_C(il::StaticArray2D<double,3,3>&, il::StaticArray2D<double,3,3>, il::StaticArray<double,3>, double);
 //il::StaticArray2D<std::complex<double>,6,6> El_SFM_C(il::StaticArray2D<double,3,3>, il::StaticArray<double,3>, double);
+il::StaticArray2D<std::complex<double>, 6, 6> El_Shift_SFM(std::complex<double> z);
 
 il::StaticArray<il::StaticArray<double, 3>, 6> El_CP_S(il::StaticArray2D<double,3,3> EV, double beta);
 il::StaticArray<il::StaticArray<double, 3>, 6> El_CP_N(il::StaticArray2D<double,3,3> EV,
@@ -279,6 +280,19 @@ il::StaticArray2D<std::complex<double>, 6, 6> El_SFM_N(il::StaticArray2D<double,
 // with nodes' offset to the centroid (e.g. at collocation points) defined by beta
 // and non-trivial edge partitioning
 //}
+
+il::StaticArray2D<std::complex<double>, 6, 6> El_Shift_SFM(std::complex<double> z) {
+    // "shifted" SFM from z, tau[m], and local SFM
+    std::complex<double> zc=std::conj(z);
+    il::StaticArray2D<std::complex<double>, 6, 6> ShiftZ {0.0};
+    ShiftZ(0, 0) = 1.0;
+    ShiftZ(1, 0) = z; ShiftZ(1, 1) = 1.0;
+    ShiftZ(2, 0) = zc; ShiftZ(2, 2) = 1.0;
+    ShiftZ(3, 0) = z*z; ShiftZ(3, 1) = 2.0*z; ShiftZ(3, 3) = 1.0;
+    ShiftZ(4, 0) = zc*zc; ShiftZ(4, 2) =  2.0*zc; ShiftZ(4, 4) = 1.0;
+    ShiftZ(5, 0) = z*zc; ShiftZ(5, 1) = zc; ShiftZ(5, 2) = z; ShiftZ(5, 5) = 1.0;
+    return ShiftZ;
+}
 
 il::StaticArray<il::StaticArray<double, 3>, 6> El_CP_S(il::StaticArray2D<double,3,3> EV, double beta) {
     // This function calculates the coordinates

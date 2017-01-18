@@ -1,7 +1,7 @@
 //
 // This file is part of 3d_bem.
 //
-// Created by nikolski on 1/10/2017.
+// Created by D. Nikolski on 1/10/2017.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
 // Geo-Energy Laboratory, 2016-2017.  All rights reserved.
 // See the LICENSE.TXT file for more details. 
@@ -22,6 +22,8 @@ void get_submatrix(T_sub& sub, il::int_t i0, il::int_t i1, il::int_t j0, il::int
 template <typename T_sub, typename T_A>
 void set_submatrix(T_A& A, il::int_t i0, il::int_t i1, T_sub& B);
 //void set_submatrix(il::StaticArray2D& A, il::int_t i0, il::int_t i1, il::Array2D<double>& B);
+//template <typename T_sub, typename T_A>
+//void add_submatrix(T_A& A, il::int_t i0, il::int_t i1, double alpha, T_sub& B);
 
 template <typename T_sub, typename T_A>
 void get_submatrix(T_sub& sub, il::int_t i0, il::int_t i1, il::int_t j0, il::int_t j1, T_A& A) {
@@ -74,3 +76,14 @@ void set_submatrix(T_A& A, il::int_t i0, il::int_t i1, T_sub& B) {
 //    }
 //}
 
+//template <typename T_sub, typename T_A>
+//void add_submatrix(T_A& A, il::int_t i0, il::int_t i1, double alpha, T_sub& B) {
+//    IL_ASSERT(i0 + B.size(0) <= A.size(0));
+//    IL_ASSERT(i1 + B.size(1) <= A.size(1));
+
+//    for (il::int_t j1 = 0; j1 < B.size(1); ++j1) {
+//        for (il::int_t j0 = 0; j0 < B.size(0); ++j0) {
+//            A(i0 + j0, i1 + j1) += alpha*B(j0, j1);
+//        }
+//    }
+//}

@@ -1,7 +1,7 @@
 //
 // This file is part of 3d_bem.
 //
-// Created by nikolski on 1/12/2017.
+// Created by D. Nikolski on 1/12/2017.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
 // Geo-Energy Laboratory, 2016-2017.  All rights reserved.
 // See the LICENSE.TXT file for more details. 
@@ -150,10 +150,10 @@ il::StaticArray2D<double, 6, 18> Local_IM
     // scaling ("-" sign comes from traction Somigliana ID, H-term)
     double scale = -mu/(4.0*M_PI*(1.0-nu));
     // tolerance parameters
-    const double HTol = 1.0E-9, DTol = 1.0E-8;
+    const double HTol = 1.0E-16, DTol = 1.0E-8;
     // geometrical
     double an, am;
-    std::complex<double> eixm, eixn, eipm, eipn, zc=std::conj(z), ntau2;
+    std::complex<double> eixm, eixn, eipm, eipn, ntau2;
     // tz[m] and d[m] can be calculated here
     il::StaticArray<std::complex<double>,3> tz, d, dtau;
     int j, k, l, m, n;
@@ -165,15 +165,8 @@ il::StaticArray2D<double, 6, 18> Local_IM
         d[j]=0.5*(tz[j]-std::conj(tz[j])*ntau2);
     }
     // also, "shifted" SFM from z, tau[m], and local SFM
-    il::StaticArray2D<std::complex<double>, 6, 6> ShiftZ {0.0};
-    ShiftZ(0, 0) = 1.0;
-    ShiftZ(1, 0) = z; ShiftZ(1, 1) = 1.0;
-    ShiftZ(2, 0) = zc; ShiftZ(2, 2) = 1.0;
-    ShiftZ(3, 0) = z*z; ShiftZ(3, 1) = 2.0*z; ShiftZ(3, 3) = 1.0;
-    ShiftZ(4, 0) = zc*zc; ShiftZ(4, 2) =  2.0*zc; ShiftZ(4, 4) = 1.0;
-    ShiftZ(5, 0) = z*zc; ShiftZ(5, 1) = zc; ShiftZ(5, 2) = z; ShiftZ(5, 5) = 1.0;
+    il::StaticArray2D<std::complex<double>, 6, 6> ShiftZ = El_Shift_SFM(z);
     il::StaticArray2D<std::complex<double>, 6, 6> SFMz = il::dot(SFM, ShiftZ);
-
     // constituents of the integrals
     il::StaticArray<std::complex<double>, 9> Fn, Fm;
     il::StaticArray3D<std::complex<double>, 6, 3, 9> Cn, Cm;
@@ -191,35 +184,35 @@ il::StaticArray2D<double, 6, 18> Local_IM
     il::StaticArray2D<double, 6, 18> LIM {0.0};
 
     // searching for "degenerate" edges: point x (collocation pt) projects onto an edge or a vertex
-    bool IsDegen = std::abs(d[0])<DTol || std::abs(d[1])<DTol || std::abs(d[2])<DTol; // (d[0]*d[1]*d[2]==0);
+    bool IsDegen = std::abs(d[0])<HTol || std::abs(d[1])<HTol || std::abs(d[2])<HTol; // (d[0]*d[1]*d[2]==0);
+    il::StaticArray2D<bool, 2, 3> IsClose{false};
 
     // calculating angles (phi, psi, chi)
     il::StaticArray<double,3> phi {0.0}, psi {0.0};
     il::StaticArray2D<double, 2, 3> chi {0.0};
     for (j=0; j<=2; ++j) {
         phi[j] = std::arg(tz[j]);
-        // make sure it's between -pi and pi (add or subtract 2*pi)
-        // phi[j] = (std::fmod(phi[j]/M_PI+1.0, 2.0)-1.0)*M_PI;
         psi[j] = std::arg(d[j]);
     }
     for (j=0; j<=2; ++j) {
         for (k=0; k<=1; ++k) {
             l = (j+k)%3;
-            chi(k,j) = phi[l]-psi[j];
+            chi(k,j) = phi[l] - psi[j];
             // make sure it's between -pi and pi (add or subtract 2*pi)
-            //chi(k,j) = (std::fmod(chi(k,j)/M_PI+1.0, 2.0)-1.0)*M_PI;
-            chi(k,j) = (chi(k,j)<=-M_PI)? chi(k,j)+M_PI : ((chi(k,j)>M_PI)? chi(k,j)-M_PI : chi(k,j));
-            // reprooving for "degenerate" edges
-            if (fabs(M_PI_2-std::fabs(chi(k,j)))<DTol) IsDegen = true;
+            if (chi(k,j) <= -M_PI ) while (chi(k,j) <= -M_PI ) chi(k,j) += 2.0*M_PI;
+            else if (chi(k,j) > M_PI) while (chi(k,j) > M_PI) chi(k,j) -= 2.0*M_PI;
+            // reprooving for "degenerate" edges (chi angles too close to 90 degrees)
+            if (fabs(M_PI_2-std::fabs(chi(k,j)))<DTol) {
+                IsClose(k,j) = true;
+                IsDegen = true;
+            }
         }
     }
 
     // summation over edges
     for (m=0; m<=2; ++m) {
         n = (m+1)%3;
-        if (std::abs(d[m])>=DTol &&
-            std::fabs(M_PI_2-std::fabs(chi(0,m)))>=DTol &&
-            std::fabs(M_PI_2-std::fabs(chi(1,m)))>=DTol) {
+        if (std::abs(d[m])>=HTol && ~IsClose(0,m) && ~IsClose(1,m)) {
             eixm = std::exp(I*chi(0,m)); eixn = std::exp(I*chi(1,m));
             if(std::fabs(h)<HTol) { // limit case (point x on the element's plane)
                 SincLn = K_I.SijLim(nu, eixn, d[m]);
@@ -234,8 +227,10 @@ il::StaticArray2D<double, 6, 18> Local_IM
                 }
             }
             else { // out-of-plane case
-                an = std::abs(tz[n]-d[m])*((chi(1,m)<0)? -1.0 : double((chi(1,m)>0)));
-                am = std::abs(tz[m]-d[m])*((chi(0,m)<0)? -1.0 : double((chi(0,m)>0)));
+                an = std::abs(tz[n]-d[m]);
+                an = (chi(1,m)<0)? -an : an;
+                am = std::abs(tz[m]-d[m]);
+                am = (chi(0,m)<0)? -am : am;
                 Fn = ICFns(h, d[m], an, chi(1,m), eixn);
                 Fm = ICFns(h, d[m], am, chi(0,m), eixm);
                 // S11+S22

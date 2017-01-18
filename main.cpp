@@ -35,12 +35,12 @@ int main() {
     il::Array2D<il::int_t> Ele(3, 1); //Ele.size[0] = 3; Ele.size[1] = 1;
     il::Array2D<double> Nod(3, 3);
 
-    for (int n=0; n<3; ++n) {
-        Ele(n, 0) = il::int_t(n);
+    for (il::int_t n=0; n<3; ++n) {
+        Ele(n, 0) = n;
         Nod(2, n) = 0.0;
     }
     Nod(0, 0) = std::real(z1); Nod(0, 1) = std::real(z2); Nod(0, 2) = std::real(z3);
-    Nod(1, 0) = std::imag(z1); Nod(1, 1) = std::imag(z2); Nod(1, 2) = z1.imag();
+    Nod(1, 0) = std::imag(z1); Nod(1, 1) = std::imag(z2); Nod(1, 2) = std::imag(z3);
 
     il::StaticArray<std::complex<double>, 3> tau;
     il::StaticArray<double, 3> X0; //, V0, X0r, NV;
@@ -90,7 +90,7 @@ int main() {
     FILE* of=std::fopen(path.c_str(),"w");
     for (int j=0; j<L_IM_H_1.size(0); ++j){
         for (int k=0; k<L_IM_H_1.size(1); ++k){
-            std::fprintf(of,"%18.12g",L_IM_H_1(j,k));
+            std::fprintf(of,"%20.15g",L_IM_H_1(j,k));
             if (k<L_IM_H_1.size(1)-1) std::fprintf(of,",");
         }
         std::fprintf(of,"\n");
@@ -101,7 +101,7 @@ int main() {
     of=std::fopen(path.c_str(),"w");
     for (int j=0; j<SFM_1.size(0); ++j){
         for (int k=0; k<SFM_1.size(1); ++k){
-            std::fprintf(of,"%18.12g%+.12g*I",SFM_1(j,k));
+            std::fprintf(of,"%.15g%+.15gi",SFM_1(j,k));
             if (k<SFM_1.size(1)-1) std::fprintf(of,",");
         }
         std::fprintf(of,"\n");
@@ -118,7 +118,7 @@ int main() {
     of=std::fopen(path.c_str(),"w");
     for (int j=0; j<IM_1.size(0); ++j){
         for (int k=0; k<IM_1.size(1); ++k){
-            std::fprintf(of,"%18.12g",IM_1(j,k));
+            std::fprintf(of,"%20.15g",IM_1(j,k));
             if (k<IM_1.size(1)-1) std::fprintf(of,",");
         }
         std::fprintf(of,"\n");
@@ -142,14 +142,14 @@ int main() {
     of=std::fopen(path.c_str(),"w");
     for (int j=0; j<IM_2.size(0); ++j){
         for (int k=0; k<IM_2.size(1); ++k){
-            std::fprintf(of,"%18.12g",IM_2(j,k));
+            std::fprintf(of,"%20.15g",IM_2(j,k));
             if (k<IM_2.size(1)-1) std::fprintf(of,",");
         }
         std::fprintf(of,"\n");
     }
     std::fclose(of);
 
-    //il::save(IM_1, "C:/Users/nikolski/.spyder-py3/3DBEM/matrix_1_el.npy", il::io, status);
+    //il::save(IM_1, "C:/Users/nikolski/.spyder-py3/3DBEM/matrix_24_el.npy", il::io, status);
     //status.abort_on_error();
 
     return 0;
