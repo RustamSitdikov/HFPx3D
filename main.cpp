@@ -3,7 +3,10 @@
 #include <il/StaticArray.h>
 #include <il/StaticArray2D.h>
 #include <il/io/numpy.h>
-#include <Matrix_asm.h>
+#include "Matrix_Asm.h"
+#include "Tensor_Oper.h"
+#include "Ele_Base.h"
+#include "Elast_Ker_Int.h"
 
 // main.cpp will be used for testing the code parts under development
 
@@ -31,7 +34,10 @@ int main() {
     double Mu = 1.0, Nu = 0.35;
 
     il::Array2D<double> IM_2(N_DOF, N_DOF);
-    IM_2 = BEMatrix_S<il::Array2D<il::int_t>, il::Array2D<double>>(Mu, Nu, 0.25, Conn_Mtr, Node_Crd);
+    IM_2 = hfp3d::BEMatrix_S
+            <il::Array2D<il::int_t>,
+            il::Array2D<double>,
+            il::Array2D<double>>(Mu, Nu, 0.25, Conn_Mtr, Node_Crd);
 
     std::string path = WorkDirectory+std::string{"/test_assembly_24_ele.csv"};
     FILE* of=std::fopen(path.c_str(),"w");
