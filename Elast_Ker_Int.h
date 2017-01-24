@@ -31,47 +31,42 @@ namespace hfp3d {
 
     class Kernel_Integration {
     public:
-        il::StaticArray3D<std::complex<double>, 6, 3, 9> S11_22
+        virtual il::StaticArray3D<std::complex<double>, 6, 3, 9> S11_22
                 (double nu, std::complex<double> eix,
-                 double h, std::complex<double> d);
+                 double h, std::complex<double> d) = 0;
 
-        il::StaticArray3D<std::complex<double>, 6, 3, 9> S11_22_12
+        virtual il::StaticArray3D<std::complex<double>, 6, 3, 9> S11_22_12
                 (double nu, std::complex<double> eix,
-                 double h, std::complex<double> d);
+                 double h, std::complex<double> d) = 0;
 
-        il::StaticArray3D<std::complex<double>, 6, 3, 9> S13_23
+        virtual il::StaticArray3D<std::complex<double>, 6, 3, 9> S13_23
                 (double nu, std::complex<double> eix,
-                 double h, std::complex<double> d);
+                 double h, std::complex<double> d) = 0;
 
-        il::StaticArray3D<std::complex<double>, 6, 3, 9> S33
+        virtual il::StaticArray3D<std::complex<double>, 6, 3, 9> S33
                 (double nu, std::complex<double> eix,
-                 double h, std::complex<double> d);
+                 double h, std::complex<double> d) = 0;
 
-        il::StaticArray3D<std::complex<double>, 6, 3, 5> S11_22_red
+        virtual il::StaticArray3D<std::complex<double>, 6, 3, 5> S11_22_red
                 (double nu, std::complex<double> eix,
-                 double h, std::complex<double> d);
+                 double h, std::complex<double> d) = 0;
 
-        il::StaticArray3D<std::complex<double>, 6, 3, 5> S11_22_12_red
+        virtual il::StaticArray3D<std::complex<double>, 6, 3, 5> S11_22_12_red
                 (double nu, std::complex<double> eix,
-                 double h, std::complex<double> d);
+                 double h, std::complex<double> d) = 0;
 
-        il::StaticArray3D<std::complex<double>, 6, 3, 5> S13_23_red
+        virtual il::StaticArray3D<std::complex<double>, 6, 3, 5> S13_23_red
                 (double nu, std::complex<double> eix,
-                 double h, std::complex<double> d);
+                 double h, std::complex<double> d) = 0;
 
-        il::StaticArray3D<std::complex<double>, 6, 3, 5> S33_red
+        virtual il::StaticArray3D<std::complex<double>, 6, 3, 5> S33_red
                 (double nu, std::complex<double> eix,
-                 double h, std::complex<double> d);
+                 double h, std::complex<double> d) = 0;
 
-        il::StaticArray3D<std::complex<double>, 6, 4, 3> SijLim
-                (double nu, std::complex<double> eix, std::complex<double> d);
+        virtual il::StaticArray3D<std::complex<double>, 6, 4, 3> SijLim
+                (double nu, std::complex<double> eix,
+                 std::complex<double> d) = 0;
     };
-
-    // Hypersingular potential - for fracture boundaries
-    class H_Potential : public Kernel_Integration {
-    };
-    // This if for non-fracture boundaries (e.g. borehole)
-    // class T_Potential: public Kernel_Integration {};
 
 // Constituing functions for the integrals
 // of any kernel of the elasticity equation

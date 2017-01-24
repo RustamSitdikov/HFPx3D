@@ -15,6 +15,7 @@
 #define INC_3D_BEM_MATRIX_ASM_H
 
 #include <complex>
+#include <il/Array2D.h>
 #include <il/StaticArray.h>
 #include <il/StaticArray2D.h>
 
@@ -31,11 +32,11 @@ namespace hfp3d {
 
     // "Global" matrix assembly
 
-    template<typename C_array, typename N_array, typename M_array>
-    M_array BEMatrix_S
+    template<typename C_array, typename N_array>
+    il::Array2D<double> BEMatrix_S
             (double Mu, double Nu, double beta,
-             const C_array& Conn_Mtr,
-             const N_array& Node_Crd);
+             C_array& Conn_Mtr,
+             N_array& Node_Crd);
 
 }
 

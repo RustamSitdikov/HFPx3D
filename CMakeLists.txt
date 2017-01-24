@@ -10,7 +10,7 @@ set(SOURCE_FILES
         Tensor_Oper.cpp
         Ele_Base.cpp
         Elast_Ker_Int.cpp
-        SijH.cpp)
+        H_Potential.cpp)
 
 add_executable(3d_bem ${SOURCE_FILES})
 target_include_directories(3d_bem PRIVATE ${CMAKE_SOURCE_DIR})

@@ -12,18 +12,19 @@
 #include <il/StaticArray.h>
 #include <il/StaticArray2D.h>
 #include <il/linear_algebra/dense/blas/dot.h>
-#include "Matrix_asm.h"
+#include "Matrix_Asm.h"
 #include "Tensor_Oper.h"
 #include "Ele_Base.h"
 #include "Elast_Ker_Int.h"
+#include "H_Potential.h"
 
     // "Global" matrix assembly
 
-    template<typename C_array, typename N_array, typename M_array>
-    M_array hfp3d::BEMatrix_S
+    template<typename C_array, typename N_array>
+    il::Array2D<double> hfp3d::BEMatrix_S
             (double Mu, double Nu, double beta,
-             const C_array &Conn_Mtr,
-             const N_array &Node_Crd) {
+             C_array& Conn_Mtr,
+             N_array& Node_Crd) {
         // BEM matrix assembly from boundary mesh geometry data:
         // mesh connectivity (Conn_Mtr) and nodes' coordinates (Node_Crd)
         // Naive way: no parallelization, no ACA
@@ -39,7 +40,7 @@
         //IL_ASSERT(Global_Matrix_H.size(0) == 18*Num_El);
         //IL_ASSERT(Global_Matrix_H.size(1) == 18*Num_El);
 
-        M_array Global_Matrix_H(Num_DOF, Num_DOF);
+        il::Array2D<double> Global_Matrix_H(Num_DOF, Num_DOF);
         //il::StaticArray2D<double, Num_DOF, Num_DOF> Global_Matrix_H;
         //il::StaticArray<double, 18*Num_El> RHS;
 
@@ -65,9 +66,9 @@
             // "Source" element
             for (int j = 0; j < 3; ++j) {
                 S_N = Conn_Mtr(j, S_El);
-                get_submatrix<il::Array2D<double>,
+                hfp3d::get_submatrix<il::Array2D<double>,
                         N_array>(Node_Crd, 0, 2, S_N, S_N, il::io, V_S);
-                set_submatrix<il::Array2D<double>,
+                hfp3d::set_submatrix<il::Array2D<double>,
                         il::StaticArray2D<double, 3, 3>>
                         (V_S, 0, j, il::io, EV_S);
                 // set VW_S[j]
@@ -80,9 +81,9 @@
                 // "Target" element
                 for (int j = 0; j < 3; ++j) {
                     T_N = Conn_Mtr(j, T_El);
-                    get_submatrix<il::Array2D<double>,
+                    hfp3d::get_submatrix<il::Array2D<double>,
                             N_array>(Node_Crd, 0, 2, T_N, T_N, il::io, V_T);
-                    set_submatrix<il::Array2D<double>,
+                    hfp3d::set_submatrix<il::Array2D<double>,
                             il::StaticArray2D<double, 3, 3>>
                             (V_T, 0, j, il::io, EV_T);
                     // set VW_T[j]
@@ -101,23 +102,23 @@
                     hz = El_X_CR(EV_S, CP_T[n_T], RT_S_t);
                     // Calculating DD-to stress influence
                     // w.r. to the source element's local coordinate system
-                    S_H_CP_L = Local_IM<H_Potential>
+                    S_H_CP_L = hfp3d::Local_IM<H_Potential>
                             (K_I, Mu, Nu, hz.h, hz.z, tau, SFM);
                     // Multiplication by N_CP
                     // Alternative 1: rotating stress at CP
                     // to the reference ("global") coordinate system
-                    //S_H_CP_G = SIM_P_R(RT_S, RT_S_t, S_H_CP_L);
-                    //T_H_CP_G = N_dot_SIM(N_CP, S_H_CP_G);
+                    //S_H_CP_G = hfp3d::SIM_P_R(RT_S, RT_S_t, S_H_CP_L);
+                    //T_H_CP_G = hfp3d::N_dot_SIM(N_CP, S_H_CP_G);
                     // Alternative 2: rotating N_CP to
                     // the source element's local coordinate system
                     N_CP_L = il::dot(RT_S_t, N_CP);
-                    T_H_CP_L = N_dot_SIM(N_CP_L, S_H_CP_L);
+                    T_H_CP_L = hfp3d::N_dot_SIM(N_CP_L, S_H_CP_L);
                     T_H_CP_G = il::dot(RT_S, T_H_CP_L);
                     // Alternative 3: keeping everything
                     // in terms of local coordinates
                     //T_H_CP_X = il::dot(RT_T_t, T_H_CP_G);
                     for (int n_S = 0; n_S < 6; ++n_S) {
-                        get_submatrix<il::StaticArray2D<double, 3, 3>,
+                        hfp3d::get_submatrix<il::StaticArray2D<double, 3, 3>,
                                 il::StaticArray2D<double, 3, 18>>
                                 (T_H_CP_G, 0, 2, 3 * n_S, 3 * n_S + 2,
                                  il::io, TI_NN);
@@ -126,20 +127,20 @@
                         TI_NN_G = il::dot(TI_NN, RT_S_t);
                         // Adding the block to the element-to-element
                         // influence sub-matrix
-                        set_submatrix<il::StaticArray2D<double, 3, 3>,
+                        hfp3d::set_submatrix<il::StaticArray2D<double, 3, 3>,
                                 il::StaticArray2D<double, 18, 18>>
                                 (TI_NN_G, 3 * n_T, 3 * n_S, il::io, IM_H_L);
                     }
                 }
                 // Adding the element-to-element influence sub-matrix
                 // to the global influence matrix
-                set_submatrix<il::StaticArray2D<double, 18, 18>,
+                hfp3d::set_submatrix<il::StaticArray2D<double, 18, 18>,
                         il::Array2D<double>>
                         (IM_H_L, 18 * T_El, 18 * S_El, il::io, Global_Matrix_H);
             }
         }
         return Global_Matrix_H;
-    };
+    }
 
     // Element-to-point influence matrix (submatrix of the global one)
 
@@ -147,8 +148,8 @@
     il::StaticArray2D<double, 6, 18> hfp3d::Local_IM
             (Kernel& K_I, double mu, double nu,
              double h, std::complex<double> z,
-             const il::StaticArray<std::complex<double>, 3> &tau,
-             const il::StaticArray2D<std::complex<double>, 6, 6> &SFM) {
+             const il::StaticArray<std::complex<double>, 3>& tau,
+             const il::StaticArray2D<std::complex<double>, 6, 6>& SFM) {
         // This function assembles a local "stiffness" sub-matrix
         // (influence of DD at the element nodes to stresses at the point z)
         // in terms of a triangular element's local coordinates
@@ -334,4 +335,4 @@
             }
         }
         return LIM;
-    };
+    }

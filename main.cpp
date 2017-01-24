@@ -4,9 +4,6 @@
 #include <il/StaticArray2D.h>
 #include <il/io/numpy.h>
 #include "Matrix_Asm.h"
-#include "Tensor_Oper.h"
-#include "Ele_Base.h"
-#include "Elast_Ker_Int.h"
 
 // main.cpp will be used for testing the code parts under development
 
@@ -16,17 +13,19 @@ int main() {
 
     il::Status status{};
     il::Array2D<il::int_t> Conn_Mtr = il::load<il::Array2D<il::int_t>>
-            (SrcDirectory + std::string{"/Elems_pennymesh24el.npy"}, il::io, status);
+            (SrcDirectory + std::string{"/Elems_pennymesh24el.npy"},
+             il::io, status);
     status.abort_on_error();
 
     il::Array2D<double> Node_Crd = il::load<il::Array2D<double>>
-            (SrcDirectory + std::string{"/Nodes_pennymesh24el.npy"}, il::io, status);
+            (SrcDirectory + std::string{"/Nodes_pennymesh24el.npy"},
+             il::io, status);
     status.abort_on_error();
 
     il::int_t N_El = Conn_Mtr.size(1), N_DOF = 18*N_El;
     // conversion from Matlab to C++
-    for (int n=0; n<N_El; ++n) {
-        for (int j=0; j<3; ++j) {
+    for (il::int_t n=0; n<N_El; ++n) {
+        for (il::int_t j=0; j<3; ++j) {
             Conn_Mtr(j, n) -=1;
         }
     }
@@ -34,10 +33,8 @@ int main() {
     double Mu = 1.0, Nu = 0.35;
 
     il::Array2D<double> IM_2(N_DOF, N_DOF);
-    IM_2 = hfp3d::BEMatrix_S
-            <il::Array2D<il::int_t>,
-            il::Array2D<double>,
-            il::Array2D<double>>(Mu, Nu, 0.25, Conn_Mtr, Node_Crd);
+    IM_2 = hfp3d::BEMatrix_S<il::Array2D<il::int_t>, il::Array2D<double>>
+            (Mu, Nu, 0.25, Conn_Mtr, Node_Crd);
 
     std::string path = WorkDirectory+std::string{"/test_assembly_24_ele.csv"};
     FILE* of=std::fopen(path.c_str(),"w");
@@ -50,7 +47,8 @@ int main() {
     }
     std::fclose(of);
 
-    //il::save(IM_1, "C:/Users/nikolski/.spyder-py3/3DBEM/matrix_24_el.npy", il::io, status);
+    //il::save(IM_1, "C:/Users/nikolski/.spyder-py3/3DBEM/matrix_24_el.npy",
+    // il::io, status);
     //status.abort_on_error();
 
     return 0;
