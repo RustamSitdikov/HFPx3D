@@ -12,48 +12,46 @@
 #ifndef INC_3D_BEM_H_POTENTIAL_H
 #define INC_3D_BEM_H_POTENTIAL_H
 
-#include "Elast_Ker_Int.h"
+#include <complex>
+#include <il/StaticArray3D.h>
 
 namespace hfp3d {
 
-    class H_Potential : public Kernel_Integration {
-    public:
-        il::StaticArray3D<std::complex<double>, 6, 3, 9> S11_22
-                (double nu, std::complex<double> eix,
-                 double h, std::complex<double> d);
+    il::StaticArray3D<std::complex<double>, 6, 3, 9> S_11_22_H
+            (double nu, std::complex<double> eix,
+             double h, std::complex<double> d);
 
-        il::StaticArray3D<std::complex<double>, 6, 3, 9> S11_22_12
-                (double nu, std::complex<double> eix,
-                 double h, std::complex<double> d);
+    il::StaticArray3D<std::complex<double>, 6, 3, 9> S_12_H
+            (double nu, std::complex<double> eix,
+             double h, std::complex<double> d);
 
-        il::StaticArray3D<std::complex<double>, 6, 3, 9> S13_23
-                (double nu, std::complex<double> eix,
-                 double h, std::complex<double> d);
+    il::StaticArray3D<std::complex<double>, 6, 3, 9> S_13_23_H
+            (double nu, std::complex<double> eix,
+             double h, std::complex<double> d);
 
-        il::StaticArray3D<std::complex<double>, 6, 3, 9> S33
-                (double nu, std::complex<double> eix,
-                 double h, std::complex<double> d);
+    il::StaticArray3D<std::complex<double>, 6, 3, 9> S_33_H
+            (double nu, std::complex<double> eix,
+             double h, std::complex<double> d);
 
-        il::StaticArray3D<std::complex<double>, 6, 3, 5> S11_22_red
-                (double nu, std::complex<double> eix,
-                 double h, std::complex<double> d);
+    il::StaticArray3D<std::complex<double>, 6, 3, 5> S_11_22_Red_H
+            (double nu, std::complex<double> eix,
+             double h, std::complex<double> d);
 
-        il::StaticArray3D<std::complex<double>, 6, 3, 5> S11_22_12_red
-                (double nu, std::complex<double> eix,
-                 double h, std::complex<double> d);
+    il::StaticArray3D<std::complex<double>, 6, 3, 5> S_12_Red_H
+            (double nu, std::complex<double> eix,
+             double h, std::complex<double> d);
 
-        il::StaticArray3D<std::complex<double>, 6, 3, 5> S13_23_red
-                (double nu, std::complex<double> eix,
-                 double h, std::complex<double> d);
+    il::StaticArray3D<std::complex<double>, 6, 3, 5> S_13_23_Red_H
+            (double nu, std::complex<double> eix,
+             double h, std::complex<double> d);
 
-        il::StaticArray3D<std::complex<double>, 6, 3, 5> S33_red
-                (double nu, std::complex<double> eix,
-                 double h, std::complex<double> d);
+    il::StaticArray3D<std::complex<double>, 6, 3, 5> S_33_Red_H
+            (double nu, std::complex<double> eix,
+             double h, std::complex<double> d);
 
-        il::StaticArray3D<std::complex<double>, 6, 4, 3> SijLim
-                (double nu, std::complex<double> eix, std::complex<double> d);
-
-    };
+    il::StaticArray3D<std::complex<double>, 6, 4, 3> S_ij_Lim_H
+            (double nu, std::complex<double> eix,
+             double signh, std::complex<double> d);
 
 }
 #endif //INC_3D_BEM_H_POTENTIAL_H

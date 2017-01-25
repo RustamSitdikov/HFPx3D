@@ -10,7 +10,6 @@
 #ifndef INC_3D_BEM_ELAST_KER_INT_H
 #define INC_3D_BEM_ELAST_KER_INT_H
 
-#include <cmath>
 #include <complex>
 #include <il/StaticArray.h>
 #include <il/StaticArray3D.h>
@@ -18,7 +17,11 @@
 // Integration of a kernel of the elasticity equation
 // over a part of a polygonal element (a sector associated with one edge)
 // with 2nd order polynomial approximating (shape) functions.
-//
+
+namespace hfp3d {
+
+    //typedef enum { Kernel_T, Kernel_H } Kernel_Type;
+
 // Coefficient matrices (rank 3) to be contracted with the vector of
 // constituing functions defined below (via right multiplication)
 // and with the vector of shape function coefficients
@@ -27,46 +30,27 @@
 // Stress components (vs local Cartesian coordinate system of the element)
 // combined as S11+S22, S11-S22+2*I*S12, S13+I*S23, S33
 
-namespace hfp3d {
+    template<int n>
+    il::StaticArray3D<std::complex<double>, 6, 3, n> Sij_Int
+            (const int Ker, const int StComb,
+             double nu, std::complex<double> eix,
+             double h, std::complex<double> d);
 
-    class Kernel_Integration {
-    public:
-        virtual il::StaticArray3D<std::complex<double>, 6, 3, 9> S11_22
-                (double nu, std::complex<double> eix,
-                 double h, std::complex<double> d) = 0;
+    il::StaticArray3D<std::complex<double>, 6, 3, 9> Sij_Int_Gen
+                (const int Ker, const int StComb,
+                 double nu, std::complex<double> eix,
+                 double h, std::complex<double> d);
 
-        virtual il::StaticArray3D<std::complex<double>, 6, 3, 9> S11_22_12
-                (double nu, std::complex<double> eix,
-                 double h, std::complex<double> d) = 0;
+    il::StaticArray3D<std::complex<double>, 6, 3, 5> Sij_Int_Red
+                (const int Ker, const int StComb,
+                 double nu, std::complex<double> eix,
+                 double h, std::complex<double> d);
 
-        virtual il::StaticArray3D<std::complex<double>, 6, 3, 9> S13_23
-                (double nu, std::complex<double> eix,
-                 double h, std::complex<double> d) = 0;
+    il::StaticArray3D<std::complex<double>, 6, 4, 3> Sij_Int_Lim
+                (const int Ker,
+                 double nu, std::complex<double> eix,
+                 double sgnh, std::complex<double> d);
 
-        virtual il::StaticArray3D<std::complex<double>, 6, 3, 9> S33
-                (double nu, std::complex<double> eix,
-                 double h, std::complex<double> d) = 0;
-
-        virtual il::StaticArray3D<std::complex<double>, 6, 3, 5> S11_22_red
-                (double nu, std::complex<double> eix,
-                 double h, std::complex<double> d) = 0;
-
-        virtual il::StaticArray3D<std::complex<double>, 6, 3, 5> S11_22_12_red
-                (double nu, std::complex<double> eix,
-                 double h, std::complex<double> d) = 0;
-
-        virtual il::StaticArray3D<std::complex<double>, 6, 3, 5> S13_23_red
-                (double nu, std::complex<double> eix,
-                 double h, std::complex<double> d) = 0;
-
-        virtual il::StaticArray3D<std::complex<double>, 6, 3, 5> S33_red
-                (double nu, std::complex<double> eix,
-                 double h, std::complex<double> d) = 0;
-
-        virtual il::StaticArray3D<std::complex<double>, 6, 4, 3> SijLim
-                (double nu, std::complex<double> eix,
-                 std::complex<double> d) = 0;
-    };
 
 // Constituing functions for the integrals
 // of any kernel of the elasticity equation

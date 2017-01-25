@@ -13,10 +13,11 @@
 #include <il/linear_algebra/dense/blas/dot.h>
 #include "Tensor_Oper.h"
 
+namespace hfp3d {
 // Vector and triple tensor multiplication
 // for stress stored as 6-component vector (or 6*N matrix)
 
-    il::StaticArray2D<double, 3, 18> hfp3d::N_dot_SIM
+    il::StaticArray2D<double, 3, 18> N_dot_SIM
             (const il::StaticArray<double, 3> &NV,
              const il::StaticArray2D<double, 6, 18> &SIM) {
         // Normal vector (NV) multiplied by stress influence matrix (SIM, 6*18)
@@ -34,7 +35,7 @@
         return TIM;
     };
 
-    il::StaticArray2D<double, 6, 18> hfp3d::SIM_P_R
+    il::StaticArray2D<double, 6, 18> SIM_P_R
             (const il::StaticArray2D<double, 3, 3> &RT_L,
              const il::StaticArray2D<double, 3, 3> &RT_R,
              const il::StaticArray2D<double, 6, 18> &SIM) {
@@ -68,12 +69,15 @@
 // Matrix-submatrix operations
 
     template<typename T_sub, typename T_A>
-    void hfp3d::get_submatrix(const T_A &A,
-                       il::int_t i0, il::int_t i1,
-                       il::int_t j0, il::int_t j1,
-                       il::io_t, T_sub &sub) {
+    T_sub get_submatrix
+            (const T_A &A,
+             il::int_t i0, il::int_t i1,
+             il::int_t j0, il::int_t j1) {
+        T_sub sub;
         IL_ASSERT((i1 - i0 + 1) == sub.size(0));
         IL_ASSERT((j1 - j0 + 1) == sub.size(1));
+        IL_ASSERT(i0 <= A.size(0));
+        IL_ASSERT(j0 <= A.size(1));
         IL_ASSERT(i1 <= A.size(0));
         IL_ASSERT(j1 <= A.size(1));
 
@@ -82,12 +86,14 @@
                 sub(i - i0, j - j0) = A(i, j);
             }
         }
+        return sub;
     };
 
     template<typename T_sub, typename T_A>
-    void hfp3d::set_submatrix(const T_sub &B,
-                       il::int_t i0, il::int_t i1,
-                       il::io_t, T_A &A) {
+    void set_submatrix
+            (const T_sub &B,
+             il::int_t i0, il::int_t i1,
+             il::io_t, T_A &A) {
         IL_ASSERT(i0 + B.size(0) <= A.size(0));
         IL_ASSERT(i1 + B.size(1) <= A.size(1));
 
@@ -98,16 +104,18 @@
         }
     };
 
-    //template <typename T_sub, typename T_A>
-    //void hfp3d::add_submatrix(const T_sub& B,
-    // il::int_t i0, il::int_t i1, double alpha,
-    // il::io_t, T_A& A) {
-    //    IL_ASSERT(i0 + B.size(0) <= A.size(0));
-    //    IL_ASSERT(i1 + B.size(1) <= A.size(1));
+    template <typename T_sub, typename T_A>
+    void add_submatrix
+            (const T_sub& B, double alpha,
+             il::int_t i0, il::int_t i1,
+             il::io_t, T_A& A) {
+        IL_ASSERT(i0 + B.size(0) <= A.size(0));
+        IL_ASSERT(i1 + B.size(1) <= A.size(1));
 
-    //    for (il::int_t j1 = 0; j1 < B.size(1); ++j1) {
-    //        for (il::int_t j0 = 0; j0 < B.size(0); ++j0) {
-    //            A(i0 + j0, i1 + j1) += alpha*B(j0, j1);
-    //        }
-    //    }
-    //};
+        for (il::int_t j1 = 0; j1 < B.size(1); ++j1) {
+            for (il::int_t j0 = 0; j0 < B.size(0); ++j0) {
+                A(i0 + j0, i1 + j1) += alpha*B(j0, j1);
+            }
+        }
+    };
+}
