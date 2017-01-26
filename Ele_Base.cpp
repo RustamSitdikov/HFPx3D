@@ -19,7 +19,7 @@ namespace hfp3d {
 
 // auxiliary functions (norm, cross product)
 
-    double VNorm(const il::StaticArray<double, 3> &a) {
+    double L2norm(const il::StaticArray<double, 3> &a) {
         // L2 norm of a vector
         double N = 0.0;
         for (int k = 0; k < a.size(); ++k) {
@@ -33,7 +33,7 @@ namespace hfp3d {
             (const il::StaticArray<double, 3> &a) {
         // normalized 3D vector
         il::StaticArray<double, 3> e;
-        double N = VNorm(a); // il::norm(a, il::Norm::L2);
+        double N = L2norm(a); // il::norm(a, il::Norm::L2);
         for (int k = 0; k < a.size(); ++k) {
             e[k] = a[k] / N;
         }
@@ -84,20 +84,23 @@ namespace hfp3d {
              const il::StaticArray2D<double, 3, 3> &RT) {
         // This function calculates the tau-coordinates
         // of the element's vertices
-        il::StaticArray<std::complex<double>, 3> tau{};
+        il::StaticArray<std::complex<double>, 3> tau{0.0};
         il::StaticArray<double, 3> V0;
         il::StaticArray2D<double, 3, 3> BV{0.0};
         for (int k = 0; k < 3; ++k) {
             // Here the 1st vertex is chosen as the origin
             V0[k] = EV(k, 0);
-            // Basis vectors (rows)
-            BV(0, k) = EV(k, 1) - V0[k];
-            BV(1, k) = EV(k, 2) - V0[k];
+        }
+        for (int k = 0; k < 3; ++k) {
+            for (int j = 0; j < 3; ++j) {
+                // Basis vectors (rows)
+                BV(j, k) = EV(k, j) - V0[k];
+            }
         }
         // Rotated BV
         il::StaticArray2D<double, 3, 3> BVr = il::dot(BV, RT);
-        for (int j = 0; j < 3; ++j) {
-            tau[j] = std::complex<double>(BVr(j, 0), BVr(j, 1));
+        for (int k = 0; k < 3; ++k) {
+            tau[k] = std::complex<double>(BVr(k, 0), BVr(k, 1));
         }
         return tau;
     }

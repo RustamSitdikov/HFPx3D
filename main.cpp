@@ -34,7 +34,6 @@ int main() {
     double Mu = 1.0, Nu = 0.35;
 
     il::Array2D<double> IM_2(N_DOF, N_DOF);
-    // <il::Array2D<il::int_t>, il::Array2D<double>>
     IM_2 = hfp3d::BEMatrix_S(Mu, Nu, 0.25, Conn_Mtr, Node_Crd);
 
     std::string path = WorkDirectory+std::string{"/test_assembly_24_ele.csv"};

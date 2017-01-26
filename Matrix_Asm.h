@@ -23,19 +23,17 @@
 namespace hfp3d {
 
 // "Global" matrix assembly
-    //template<typename C_array, typename N_array>
     il::Array2D<double> BEMatrix_S
             (double Mu, double Nu, double beta,
-             il::Array2D<il::int_t> &Conn_Mtr,
-             il::Array2D<double> &Node_Crd);
+             const il::Array2D<il::int_t> &Conn_Mtr,
+             const il::Array2D<double> &Node_Crd);
 
 // Stress at given points (MPt_Crd) vs DD at nodal points (Node_Crd)
-    //template<typename C_array, typename N_array>
     il::Array2D<double> BEStressF_S
             (double Mu, double Nu, double beta,
-             il::Array2D<il::int_t> &Conn_Mtr,
-             il::Array2D<double> &Node_Crd,
-             il::Array2D<double> &MPt_Crd);
+             const il::Array2D<il::int_t> &Conn_Mtr,
+             const il::Array2D<double> &Node_Crd,
+             const il::Array2D<double> &MPt_Crd);
 
 // Element-to-point influence matrix (submatrix of the global one)
     il::StaticArray2D<double, 6, 18>
