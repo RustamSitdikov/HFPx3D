@@ -88,8 +88,8 @@ class StaticArray2C {
 
   /* \brief Get the size of the il::StaticArray2C<T, n0, n1>
   //
-  // for (il::int_t i{0}; i < v.size(0); ++i) {
-  //   for (il::int_t j{0}; j < v.size(1); ++j) {
+  // for (il::int_t i = 0; i < v.size(0); ++i) {
+  //   for (il::int_t j = 0; j < v.size(1); ++j) {
   //     A(i, j) = 1.0 / (i + j + 2);
   //   }
   // }
@@ -112,7 +112,7 @@ template <typename T, il::int_t n0, il::int_t n1>
 StaticArray2C<T, n0, n1>::StaticArray2C() {
   if (std::is_pod<T>::value) {
 #ifdef IL_DEFAULT_VALUE
-    for (il::int_t k{0}; k < n0 * n1; ++k) {
+    for (il::int_t k = 0; k < n0 * n1; ++k) {
       data_[k] = il::default_value<T>();
     }
 #endif
@@ -121,7 +121,7 @@ StaticArray2C<T, n0, n1>::StaticArray2C() {
 
 template <typename T, il::int_t n0, il::int_t n1>
 StaticArray2C<T, n0, n1>::StaticArray2C(const T& value) {
-  for (il::int_t k{0}; k < n0 * n1; ++k) {
+  for (il::int_t k = 0; k < n0 * n1; ++k) {
     data_[k] = value;
   }
 }
@@ -141,21 +141,21 @@ StaticArray2C<T, n0, n1>::StaticArray2C(
 template <typename T, il::int_t n0, il::int_t n1>
 const T& StaticArray2C<T, n0, n1>::operator()(il::int_t i0,
                                               il::int_t i1) const {
-  IL_ASSERT_BOUNDS(static_cast<il::uint_t>(i0) < static_cast<il::uint_t>(n0));
-  IL_ASSERT_BOUNDS(static_cast<il::uint_t>(i1) < static_cast<il::uint_t>(n1));
+  IL_EXPECT_BOUND(static_cast<il::uint_t>(i0) < static_cast<il::uint_t>(n0));
+  IL_EXPECT_BOUND(static_cast<il::uint_t>(i1) < static_cast<il::uint_t>(n1));
   return data_[i0 * n1 + i1];
 }
 
 template <typename T, il::int_t n0, il::int_t n1>
 T& StaticArray2C<T, n0, n1>::operator()(il::int_t i0, il::int_t i1) {
-  IL_ASSERT_BOUNDS(static_cast<il::uint_t>(i0) < static_cast<il::uint_t>(n0));
-  IL_ASSERT_BOUNDS(static_cast<il::uint_t>(i1) < static_cast<il::uint_t>(n1));
+  IL_EXPECT_BOUND(static_cast<il::uint_t>(i0) < static_cast<il::uint_t>(n0));
+  IL_EXPECT_BOUND(static_cast<il::uint_t>(i1) < static_cast<il::uint_t>(n1));
   return data_[i0 * n1 + i1];
 }
 
 template <typename T, il::int_t n0, il::int_t n1>
 il::int_t StaticArray2C<T, n0, n1>::size(il::int_t d) const {
-  IL_ASSERT_BOUNDS(static_cast<il::uint_t>(d) < static_cast<il::uint_t>(2));
+  IL_EXPECT_BOUND(static_cast<il::uint_t>(d) < static_cast<il::uint_t>(2));
   return d == 0 ? n0 : n1;
 }
 
