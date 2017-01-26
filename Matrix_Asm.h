@@ -33,7 +33,7 @@ namespace hfp3d {
             (double Mu, double Nu, double beta,
              const il::Array2D<il::int_t> &Conn_Mtr,
              const il::Array2D<double> &Node_Crd,
-             const il::Array2D<double> &MPt_Crd);
+             const il::Array2D<double> &MPts_Crd);
 
 // Element-to-point influence matrix (submatrix of the global one)
     il::StaticArray2D<double, 6, 18>

@@ -43,22 +43,21 @@ namespace hfp3d {
         // for stress influence matrix (SIM, 6*18)
         il::StaticArray2D<double, 3, 3> STM, STM_I, STM_R;
         il::StaticArray2D<double, 6, 18> SIM_R{0.0};
-        int j, k, l, m, n;
-        for (k = 0; k < SIM.size(1); ++k) {
-            for (j = 0; j < 3; ++j) {
-                l = (j + 1) % 3;
-                m = (l + 1) % 3;
-                n = 3 + m;
+        for (int k = 0; k < SIM.size(1); ++k) {
+            for (int j = 0; j < 3; ++j) {
+                int l = (j + 1) % 3;
+                int m = (l + 1) % 3;
+                int n = 3 + m;
                 STM(j, j) = SIM(j, k);
                 STM(l, m) = SIM(n, k);
                 STM(m, l) = STM(l, m);
             }
             STM_I = il::dot(STM, RT_R);
             STM_R = il::dot(RT_L, STM_I);
-            for (j = 0; j < 3; ++j) {
-                l = (j + 1) % 3;
-                m = (l + 1) % 3;
-                n = 3 + m;
+            for (int j = 0; j < 3; ++j) {
+                int l = (j + 1) % 3;
+                int m = (l + 1) % 3;
+                int n = 3 + m;
                 SIM_R(j, k) = STM_R(j, j);
                 SIM_R(n, k) = STM_R(l, m); // STM_R(m, l);
             }
