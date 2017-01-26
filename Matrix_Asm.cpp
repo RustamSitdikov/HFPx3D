@@ -54,10 +54,9 @@ namespace hfp3d {
         il::StaticArray<il::StaticArray<double, 3>, 6> CP_T;
         il::StaticArray<double, 3> N_CP, N_CP_L;
         il::Array2D<double> V_S(3, 1), V_T(3, 1);
-        il::StaticArray2D<double, 6, 18> S_H_CP_L; //, S_H_CP_G;
-        il::StaticArray2D<double, 3, 18> T_H_CP_L, T_H_CP_G;
-        il::StaticArray2D<double, 18, 18> IM_H_L;
-        //il::StaticArray2D<double, 18, 18> IM_T_L;
+        il::StaticArray2D<double, 6, 18> SIM_CP_L_H; //, SIM_CP_L_T, SIM_CP_G;
+        il::StaticArray2D<double, 3, 18> T_CP_L, T_CP_G;
+        il::StaticArray2D<double, 18, 18> TIM_TE;
 
         // Loop over "source" elements
         for (il::int_t S_El = 0; S_El < Num_El; ++S_El) {
@@ -121,25 +120,26 @@ namespace hfp3d {
 
                     // Calculating DD-to stress influence
                     // w.r. to the source element's local coordinate system
-                    S_H_CP_L = Local_IM(1, Mu, Nu, hz.h, hz.z, tau, SFM);
+                    SIM_CP_L_H = Local_IM(1, Mu, Nu, hz.h, hz.z, tau, SFM);
+                    //SIM_CP_L_T = Local_IM(0, Mu, Nu, hz.h, hz.z, tau, SFM);
 
                     // Multiplication by N_CP
 
                     // Alternative 1: rotating stress at CP
                     // to the reference ("global") coordinate system
-                    //S_H_CP_G = hfp3d::SIM_P_R(RT_S, RT_S_t, S_H_CP_L);
-                    //T_H_CP_G = hfp3d::N_dot_SIM(N_CP, S_H_CP_G);
+                    //SIM_CP_G = hfp3d::SIM_P_R(RT_S, RT_S_t, SIM_CP_L_H);
+                    //T_CP_G = hfp3d::N_dot_SIM(N_CP, SIM_CP_G);
 
                     // Alternative 2: rotating N_CP to
                     // the source element's local coordinate system
                     // same as il::dot(RT_S_transposed, N_CP)
                     N_CP_L = il::dot(N_CP, RT_S);
-                    T_H_CP_L = N_dot_SIM(N_CP_L, S_H_CP_L);
-                    T_H_CP_G = il::dot(RT_S, T_H_CP_L);
+                    T_CP_L = N_dot_SIM(N_CP_L, SIM_CP_L_H);
+                    T_CP_G = il::dot(RT_S, T_CP_L);
 
                     // Alternative 3: keeping everything
                     // in terms of local coordinates
-                    //T_H_CP_X = il::dot(RT_T_t, T_H_CP_G);
+                    //T_CP_X = il::dot(RT_T_t, T_CP_G);
 
                     // Re-relating DD-to traction influence to DD
                     // w.r. to the reference coordinate system
@@ -147,18 +147,18 @@ namespace hfp3d {
                         // taking a block (one node of the "source" element)
                         for (int j = 0; j < 3; ++j) {
                             for (int k = 0; k < 3; ++k) {
-                                TI_NN(k, j) = T_H_CP_G(k, 3 * n_S + j);
+                                TI_NN(k, j) = T_CP_G(k, 3 * n_S + j);
                             }
                         }
 
-                        // Coordinate rotation
+                        // Coordinate rotation (inverse)
                         TI_NN_G = il::dot(TI_NN, RT_S_t);
 
                         // Adding the block to the element-to-element
                         // influence sub-matrix
                         for (int j = 0; j < 3; ++j) {
                             for (int k = 0; k < 3; ++k) {
-                                IM_H_L(3 * n_T + k, 3 * n_S + j) =
+                                TIM_TE(3 * n_T + k, 3 * n_S + j) =
                                         TI_NN_G(k, j);
                             }
                         }
@@ -172,7 +172,7 @@ namespace hfp3d {
                 for (il::int_t j1 = 0; j1 < 18; ++j1) {
                     for (il::int_t j0 = 0; j0 < 18; ++j0) {
                         Global_Matrix_H(18 * T_El + j0, 18 * S_El + j1) =
-                                IM_H_L(j0, j1);
+                                TIM_TE(j0, j1);
                     }
                 }
             }
@@ -180,14 +180,14 @@ namespace hfp3d {
         return Global_Matrix_H;
     };
 
-// Stress at given points (MPt_Crd) vs DD at nodal points (Node_Crd)
+// Stress at given points (MPts_Crd) vs DD at nodal points (Node_Crd)
 
     il::Array2D<double> BEStressF_S
             (double Mu, double Nu, double beta,
              const il::Array2D<il::int_t> &Conn_Mtr,
              const il::Array2D<double> &Node_Crd,
-             const il::Array2D<double> &MPt_Crd) {
-        // Stress at given points (MPt_Crd) vs DD at nodal points (Node_Crd)
+             const il::Array2D<double> &MPts_Crd) {
+        // Stress at given points (MPts_Crd) vs DD at nodal points (Node_Crd)
         // from boundary mesh geometry data:
         // mesh connectivity (Conn_Mtr) and nodes' coordinates (Node_Crd)
         // Naive way: no parallelization, no ACA
@@ -199,27 +199,24 @@ namespace hfp3d {
 
         const il::int_t Num_El = Conn_Mtr.size(1);
         const il::int_t Num_DOF = 18 * Num_El;
-        const il::int_t Num_MPt = MPt_Crd.size(1);
+        const il::int_t Num_MPt = MPts_Crd.size(1);
 
         //IL_ASSERT(Global_Matrix_H.size(0) == 18*Num_El);
         //IL_ASSERT(Global_Matrix_H.size(1) == 18*Num_El);
 
         il::Array2D<double> StressF(6 * Num_MPt, Num_DOF);
-        //il::StaticArray2D<double, 6 * Num_MPt, Num_DOF> StressF;
 
         il::StaticArray2D<std::complex<double>, 6, 6> SFM{0.0};
         //il::StaticArray<double, 6> VW_S, VW_T;
         il::StaticArray<std::complex<double>, 3> tau;
-        il::StaticArray2D<double, 3, 3> EV_S, EV_T;
-        il::StaticArray2D<double, 3, 3> RT_S, RT_S_t, RT_T; //, RT_T_t;
-        il::StaticArray2D<double, 3, 3> SI_NN, SI_NN_G; //, SI_NN_I;
-        il::StaticArray<il::StaticArray<double, 3>, 6> CP_T;
-        il::StaticArray<double, 3> N_CP, N_CP_L, M_Pt_C;
+        il::StaticArray2D<double, 3, 3> EV_S;
+        il::StaticArray2D<double, 3, 3> RT_S, RT_S_t;
+        il::StaticArray2D<double, 3, 3> SI_NN, SI_NN_G;
+        il::StaticArray<double, 3> MP_Crd;
         il::Array2D<double> V_S(3, 1), V_T(3, 1);
-        il::StaticArray2D<double, 6, 18> S_H_CP_L, S_H_CP_G;
-        //il::StaticArray2D<double, 3, 18> T_H_CP_L, T_H_CP_G;
-        il::StaticArray2D<double, 18, 18> IM_H_L;
-        //il::StaticArray2D<double, 18, 18> IM_T_L;
+        il::StaticArray2D<double, 6, 18> SIM_MP_L_H;
+        //il::StaticArray2D<double, 6, 18> SIM_MP_L_T;
+        il::StaticArray2D<double, 6, 18> SIM_MP;
 
         // Loop over elements
         for (il::int_t S_El = 0; S_El < Num_El; ++S_El) {
@@ -250,38 +247,39 @@ namespace hfp3d {
             for (il::int_t MPt = 0; MPt < Num_MPt; ++MPt) {
                 // Monitoring points' coordinates
                 for (il::int_t j = 0; j < 3; ++j) {
-                    M_Pt_C[j] = MPt_Crd(j, MPt);
+                    MP_Crd[j] = MPts_Crd(j, MPt);
                 }
 
                 // Shifting to the monitoring point
-                el_x_cr hz = El_X_CR(EV_S, M_Pt_C, RT_S);
+                el_x_cr hz = El_X_CR(EV_S, MP_Crd, RT_S);
 
                 // Calculating DD-to stress influence
                 // w.r. to the source element's local coordinate system
-                S_H_CP_L = Local_IM(1, Mu, Nu, hz.h, hz.z, tau, SFM);
+                SIM_MP_L_H = Local_IM(1, Mu, Nu, hz.h, hz.z, tau, SFM);
+                //SIM_MP_L_T = Local_IM(0, Mu, Nu, hz.h, hz.z, tau, SFM);
 
                 // Rotating stress at MPt
                 // to the reference ("global") coordinate system
-                S_H_CP_G = SIM_P_R(RT_S, RT_S_t, S_H_CP_L);
+                SIM_MP = SIM_P_R(RT_S, RT_S_t, SIM_MP_L_H);
 
                 // Re-relating DD-to traction influence to DD
                 // w.r. to the reference coordinate system
                 for (int n_S = 0; n_S < 6; ++n_S) {
                     // taking a block (one node of the "source" element)
-                    for (int j = 0; j < 6; ++j) {
-                        for (int k = 0; k < 3; ++k) {
-                            SI_NN(k, j) = S_H_CP_G(k, 3 * n_S + j);
+                    for (int j = 0; j < 3; ++j) {
+                        for (int k = 0; k < 6; ++k) {
+                            SI_NN(k, j) = SIM_MP(k, 3 * n_S + j);
                         }
                     }
 
-                    // Coordinate rotation
+                    // Coordinate rotation (inverse)
                     SI_NN_G = il::dot(SI_NN, RT_S_t);
 
                     // Adding the block to the element-to-point
                     // influence sub-matrix
-                    for (int j = 0; j < 6; ++j) {
-                        for (int k = 0; k < 3; ++k) {
-                            IM_H_L(k, 3 * n_S + j) = SI_NN_G(k, j);
+                    for (int j = 0; j < 3; ++j) {
+                        for (int k = 0; k < 6; ++k) {
+                            SIM_MP(k, 3 * n_S + j) = SI_NN_G(k, j);
                         }
                     }
                 }
@@ -292,7 +290,7 @@ namespace hfp3d {
                 IL_ASSERT(18 * (S_El + 1) <= StressF.size(1));
                 for (il::int_t j1 = 0; j1 < 18; ++j1) {
                     for (il::int_t j0 = 0; j0 < 6; ++j0) {
-                        StressF(6 * MPt + j0, 18 * S_El + j1) = IM_H_L(j0, j1);
+                        StressF(6 * MPt + j0, 18 * S_El + j1) = SIM_MP(j0, j1);
                     }
                 }
             }
