@@ -2,50 +2,56 @@
 #include <il/Array2D.h>
 #include <il/StaticArray.h>
 #include <il/StaticArray2D.h>
-#include <il/io/numpy.h>
-#include "Matrix_Asm.h"
-#include "Ele_Base.h"
+//#include <il/io/numpy.h>
+#include "mesh_file_io.h"
+#include "matrix_asm.h"
+#include "ele_base.h"
 
 // main.cpp will be used for testing the code parts under development
 
 int main() {
-    std::string SrcDirectory{"C:/Users/nikolski/.spyder-py3/3DBEM"};
-    std::string WorkDirectory{"C:/Users/nikolski/ClionProjects/3D-bem/Test_Output"};
 
-    il::Status status{};
-    il::Array2D<il::int_t> Conn_Mtr = il::load<il::Array2D<il::int_t>>
-            (SrcDirectory + std::string{"/Elems_pennymesh24el.npy"},
-             il::io, status);
-    status.abort_on_error();
-
-    il::Array2D<double> Node_Crd = il::load<il::Array2D<double>>
-            (SrcDirectory + std::string{"/Nodes_pennymesh24el.npy"},
-             il::io, status);
-    status.abort_on_error();
-
-    il::int_t N_El = Conn_Mtr.size(1), N_DOF = 18*N_El;
-    // conversion from Matlab to C++
-    for (il::int_t n=0; n<N_El; ++n) {
-        for (il::int_t j=0; j<3; ++j) {
-            Conn_Mtr(j, n) -=1;
-        }
+/*
+    il::Array2D<il::int_t> mesh_conn(3, 1);
+    il::Array2D<double> nodes_crd(3, 3);
+    for (il::int_t k = 0; k < 3; ++k) {
+        mesh_conn(k, 0) = k;
     }
+    nodes_crd(0, 0) = 0.0;
+    nodes_crd(1, 0) = 0.1;
+    nodes_crd(2, 0) = 0.0;
 
-    double Mu = 1.0, Nu = 0.35;
+    nodes_crd(0, 1) = 1.8;
+    nodes_crd(1, 1) = 0.0;
+    nodes_crd(2, 1) = 0.0;
 
-    il::Array2D<double> IM_2(N_DOF, N_DOF);
-    IM_2 = hfp3d::BEMatrix_S(Mu, Nu, 0.25, Conn_Mtr, Node_Crd);
+    nodes_crd(0, 2) = 1.2;
+    nodes_crd(1, 2) = 1.8;
+    nodes_crd(2, 2) = 0.0;
+*/
 
-    std::string path = WorkDirectory+std::string{"/test_assembly_24_ele.csv"};
-    FILE* of=std::fopen(path.c_str(),"w");
-    for (int j=0; j<IM_2.size(0); ++j){
-        for (int k=0; k<IM_2.size(1); ++k){
-            std::fprintf(of,"%21.16g",IM_2(j,k));
-            if (k<IM_2.size(1)-1) std::fprintf(of,",");
-        }
-        std::fprintf(of,"\n");
-    }
-    std::fclose(of);
+    std::string src_directory{"C:/Users/nikolski/.spyder-py3/3DBEM/"};
+    std::string mesh_conn_fname{"Elems_pennymesh24el.npy"};
+    std::string nodes_crd_fname{"Nodes_pennymesh24el.npy"};
+
+    il::Array2D<il::int_t> mesh_conn;
+    il::Array2D<double> nodes_crd;
+    il::StaticArray<il::int_t, 2> nums = hfp3d::load_mesh_from_numpy
+            (src_directory, mesh_conn_fname, nodes_crd_fname, true,
+             il::io, mesh_conn, nodes_crd);
+
+    il::int_t num_elems = mesh_conn.size(1), num_dof = 18 * num_elems;
+
+    double mu = 1.0, nu = 0.35;
+
+    il::Array2D<double> bem_matrix(num_dof, num_dof);
+    bem_matrix = hfp3d::make_3dbem_matrix_s(mu, nu, 0.25, mesh_conn, nodes_crd);
+
+    std::string work_directory{"C:/Users/nikolski/ClionProjects/3D-bem"
+                                       "/Test_Output/"};
+    std::string of_name{"test_assembly_1_ele.csv"};
+
+    hfp3d::save_matrix_to_csv(bem_matrix, work_directory, of_name);
 
     //il::save(IM_1, "C:/Users/nikolski/.spyder-py3/3DBEM/matrix_24_el.npy",
     // il::io, status);
