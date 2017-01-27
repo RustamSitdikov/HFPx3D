@@ -1,3 +1,3 @@
 # HFPx3D
 3D BEM
-static solver for traction-free & pressurized fractures
+solver for Elastostatics with traction-free & pressurized fractures
