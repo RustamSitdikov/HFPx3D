@@ -42,7 +42,7 @@ namespace hfp3d {
             std::fprintf(of, format, vector[j]);
         }
         std::fclose(of);
-    };
+    }
 
     template <typename T, il::int_t m>
     void save_data_to_csv(
@@ -61,7 +61,7 @@ namespace hfp3d {
             std::fprintf(of, format, vector[j]);
         }
         std::fclose(of);
-    };
+    }
 
     template <typename T>
     void save_data_to_csv(
@@ -84,7 +84,7 @@ namespace hfp3d {
             std::fprintf(of, "\n");
         }
         std::fclose(of);
-    };
+    }
 
     template <class T, il::int_t m, il::int_t n>
     void save_data_to_csv(
@@ -107,7 +107,7 @@ namespace hfp3d {
             std::fprintf(of, "\n");
         }
         std::fclose(of);
-    };
+    }
 
 }
 

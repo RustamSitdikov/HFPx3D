@@ -178,16 +178,16 @@ namespace hfp3d {
             }
         }
         return global_matrix;
-    };
+    }
 
 // Stress at given points (m_pts_crd) vs DD at nodal points (nodes_crd)
 
     il::Array2D<double> make_3dbem_stress_f_s
-            (double mu, double nu, double beta,
+            (double mu, double nu,
              const il::Array2D<il::int_t> &mesh_conn,
              const il::Array2D<double> &nodes_crd,
              const il::Array2D<double> &m_pts_crd,
-             const il::Array2D<double> &m_pts_dsp, 
+             //const il::Array2D<double> &m_pts_dsp,
              const bool is_in_glob) {
 // Stress at given points (m_pts_crd) vs DD at nodal points (nodes_crd)
 // from boundary mesh geometry data:
@@ -305,7 +305,7 @@ namespace hfp3d {
         // il::Array<double> stress_vect = il::dot(stress_infl_matrix, disp_vect);
         // il::Array2D<double> stress_array = ...;
         // return stress_array;
-    };
+    }
 
 // Element-to-point influence matrix (submatrix of the global one)
 
@@ -497,6 +497,6 @@ namespace hfp3d {
             }
         }
         return stress_el2el_infl;
-    };
+    }
 
 }

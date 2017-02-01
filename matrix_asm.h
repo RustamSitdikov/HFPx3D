@@ -30,11 +30,11 @@ namespace hfp3d {
 
 // Stress at given points (m_pts_crd) vs DD at nodal points (nodes_crd)
     il::Array2D<double> make_3dbem_stress_f_s
-            (double mu, double nu, double beta,
+            (double mu, double nu,
              const il::Array2D<il::int_t> &mesh_conn,
              const il::Array2D<double> &nodes_crd,
              const il::Array2D<double> &m_pts_crd,
-             const il::Array2D<double> &m_pts_dsp,
+             //const il::Array2D<double> &m_pts_dsp,
              const bool is_in_glob);
 
 // Element-to-point influence matrix (submatrix of the global one)
