@@ -73,7 +73,7 @@ namespace hfp3d {
         // a3 = cross(e1, a2);
         a3 = il::cross(e1, a2);
         e3 = normalize(a3);
-        e2 = normalize(cross(e3, e1));
+        e2 = normalize(il::cross(e3, e1));
         for (int j = 0; j < 3; ++j) {
             r_tensor(0, j) = e1[j];
             r_tensor(1, j) = e2[j];
