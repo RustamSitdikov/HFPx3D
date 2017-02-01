@@ -1094,7 +1094,7 @@ namespace hfp3d {
         double cos_x = std::real(eix);
         double sin_x = std::imag(eix);
         std::complex<double> e2x = eix * eix;
-        std::complex<double> emx = std::conj(eix);
+        //std::complex<double> emx = std::conj(eix);
         //std::complex<double> Ce2x3_1 = 3.0+e2x;
         //std::complex<double> Ce2x3m1 = 3.0-e2x;
         std::complex<double> c_eix_3_1 = eix * (3.0 + e2x);
@@ -1204,8 +1204,8 @@ namespace hfp3d {
         std::complex<double> emx = std::conj(eix);
         std::complex<double> em2 = std::conj(e2x);
         std::complex<double> c_e3x_3emx = 3.0 * emx + e3x;
-        std::complex<double> c_eix_3_1 = eix * (3.0 + e2x);
-        std::complex<double> c_eix_3_m1 = eix * (3.0 - e2x);
+        //std::complex<double> c_eix_3_1 = eix * (3.0 + e2x);
+        //std::complex<double> c_eix_3_m1 = eix * (3.0 - e2x);
 
         double h2 = h * h;
         double h3 = h2 * h;

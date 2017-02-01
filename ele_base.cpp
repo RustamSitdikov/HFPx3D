@@ -12,6 +12,7 @@
 #include <il/StaticArray.h>
 #include <il/StaticArray2D.h>
 #include <il/linear_algebra/dense/blas/dot.h>
+#include <il/linear_algebra/dense/blas/cross.h>
 #include <il/linear_algebra/dense/norm.h>
 #include "ele_base.h"
 
@@ -315,7 +316,7 @@ namespace hfp3d {
         // assembly of sfm
         sfm = il::dot(sfm_mc, tau_sq_2_mc);
         return sfm;
-    };
+    }
 
     //il::StaticArray2D<std::complex<double>, 6, 6> make_el_sfm_beta
     // (const il::StaticArray2D<double, 3, 3> &el_vert,
@@ -353,7 +354,7 @@ namespace hfp3d {
         shift_2_z(5, 2) = z;
         shift_2_z(5, 5) = 1.0;
         return shift_2_z;
-    };
+    }
 
 // Collocation points
 
@@ -387,7 +388,7 @@ namespace hfp3d {
             }
         }
         return coll_pt_crd;
-    };
+    }
 
     il::StaticArray<il::StaticArray<double, 3>, 6> el_cp_nonuniform
             (const il::StaticArray2D<double, 3, 3> &el_vert,
@@ -422,6 +423,6 @@ namespace hfp3d {
             }
         }
         return coll_pt_crd;
-    };
+    }
 
 }

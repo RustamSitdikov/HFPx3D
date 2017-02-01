@@ -30,7 +30,8 @@ int main() {
 
     il::Array2D<il::int_t> mesh_conn;
     il::Array2D<double> nodes_crd;
-    il::StaticArray<il::int_t, 2> nums = hfp3d::load_mesh_from_numpy
+    //il::StaticArray<il::int_t, 2> nums =
+            hfp3d::load_mesh_from_numpy
             (src_directory, mesh_conn_fname, nodes_crd_fname, true,
              il::io, mesh_conn, nodes_crd);
 

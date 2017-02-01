@@ -55,7 +55,7 @@ namespace hfp3d {
             default:break;
         }
         return c_array;
-    };
+    }
 
     il::StaticArray3D<std::complex<double>, 6, 3, 5> s_integral_red
             (const int kernel_id, const int StComb,
@@ -85,7 +85,7 @@ namespace hfp3d {
             default:break;
         }
         return c_array;
-    };
+    }
 
     il::StaticArray3D<std::complex<double>, 6, 4, 3> s_integral_lim
             (const int kernel_id,
@@ -101,7 +101,7 @@ namespace hfp3d {
             default:break;
         }
         return c_array;
-    };
+    }
 
 
 // Constituing functions for the integrals
@@ -147,7 +147,7 @@ namespace hfp3d {
         fun_list[8] = f3;
 
         return fun_list;
-    };
+    }
 
 // Special case (reduced summation,
 // collocation point projected onto the element contour) - additional terms
@@ -172,6 +172,6 @@ namespace hfp3d {
         fun_list[4] = f3;
 
         return fun_list;
-    };
+    }
 
 }
