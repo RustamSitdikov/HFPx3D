@@ -7,14 +7,21 @@
 // See the LICENSE.TXT file for more details. 
 //
 
+#include <cstdio>
+#include <complex>
+#include <il/Array.h>
 #include <il/Array2D.h>
+#include <il/StaticArray.h>
+#include <il/StaticArray2D.h>
 #include <il/io/numpy.h>
+#include "mesh_file_io.h"
 
 namespace hfp3d {
+
     il::StaticArray<il::int_t, 2> load_mesh_from_numpy
-            (std::string src_dir,
-             std::string conn_f_name,
-             std::string node_f_name,
+            (const std::string &src_dir,
+             const std::string &conn_f_name,
+             const std::string &node_f_name,
              bool is_matlab,
              il::io_t, il::Array2D<il::int_t> &mesh_conn,
              il::Array2D<double> &nodes_crd) {
@@ -44,22 +51,6 @@ namespace hfp3d {
             }
         }
         return nums;
-    }
-
-    void save_matrix_to_csv(
-            il::Array2D<double> matrix,
-            std::string trg_dir,
-            std::string of_name) {
-        std::string path = trg_dir + of_name;
-        FILE* of=std::fopen(path.c_str(),"w");
-        for (int j=0; j < matrix.size(0); ++j){
-            for (int k=0; k < matrix.size(1); ++k){
-                std::fprintf(of, "%21.16g", matrix(j,k));
-                if (k < matrix.size(1)-1) std::fprintf(of, ",");
-            }
-            std::fprintf(of, "\n");
-        }
-        std::fclose(of);
     }
 
 }

@@ -33,7 +33,7 @@ namespace hfp3d {
         n_m(2, 5) = nv[1];
         il::StaticArray2D<double, 3, 18> TIM = il::dot(n_m, sim);
         return TIM;
-    };
+    }
 
     il::StaticArray2D<double, 6, 18> rotate_sim
             (const il::StaticArray2D<double, 3, 3> &rt,
@@ -62,7 +62,7 @@ namespace hfp3d {
             }
         }
         return sim_rotated;
-    };
+    }
 
     il::StaticArray2D<double, 6, 18> rotate_sim_c
             (const il::StaticArray2D<double, 3, 3> &rt_left,
@@ -92,11 +92,11 @@ namespace hfp3d {
             }
         }
         return sim_rotated;
-    };
+    }
 
 // Matrix-submatrix operations
 
-    template<typename T_sub, typename T_A>
+    template <typename T_sub, typename T_A>
     T_sub get_submatrix
             (const T_A &a,
              il::int_t i0, il::int_t i1,
@@ -115,9 +115,9 @@ namespace hfp3d {
             }
         }
         return sub;
-    };
+    }
 
-    template<typename T_sub, typename T_A>
+    template <typename T_sub, typename T_A>
     void set_submatrix
             (const T_sub &sub,
              il::int_t i0, il::int_t i1,
@@ -130,13 +130,13 @@ namespace hfp3d {
                 a(i0 + j0, i1 + j1) = sub(j0, j1);
             }
         }
-    };
+    }
 
     template <typename T_sub, typename T_A>
     void add_submatrix
-            (const T_sub& sub, double alpha,
+            (const T_sub &sub, double alpha,
              il::int_t i0, il::int_t i1,
-             il::io_t, T_A& a) {
+             il::io_t, T_A &a) {
         IL_EXPECT_FAST(i0 + sub.size(0) <= a.size(0));
         IL_EXPECT_FAST(i1 + sub.size(1) <= a.size(1));
 
@@ -145,5 +145,5 @@ namespace hfp3d {
                 a(i0 + j0, i1 + j1) += alpha*sub(j0, j1);
             }
         }
-    };
+    }
 }

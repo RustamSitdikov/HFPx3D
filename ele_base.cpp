@@ -33,7 +33,7 @@ namespace hfp3d {
             (const il::StaticArray<double, 3> &a) {
 // normalized 3D vector
         il::StaticArray<double, 3> e;
-        //double n_a = l2norm(a);
+        // double n_a = l2norm(a);
         double n_a = il::norm(a, il::Norm::L2);
         for (int k = 0; k < a.size(); ++k) {
             e[k] = a[k] / n_a;
@@ -70,7 +70,8 @@ namespace hfp3d {
             a2[j] = el_vert(j, 2) - el_vert(j, 0);
         }
         e1 = normalize(a1);
-        a3 = cross(e1, a2);
+        // a3 = cross(e1, a2);
+        a3 = il::cross(e1, a2);
         e3 = normalize(a3);
         e2 = normalize(cross(e3, e1));
         for (int j = 0; j < 3; ++j) {

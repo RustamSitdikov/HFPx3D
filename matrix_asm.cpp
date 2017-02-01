@@ -16,7 +16,6 @@
 #include "tensor_oper.h"
 #include "ele_base.h"
 #include "elast_ker_int.h"
-//#include "h_potential.h"
 
 namespace hfp3d {
 
@@ -441,8 +440,8 @@ namespace hfp3d {
                         // for c_n & c_m of rank 4; s_ij_infl_mon of rank 3
                     }
                     if (IsDegen) {
-                        std::complex<double> eipm = std::exp(I * phi[n]),
-                                eipn = std::exp(I * phi[m]);
+                        std::complex<double> eipn = std::exp(I * phi[n]),
+                                eipm = std::exp(I * phi[m]);
                         il::StaticArray<std::complex<double>, 5>
                                 f_n_red, f_m_red;
                         f_n_red = integral_cst_fun_red(h, d[m], an);

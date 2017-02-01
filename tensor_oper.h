@@ -33,23 +33,23 @@ namespace hfp3d {
 
 // Matrix-submatrix operations
 
-    template<typename T_sub, typename T_A>
+    template <typename T_sub, typename T_A>
     T_sub get_submatrix
-            (const T_A& a,
+            (const T_A &a,
              il::int_t i0, il::int_t i1,
              il::int_t j0, il::int_t j1);
 
-    template<typename T_sub, typename T_A>
+    template <typename T_sub, typename T_A>
     void set_submatrix
-            (const T_sub& b,
+            (const T_sub &b,
              il::int_t i0, il::int_t i1,
-             il::io_t, T_A& a);
+             il::io_t, T_A &a);
 
     template <typename T_sub, typename T_A>
     void add_submatrix
-            (const T_sub& b, double alpha,
+            (const T_sub &b, double alpha,
              il::int_t i0, il::int_t i1,
-             il::io_t, T_A& a);
+             il::io_t, T_A &a);
 
 }
 #endif //INC_3D_BEM_TENSOR_OPER_H
