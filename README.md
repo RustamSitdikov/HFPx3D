@@ -1,3 +1,4 @@
 # HFPx3D
 3D BEM
-natural & hydraulic fracture simulation
+rectangular element with constant 
+(p0) approximation of unknowns (DD)
