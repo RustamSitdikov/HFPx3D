@@ -424,11 +424,12 @@ namespace hfp3d {
                     // coefficients, by 2nd index:
                     // 0: S11+S22; 1: S11-S22+2*I*S12; 2: S13+S23; 3: S33
                     il::StaticArray4D<std::complex<double>, 6, 4, 3, 9>
-                            c_n{0.0}, c_m{0.0};
-                    c_n = s_integral_gen(kernel_id, nu, eixn, h, dm);
+                    c_n = s_integral_gen(kernel_id, nu, eixn, h, dm),
                     c_m = s_integral_gen(kernel_id, nu, eixm, h, dm);
+                    // combining constituing functions & coefficients
                     il::blas(1.0, c_n, f_n, 1.0, il::io, s_ij_infl_mon);
                     il::blas(-1.0, c_m, f_m, 1.0, il::io, s_ij_infl_mon);
+                    // additional terms for "degenerate" case
                     if (IsDegen) {
                         std::complex<double> eipn = std::exp(I * phi[n]),
                                 eipm = std::exp(I * phi[m]);
@@ -447,12 +448,11 @@ namespace hfp3d {
             }
         }
 
-        // here comes contraction with "shifted" sfm (left)
+        // contraction with "shifted" sfm (left)
         il::StaticArray3D<std::complex<double>, 6, 4, 3>
         s_ij_infl_nod = il::dot(sfm_z, s_ij_infl_mon);
 
-        // re-shaping of the resulting matrix
-        // and scaling (comment out if not necessary)
+        // re-shaping and scaling of the resulting matrix
         for (int j = 0; j < 6; ++j) {
             int q = j * 3;
             for (int k = 0; k < 3; ++k) {
