@@ -14,8 +14,10 @@
 #include <complex>
 #include <il/StaticArray.h>
 #include <il/StaticArray3D.h>
+#include <il/StaticArray4D.h>
 #include "elast_ker_int.h"
 #include "h_potential.h"
+//#include "t_potential.h"
 
 namespace hfp3d {
 
@@ -27,80 +29,55 @@ namespace hfp3d {
 // Stress components (vs local Cartesian coordinate system of the element)
 // combined as S11+S22, S11-S22+2*I*S12, S13+I*S23, S33
 
-    il::StaticArray3D<std::complex<double>, 6, 3, 9> s_integral_gen
-            (const int kernel_id, const int StComb,
+    il::StaticArray4D<std::complex<double>, 6, 4, 3, 9> s_integral_gen
+            (const int kernel_id,
              double nu, std::complex<double> eix,
              double h, std::complex<double> d) {
-        il::StaticArray3D<std::complex<double>, 6, 3, 9> c_array{};
+        il::StaticArray4D<std::complex<double>, 6, 4, 3, 9> c;
         switch (kernel_id) {
             case 1:
-                switch (StComb) {
-                    case 0:
-                        c_array = s_11_22_h(nu, eix, h, d);
-                        break;
-                    case 1:
-                        c_array = s_12_h(nu, eix, h, d);
-                        break;
-                    case 2:
-                        c_array = s_13_23_h(nu, eix, h, d);
-                        break;
-                    case 3:
-                        c_array = s_33_h(nu, eix, h, d);
-                        break;
-                    default:break;
-                }
+                c = s_ij_gen_h(nu, eix, h, d);
                 break;
             case 0:
+                // c = s_ij_gen_t(nu, eix, h, d);
                 break;
             default:break;
         }
-        return c_array;
+        return c;
     }
 
-    il::StaticArray3D<std::complex<double>, 6, 3, 5> s_integral_red
-            (const int kernel_id, const int StComb,
+    il::StaticArray4D<std::complex<double>, 6, 4, 3, 5> s_integral_red
+            (const int kernel_id,
              double nu, std::complex<double> eix,
-             double h, std::complex<double> d) {
-        il::StaticArray3D<std::complex<double>, 6, 3, 5> c_array{};
+             double h) {
+        il::StaticArray4D<std::complex<double>, 6, 4, 3, 5> c;
         switch (kernel_id) {
             case 1:
-                switch (StComb) {
-                    case 0:
-                        c_array = s_11_22_red_h(nu, eix, h, d);
-                        break;
-                    case 1:
-                        c_array = s_12_red_h(nu, eix, h, d);
-                        break;
-                    case 2:
-                        c_array = s_13_23_red_h(nu, eix, h, d);
-                        break;
-                    case 3:
-                        c_array = s_33_red_h(nu, eix, h, d);
-                        break;
-                    default:break;
-                }
+                c = s_ij_red_h(nu, eix, h);
                 break;
             case 0:
+                // c = s_ij_red_t(nu, eix, h, d);
                 break;
             default:break;
         }
-        return c_array;
+        return c;
     }
 
     il::StaticArray3D<std::complex<double>, 6, 4, 3> s_integral_lim
             (const int kernel_id,
              double nu, std::complex<double> eix,
-             double sgnh, std::complex<double> d) {
-        il::StaticArray3D<std::complex<double>, 6, 4, 3> c_array{};
+             std::complex<double> d) {
+        il::StaticArray3D<std::complex<double>, 6, 4, 3> c;
         switch (kernel_id) {
             case 1:
-                c_array = s_ij_lim_h(nu, eix, sgnh, d);
+                c = s_ij_lim_h(nu, eix, d);
                 break;
             case 0:
+                // c = s_ij_lim_t(nu, eix, sgnh, d);
                 break;
             default:break;
         }
-        return c_array;
+        return c;
     }
 
 

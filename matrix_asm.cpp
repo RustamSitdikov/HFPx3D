@@ -11,6 +11,8 @@
 #include <il/Array2D.h>
 #include <il/StaticArray.h>
 #include <il/StaticArray2D.h>
+#include <il/StaticArray3D.h>
+#include <il/StaticArray4D.h>
 #include <il/linear_algebra/dense/blas/dot.h>
 #include "matrix_asm.h"
 #include "tensor_oper.h"
@@ -324,7 +326,7 @@ namespace hfp3d {
         // h and z define the position of the (collocation) point x
         // in the same coordinates
 
-        il::StaticArray2D<double, 6, 18> stress_el2el_infl{0.0};
+        il::StaticArray2D<double, 6, 18> stress_el_2_el_infl{0.0};
 
         const std::complex<double> I(0.0, 1.0);
 
@@ -384,95 +386,70 @@ namespace hfp3d {
         // DD-to-stress influence
         // [(S11+S22)/2; (S11-S22)/2+i*S12; (S13+i*S23)/2; S33]
         // vs SF monomials (s_ij_infl_mon) and nodal values (s_ij_infl_nod)
-        il::StaticArray<il::StaticArray2D<std::complex<double>, 6, 3>, 4>
-                s_ij_infl_mon;
-        for (int l = 0; l < 4; ++l) {
-            for (int j = 0; j < 6; ++j) {
-                for (int k = 0; k < 3; ++k) {
-                    s_ij_infl_mon[l](j, k) = 0.0;
-                }
-            }
-            // to be removed for s_ij_infl_mon of rank 3
-        }
+        il::StaticArray3D<std::complex<double>, 6, 4, 3> s_ij_infl_mon{0.0};
 
         // summation over edges
         for (int m = 0; m < 3; ++m) {
             int n = (m + 1) % 3;
-            if (std::abs(d[m]) >= h_tol && ~is_90_ang(0, m) && ~is_90_ang(1, m)) {
+            std::complex<double> dm = d[m];
+            if (std::abs(dm) >= h_tol && ~is_90_ang(0, m) && ~is_90_ang(1, m)) {
                 std::complex<double> eixm = std::exp(I * chi(0, m)),
                         eixn = std::exp(I * chi(1, m));
                 // limit case (point x on the element's plane)
                 if (std::fabs(h) < h_tol) {
                     il::StaticArray3D<std::complex<double>, 6, 4, 3>
-                            s_incr_n{0.0}, s_incr_m{0.0};
-                    s_incr_n = s_integral_lim(kernel_id, nu, eixn, -1.0, d[m]);
-                    s_incr_m = s_integral_lim(kernel_id, nu, eixm, -1.0, d[m]);
+                            s_incr_n =
+                            s_integral_lim(kernel_id, nu, eixn, dm),
+                            s_incr_m =
+                            s_integral_lim(kernel_id, nu, eixm, dm);
                     for (int j = 0; j < 6; ++j) {
-                        for (int k = 0; k < 3; ++k) {
-                            for (int l = 0; l < 4; ++l) {
-                                s_ij_infl_mon[l](j, k) += 
-                                        s_incr_n(j, l, k) - s_incr_m(j, l, k);
+                        for (int k = 0; k < 4; ++k) {
+                            for (int l = 0; l < 3; ++l) {
+                                s_ij_infl_mon(j, k, l) += s_incr_n(j, k, l) -
+                                        s_incr_m(j, k, l);
                             }
                         }
-                        // to be replaced w. 2 il::blas calls
-                        // for s_ij_infl_mon of rank 3
                     }
+                    // il::blas(1.0, s_incr_n, 1.0, il::io, s_ij_infl_mon);
+                    // il::blas(-1.0, s_incr_m, 1.0, il::io, s_ij_infl_mon);
                 } else { // out-of-plane case
-                    double an = std::abs(tz[n] - d[m]),
-                            am = std::abs(tz[m] - d[m]);
+                    double an = std::abs(tz[n] - dm),
+                            am = std::abs(tz[m] - dm);
                     an = (chi(1, m) < 0) ? -an : an;
                     am = (chi(0, m) < 0) ? -am : am;
                     // constituing functions of the integrals
-                    il::StaticArray<std::complex<double>, 9> f_n, f_m;
-                    f_n = integral_cst_fun(h, d[m], an, chi(1, m), eixn);
-                    f_m = integral_cst_fun(h, d[m], am, chi(0, m), eixm);
-                    // coefficients
-                    // l = 0: S11+S22; l = 1: S11-S22+2*I*S12;
-                    // l = 2: S13+S23; l = 3: S33
-                    for (int l = 0; l < 4; ++l) {
-                        il::StaticArray3D<std::complex<double>, 6, 3, 9>
-                                c_n, c_m;
-                        c_n = s_integral_gen(kernel_id, l, nu, eixn, h, d[m]);
-                        c_m = s_integral_gen(kernel_id, l, nu, eixm, h, d[m]);
-                        il::blas(1.0, c_n, f_n, 1.0, il::io, s_ij_infl_mon[l]);
-                        il::blas(-1.0, c_m, f_m, 1.0, il::io, s_ij_infl_mon[l]);
-                        // to be replaced w. 2 il::blas calls
-                        // for c_n & c_m of rank 4; s_ij_infl_mon of rank 3
-                    }
+                    il::StaticArray<std::complex<double>, 9>
+                    f_n = integral_cst_fun(h, dm, an, chi(1, m), eixn),
+                    f_m = integral_cst_fun(h, dm, am, chi(0, m), eixm);
+                    // coefficients, by 2nd index:
+                    // 0: S11+S22; 1: S11-S22+2*I*S12; 2: S13+S23; 3: S33
+                    il::StaticArray4D<std::complex<double>, 6, 4, 3, 9>
+                            c_n{0.0}, c_m{0.0};
+                    c_n = s_integral_gen(kernel_id, nu, eixn, h, dm);
+                    c_m = s_integral_gen(kernel_id, nu, eixm, h, dm);
+                    il::blas(1.0, c_n, f_n, 1.0, il::io, s_ij_infl_mon);
+                    il::blas(-1.0, c_m, f_m, 1.0, il::io, s_ij_infl_mon);
                     if (IsDegen) {
                         std::complex<double> eipn = std::exp(I * phi[n]),
                                 eipm = std::exp(I * phi[m]);
                         il::StaticArray<std::complex<double>, 5>
-                                f_n_red, f_m_red;
-                        f_n_red = integral_cst_fun_red(h, d[m], an);
-                        f_m_red = integral_cst_fun_red(h, d[m], am);
-                        for (int l = 0; l < 4; ++l) {
-                            il::StaticArray3D<std::complex<double>, 6, 3, 5>
-                                    c_n_red, c_m_red;
-                            c_n_red = s_integral_red
-                                    (kernel_id, l, nu, eipn, h, d[m]);
-                            c_m_red = s_integral_red
-                                    (kernel_id, l, nu, eipm, h, d[m]);
-                            il::blas(1.0, c_n_red, f_n_red, 1.0,
-                                     il::io, s_ij_infl_mon[l]);
-                            il::blas(-1.0, c_m_red, f_m_red, 1.0,
-                                     il::io, s_ij_infl_mon[l]);
-                            // to be replaced w. 2 il::blas calls
-                            // for c_n & c_m of rank 4; s_ij_infl_mon of rank 3
-                        }
+                        f_n_red = integral_cst_fun_red(h, dm, an),
+                        f_m_red = integral_cst_fun_red(h, dm, am);
+                        il::StaticArray4D<std::complex<double>, 6, 4, 3, 5>
+                        c_n_red = s_integral_red(kernel_id, nu, eipn, h),
+                        c_m_red = s_integral_red(kernel_id, nu, eipm, h);
+                        il::blas(1.0, c_n_red, f_n_red, 1.0,
+                                 il::io, s_ij_infl_mon);
+                        il::blas(-1.0, c_m_red, f_m_red, 1.0,
+                                 il::io, s_ij_infl_mon);
                     }
                 }
             }
         }
 
         // here comes contraction with "shifted" sfm (left)
-        il::StaticArray<il::StaticArray2D<std::complex<double>, 6, 3>,4>
-                s_ij_infl_nod;
-        for (int l = 0; l < 4; ++l) {
-            s_ij_infl_nod[l] = il::dot(sfm_z, s_ij_infl_mon[l]);
-            // to be replaced w. 2 il::blas calls
-            // for s_ij_infl_mon of rank 3
-        }
+        il::StaticArray3D<std::complex<double>, 6, 4, 3>
+        s_ij_infl_nod = il::dot(sfm_z, s_ij_infl_mon);
 
         // re-shaping of the resulting matrix
         // and scaling (comment out if not necessary)
@@ -480,23 +457,23 @@ namespace hfp3d {
             int q = j * 3;
             for (int k = 0; k < 3; ++k) {
                 // [S11; S22; S33; S12; S13; S23] vs \delta{u}_k at j-th node
-                stress_el2el_infl(0, q + k) = 
-                        scale * (std::real(s_ij_infl_nod[0](j, k)) +
-                                std::real(s_ij_infl_nod[1](j, k))); // S11
-                stress_el2el_infl(1, q + k) = 
-                        scale * (std::real(s_ij_infl_nod[0](j, k)) -
-                                std::real(s_ij_infl_nod[1](j, k))); // S22
-                stress_el2el_infl(2, q + k) = 
-                        scale * std::real(s_ij_infl_nod[3](j, k)); // S33
-                stress_el2el_infl(3, q + k) = 
-                        scale * std::imag(s_ij_infl_nod[1](j, k)); // S12
-                stress_el2el_infl(4, q + k) = 
-                        scale * 2.0 * std::real(s_ij_infl_nod[2](j, k)); // S13
-                stress_el2el_infl(5, q + k) = 
-                        scale * 2.0 * std::imag(s_ij_infl_nod[2](j, k)); // S23
+                stress_el_2_el_infl(0, q + k) = 
+                        scale * (std::real(s_ij_infl_nod(j, 0, k)) +
+                                std::real(s_ij_infl_nod(j, 1, k)));
+                stress_el_2_el_infl(1, q + k) = 
+                        scale * (std::real(s_ij_infl_nod(j, 0, k)) -
+                                std::real(s_ij_infl_nod(j, 1, k)));
+                stress_el_2_el_infl(2, q + k) = 
+                        scale * std::real(s_ij_infl_nod(j, 3, k));
+                stress_el_2_el_infl(3, q + k) = 
+                        scale * std::imag(s_ij_infl_nod(j, 1, k));
+                stress_el_2_el_infl(4, q + k) = 
+                        scale * 2.0 * std::real(s_ij_infl_nod(j, 2, k));
+                stress_el_2_el_infl(5, q + k) = 
+                        scale * 2.0 * std::imag(s_ij_infl_nod(j, 2, k));
             }
         }
-        return stress_el2el_infl;
+        return stress_el_2_el_infl;
     }
 
 }

@@ -20,26 +20,6 @@ int main() {
     std::string work_directory{"C:/Users/nikolski/ClionProjects/3D-bem"
                                        "/Test_Output/"};
 
-    // Matrix assembly for a penny-shaped crack (24 elements)
-
-    std::string src_directory{"C:/Users/nikolski/.spyder-py3/3DBEM/"};
-    std::string mesh_conn_fname{"Elems_pennymesh24el.npy"};
-    std::string nodes_crd_fname{"Nodes_pennymesh24el.npy"};
-
-    std::string of_name{"test_assembly_24_ele.csv"};
-
-    il::Array2D<il::int_t> mesh_conn;
-    il::Array2D<double> nodes_crd;
-    //il::StaticArray<il::int_t, 2> nums =
-            hfp3d::load_mesh_from_numpy
-            (src_directory, mesh_conn_fname, nodes_crd_fname, true,
-             il::io, mesh_conn, nodes_crd);
-
-    il::int_t num_elems = mesh_conn.size(1), num_dof = 18 * num_elems;
-
-    il::Array2D<double> bem_matrix(num_dof, num_dof);
-    bem_matrix = hfp3d::make_3dbem_matrix_s(mu, nu, 0.25, mesh_conn, nodes_crd);
-
 /*
     // Testing kernel integration for one element
 
@@ -59,8 +39,8 @@ int main() {
     nodes_crd(2, 2) = 0.0;
     il::StaticArray<double, 3> m_p_crd;
     m_p_crd[0] = 1.0;
-    m_p_crd[1] = 0.4;
-    m_p_crd[2] = 1.21;
+    m_p_crd[1] = 1.4;
+    m_p_crd[2] = -1.21;
     il::StaticArray2D<double, 3, 3> r_tensor;
     il::StaticArray2D<std::complex<double>, 6, 6> sfm =
             hfp3d::make_el_sfm_uniform(nodes_crd, il::io, r_tensor);
@@ -73,6 +53,7 @@ int main() {
     std::string sf_name{"test_SFM_1_ele.csv"};
 
     hfp3d::save_data_to_csv(sfm, work_directory, sf_name);
+    hfp3d::save_data_to_csv(bem_matrix, work_directory, of_name);
 */
 
 /*
@@ -93,7 +74,34 @@ int main() {
     nodes_crd(1, 2) = 1.8;
     nodes_crd(2, 2) = 0.0;
     std::string of_name{"test_assembly_1_ele.csv"};
+
+     il::int_t num_elems = mesh_conn.size(1), num_dof = 18 * num_elems;
+
+    il::Array2D<double> bem_matrix(num_dof, num_dof);
+    bem_matrix = hfp3d::make_3dbem_matrix_s(mu, nu, 0.25, mesh_conn, nodes_crd);
+
+    hfp3d::save_data_to_csv(bem_matrix, work_directory, of_name);
 */
+
+    // Matrix assembly for a penny-shaped crack (24 elements)
+
+    std::string src_directory{"C:/Users/nikolski/.spyder-py3/3DBEM/"};
+    std::string mesh_conn_fname{"Elems_pennymesh24el.npy"};
+    std::string nodes_crd_fname{"Nodes_pennymesh24el.npy"};
+
+    std::string of_name{"test_assembly_24_ele.csv"};
+
+    il::Array2D<il::int_t> mesh_conn;
+    il::Array2D<double> nodes_crd;
+    //il::StaticArray<il::int_t, 2> nums =
+            hfp3d::load_mesh_from_numpy
+            (src_directory, mesh_conn_fname, nodes_crd_fname, true,
+             il::io, mesh_conn, nodes_crd);
+
+    il::int_t num_elems = mesh_conn.size(1), num_dof = 18 * num_elems;
+
+    il::Array2D<double> bem_matrix(num_dof, num_dof);
+    bem_matrix = hfp3d::make_3dbem_matrix_s(mu, nu, 0.25, mesh_conn, nodes_crd);
 
     hfp3d::save_data_to_csv(bem_matrix, work_directory, of_name);
 

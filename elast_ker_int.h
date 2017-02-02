@@ -13,6 +13,7 @@
 #include <complex>
 #include <il/StaticArray.h>
 #include <il/StaticArray3D.h>
+#include <il/StaticArray4D.h>
 
 // Integration of a kernel of the elasticity equation
 // over a part of a polygonal element (a sector associated with one edge)
@@ -28,20 +29,20 @@ namespace hfp3d {
 // Stress components (vs local Cartesian coordinate system of the element)
 // combined as S11+S22, S11-S22+2*I*S12, S13+I*S23, S33
 
-    il::StaticArray3D<std::complex<double>, 6, 3, 9> s_integral_gen
-                (const int ker, const int str_comb,
+    il::StaticArray4D<std::complex<double>, 6, 4, 3, 9> s_integral_gen
+                (const int ker,
                  double nu, std::complex<double> eix,
                  double h, std::complex<double> d);
 
-    il::StaticArray3D<std::complex<double>, 6, 3, 5> s_integral_red
-                (const int kernel_id, const int str_comb,
+    il::StaticArray4D<std::complex<double>, 6, 4, 3, 5> s_integral_red
+                (const int kernel_id,
                  double nu, std::complex<double> eix,
-                 double h, std::complex<double> d);
+                 double h);
 
     il::StaticArray3D<std::complex<double>, 6, 4, 3> s_integral_lim
                 (const int ker,
                  double nu, std::complex<double> eix,
-                 double sgnh, std::complex<double> d);
+                 std::complex<double> d);
 
 
 // Constituing functions for the integrals
