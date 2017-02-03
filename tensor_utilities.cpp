@@ -1,5 +1,5 @@
 //
-// This file is part of 3d_bem.
+// This file is part of HFPx3D.
 //
 // Created by D. Nikolski on 1/24/2017.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
@@ -12,7 +12,7 @@
 #include <il/StaticArray2D.h>
 #include <il/linear_algebra.h>
 // #include <il/linear_algebra/dense/blas/dot.h>
-#include "tensor_oper.h"
+#include "tensor_utilities.h"
 
 namespace hfp3d {
 // Vector and triple tensor multiplication

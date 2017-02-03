@@ -1,14 +1,16 @@
 //
-// This file is part of 3d_bem.
+// This file is part of HFPx3D.
 //
-// Created by nikolski on 1/27/2017.
-// Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland, Geo-Energy Laboratory, 2016-2017.  All rights reserved.
+// Created by D. Nikolski on 1/27/2017.
+// Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
+// Geo-Energy Laboratory, 2016-2017.  All rights reserved.
 // See the LICENSE.TXT file for more details. 
 //
 
 #ifndef INC_3D_BEM_LOAD_MESH_FROM_FILE_H
 #define INC_3D_BEM_LOAD_MESH_FROM_FILE_H
 
+#include <cstdio>
 #include <complex>
 #include <il/Array.h>
 #include <il/Array2D.h>
@@ -58,7 +60,8 @@ namespace hfp3d {
         }
         FILE* of=std::fopen(path.c_str(),"w");
         for (int j=0; j < vector.size(); ++j){
-            std::fprintf(of, format, vector[j]);
+            T out = vector[j];
+            std::fprintf(of, format, out);
         }
         std::fclose(of);
     }
@@ -78,7 +81,8 @@ namespace hfp3d {
         FILE* of=std::fopen(path.c_str(),"w");
         for (int j=0; j < matrix.size(0); ++j) {
             for (int k=0; k < matrix.size(1); ++k) {
-                std::fprintf(of, format, matrix(j,k));
+                T out = matrix(j, k);
+                std::fprintf(of, format, out);
                 if (k < matrix.size(1)-1) std::fprintf(of, ",");
             }
             std::fprintf(of, "\n");
@@ -101,7 +105,8 @@ namespace hfp3d {
         FILE* of=std::fopen(path.c_str(),"w");
         for (int j=0; j < matrix.size(0); ++j) {
             for (int k=0; k < matrix.size(1); ++k) {
-                std::fprintf(of, format, matrix(j,k));
+                T out = matrix(j, k);
+                std::fprintf(of, format, out);
                 if (k < matrix.size(1)-1) std::fprintf(of, ",");
             }
             std::fprintf(of, "\n");

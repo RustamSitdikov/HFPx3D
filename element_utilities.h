@@ -1,5 +1,5 @@
 //
-// This file is part of 3d_bem.
+// This file is part of HFPx3D.
 //
 // Created by D. Nikolski on 1/10/2017.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,

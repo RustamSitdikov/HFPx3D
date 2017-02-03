@@ -1,5 +1,5 @@
 //
-// This file is part of 3d_bem.
+// This file is part of HFPx3D.
 //
 // Created by D. Nikolski on 1/24/2017.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
@@ -16,10 +16,10 @@
 #include <il/linear_algebra.h>
 // #include <il/linear_algebra/dense/blas/dot.h>
 // #include <il/linear_algebra/dense/blas/blas.h>
-#include "matrix_asm.h"
-#include "tensor_oper.h"
-#include "ele_base.h"
-#include "elast_ker_int.h"
+#include "matrix_assembly.h"
+#include "tensor_utilities.h"
+#include "element_utilities.h"
+#include "elasticity_kernel_integration.h"
 
 namespace hfp3d {
 

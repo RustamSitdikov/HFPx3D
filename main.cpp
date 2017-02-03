@@ -1,23 +1,22 @@
-#include <cstdio>
-#include <il/Array2D.h>
-#include <il/StaticArray.h>
-#include <il/StaticArray2D.h>
-//#include <il/io/numpy.h>
-#include "mesh_file_io.h"
-#include "matrix_asm.h"
-#include "ele_base.h"
-//#include "tensor_oper.h"
-#include <complex>
-#include <il/StaticArray3D.h>
-#include "h_potential.h"
-
 // main.cpp will be used for testing the code parts under development
+
+//#include <cstdio>
+#include <il/Array.h>
+#include <il/Array2D.h>
+#include <il/linear_algebra.h>
+//#include <il/linear_algebra/dense/factorization/linear_solve.h>
+#include "mesh_file_io.h"
+#include "matrix_assembly.h"
+//#include <complex>
+//#include <il/StaticArray.h>
+//#include <il/StaticArray2D.h>
+//#include "ele_base.h"
 
 int main() {
 
     double mu = 1.0, nu = 0.35;
 
-    std::string work_directory{"C:/Users/nikolski/ClionProjects/3D-bem"
+    std::string work_directory{"C:/Users/nikolski/ClionProjects/HFPx3D_static"
                                        "/Test_Output/"};
 
 /*
@@ -93,8 +92,7 @@ int main() {
 
     il::Array2D<il::int_t> mesh_conn;
     il::Array2D<double> nodes_crd;
-    //il::StaticArray<il::int_t, 2> nums =
-            hfp3d::load_mesh_from_numpy
+    hfp3d::load_mesh_from_numpy
             (src_directory, mesh_conn_fname, nodes_crd_fname, true,
              il::io, mesh_conn, nodes_crd);
 
@@ -106,6 +104,34 @@ int main() {
     hfp3d::save_data_to_csv(bem_matrix, work_directory, of_name);
 
 /*
+    il::Array<double> rhs(num_dof);
+    for (il::int_t j = 0; j < num_elems; ++j) {
+        for (int k = 0; k < 6; ++k) {
+            il::int_t n = j % 6 + k;
+            for (int l = 0; l < 3; ++l) {
+                int dof = n % 3 + l;
+                rhs[dof] = (l == 2 ? 1.0 : 0.0);
+            }
+        }
+    }
+    il::Status status{};
+    il::Array<double> dd_v = il::linear_solve(bem_matrix, rhs, il::io, status);
+    status.abort_on_error();
+    il::Array2D<double> dd(6 * num_elems, 3);
+    for (il::int_t j = 0; j < num_elems; ++j) {
+        for (int k = 0; k < 6; ++k) {
+            il::int_t n = j % 6 + k;
+            for (int l = 0; l < 3; ++l) {
+                il::int_t dof = n % 3 + l;
+                dd(n, j) = dd_v[dof];
+            }
+        }
+    }
+    hfp3d::save_data_to_csv(dd, work_directory, of_name);
+*/
+
+/*
+    il::Status status{};
     il::save(IM_1, "C:/Users/nikolski/.spyder-py3/3DBEM/matrix_24_el.npy",
              il::io, status);
     status.abort_on_error();

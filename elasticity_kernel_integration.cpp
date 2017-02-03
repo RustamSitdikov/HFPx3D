@@ -1,5 +1,5 @@
 //
-// This file is part of 3d_bem.
+// This file is part of HFPx3D.
 //
 // Created by D. Nikolski on 1/24/2017.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
@@ -15,7 +15,7 @@
 #include <il/StaticArray.h>
 #include <il/StaticArray3D.h>
 #include <il/StaticArray4D.h>
-#include "elast_ker_int.h"
+#include "elasticity_kernel_integration.h"
 #include "h_potential.h"
 //#include "t_potential.h"
 
