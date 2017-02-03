@@ -8,7 +8,6 @@
 //
 
 #include <cstdio>
-#include <complex>
 #include <il/Array.h>
 #include <il/Array2D.h>
 #include <il/StaticArray.h>
@@ -18,7 +17,7 @@
 
 namespace hfp3d {
 
-    il::StaticArray<il::int_t, 2> load_mesh_from_numpy
+    void load_mesh_from_numpy
             (const std::string &src_dir,
              const std::string &conn_f_name,
              const std::string &node_f_name,
@@ -36,11 +35,6 @@ namespace hfp3d {
                 (src_dir + node_f_name, il::io, status);
         status.abort_on_error();
 
-        il::StaticArray<il::int_t, 2> nums;
-
-        nums[0] = mesh_conn.size(1);
-        nums[1] = nodes_crd.size(1);
-
         if (is_matlab) {
             // conversion from Matlab (array numbering starting with 1)
             // to C++ standard (array numbering starting with 0)
@@ -50,7 +44,6 @@ namespace hfp3d {
                 }
             }
         }
-        return nums;
     }
 
 }

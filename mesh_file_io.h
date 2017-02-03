@@ -17,7 +17,7 @@
 
 namespace hfp3d {
 
-    il::StaticArray<il::int_t, 2> load_mesh_from_numpy
+    void load_mesh_from_numpy
             (const std::string &src_dir,
              const std::string &conn_f_name,
              const std::string &node_f_name,
