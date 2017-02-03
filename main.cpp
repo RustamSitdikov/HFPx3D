@@ -16,7 +16,7 @@ int main() {
 
     double mu = 1.0, nu = 0.35;
 
-    std::string work_directory{"C:/Users/nikolski/ClionProjects/HFPx3D_static"
+    std::string work_directory{"C:/Users/nikolski/ClionProjects/HFPx3D_VC"
                                        "/Test_Output/"};
 
 /*
