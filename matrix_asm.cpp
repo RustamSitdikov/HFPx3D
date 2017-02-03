@@ -13,7 +13,9 @@
 #include <il/StaticArray2D.h>
 #include <il/StaticArray3D.h>
 #include <il/StaticArray4D.h>
-#include <il/linear_algebra/dense/blas/dot.h>
+#include <il/linear_algebra.h>
+// #include <il/linear_algebra/dense/blas/dot.h>
+// #include <il/linear_algebra/dense/blas/blas.h>
 #include "matrix_asm.h"
 #include "tensor_oper.h"
 #include "ele_base.h"

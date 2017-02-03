@@ -11,8 +11,9 @@
 #include <complex>
 #include <il/StaticArray.h>
 #include <il/StaticArray2D.h>
-#include <il/linear_algebra/dense/blas/dot.h>
-#include <il/linear_algebra/dense/blas/cross.h>
+#include <il/linear_algebra.h>
+// #include <il/linear_algebra/dense/blas/dot.h>
+// #include <il/linear_algebra/dense/blas/cross.h>
 #include <il/linear_algebra/dense/norm.h>
 #include "ele_base.h"
 

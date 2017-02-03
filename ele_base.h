@@ -10,6 +10,10 @@
 #ifndef INC_3D_BEM_ELE_BASE_H
 #define INC_3D_BEM_ELE_BASE_H
 
+#include <complex>
+#include <il/StaticArray.h>
+#include <il/StaticArray2D.h>
+
 namespace hfp3d {
 
     struct HZ {

@@ -18,7 +18,6 @@
 #include <il/Array2D.h>
 #include <il/StaticArray.h>
 #include <il/StaticArray2D.h>
-//#include "elast_ker_int.h"
 
 namespace hfp3d {
 
