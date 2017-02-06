@@ -1,5 +1,5 @@
 //
-// This file is part of HFPx3D_VC.
+// This file is part of HFPx3D.
 //
 // Created by D. Nikolski on 1/27/2017.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
@@ -17,7 +17,7 @@
 
 namespace hfp3d {
 
-    void load_mesh_from_numpy
+    void load_mesh_from_numpy_32
             (const std::string &src_dir,
              const std::string &conn_f_name,
              const std::string &node_f_name,
@@ -25,10 +25,52 @@ namespace hfp3d {
              il::io_t, il::Array2D<il::int_t> &mesh_conn,
              il::Array2D<double> &nodes_crd) {
 // This function reads the mesh connectivity matrix (3*N_elements)
+// (32-bit integer)
 // and node coordinates matrix (3*N_nodes) from numpy binary files
         il::Status status{};
+        std::string f_path = src_dir + conn_f_name;
+
+        il::Array2D<int> mesh_conn_tmp = il::load<il::Array2D<int>>
+                (f_path, il::io, status);
+        status.abort_on_error();
+        mesh_conn.resize(mesh_conn_tmp.size(0), mesh_conn_tmp.size(1));
+        for (il::int_t k = 0; k < mesh_conn.size(1); ++k) {
+            for (il::int_t j = 0; j < mesh_conn.size(0); ++j) {
+                mesh_conn(j, k) = mesh_conn_tmp(j, k);
+            }
+        }
+
+        nodes_crd = il::load<il::Array2D<double>>
+                (src_dir + node_f_name, il::io, status);
+        status.abort_on_error();
+
+        if (is_matlab) {
+            // conversion from Matlab (array numbering starting with 1)
+            // to C++ standard (array numbering starting with 0)
+            il::int_t n_r = (mesh_conn.size(0) >= 3) ? 3 : mesh_conn.size(0);
+            for (il::int_t k = 0; k < mesh_conn.size(1); ++k) {
+                for (il::int_t j = 0; j < n_r; ++j) {
+                    mesh_conn(j, k) -=1;
+                }
+            }
+        }
+    }
+
+    void load_mesh_from_numpy_64
+            (const std::string &src_dir,
+             const std::string &conn_f_name,
+             const std::string &node_f_name,
+             bool is_matlab,
+             il::io_t, il::Array2D<il::int_t> &mesh_conn,
+             il::Array2D<double> &nodes_crd) {
+// This function reads the mesh connectivity matrix (3*N_elements)
+// (64-bit integer)
+// and node coordinates matrix (3*N_nodes) from numpy binary files
+        il::Status status{};
+        std::string f_path = src_dir + conn_f_name;
+
         mesh_conn = il::load<il::Array2D<il::int_t>>
-                (src_dir + conn_f_name, il::io, status);
+                (f_path, il::io, status);
         status.abort_on_error();
 
         nodes_crd = il::load<il::Array2D<double>>
@@ -38,8 +80,9 @@ namespace hfp3d {
         if (is_matlab) {
             // conversion from Matlab (array numbering starting with 1)
             // to C++ standard (array numbering starting with 0)
+            il::int_t n_r = (mesh_conn.size(0) >= 3) ? 3 : mesh_conn.size(0);
             for (il::int_t k = 0; k < mesh_conn.size(1); ++k) {
-                for (il::int_t j = 0; j < mesh_conn.size(0); ++j) {
+                for (il::int_t j = 0; j < n_r; ++j) {
                     mesh_conn(j, k) -=1;
                 }
             }

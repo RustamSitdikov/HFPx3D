@@ -1,5 +1,5 @@
 //
-// This file is part of HFPx3D_VC.
+// This file is part of HFPx3D.
 //
 // Created by D. Nikolski on 1/24/2017.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
@@ -8,6 +8,7 @@
 //
 
 #include <complex>
+#include <il/math.h>
 #include <il/Array2D.h>
 #include <il/StaticArray.h>
 #include <il/StaticArray2D.h>
@@ -330,7 +331,7 @@ namespace hfp3d {
 
         il::StaticArray2D<double, 6, 18> stress_el_2_el_infl{0.0};
 
-        const std::complex<double> I(0.0, 1.0);
+        // const std::complex<double> I(0.0, 1.0);
 
         // scaling ("-" sign comes from traction Somigliana ID, H-term)
         double scale = -mu / (4.0 * M_PI * (1.0 - nu));
@@ -395,8 +396,11 @@ namespace hfp3d {
             int n = (m + 1) % 3;
             std::complex<double> dm = d[m];
             if (std::abs(dm) >= h_tol && ~is_90_ang(0, m) && ~is_90_ang(1, m)) {
-                std::complex<double> eixm = std::exp(I * chi(0, m)),
-                        eixn = std::exp(I * chi(1, m));
+                std::complex<double>
+                // exp(I * chi(0, m))
+                        eixm = std::exp(std::complex<double>(0.0, chi(0, m))),
+                // exp(I * chi(1, m))
+                        eixn = std::exp(std::complex<double>(0.0, chi(1, m)));
                 // limit case (point x on the element's plane)
                 if (std::fabs(h) < h_tol) {
                     il::StaticArray3D<std::complex<double>, 6, 4, 3>
@@ -433,8 +437,13 @@ namespace hfp3d {
                     il::blas(-1.0, c_m, f_m, 1.0, il::io, s_ij_infl_mon);
                     // additional terms for "degenerate" case
                     if (IsDegen) {
-                        std::complex<double> eipn = std::exp(I * phi[n]),
-                                eipm = std::exp(I * phi[m]);
+                        std::complex<double>
+                        // exp(I * phi[n])
+                                eipn = std::exp(std::complex<double>
+                                                        (0.0, phi[n])),
+                        // exp(I * phi[m])
+                                eipm = std::exp(std::complex<double>
+                                                        (0.0, phi[m]));
                         il::StaticArray<std::complex<double>, 5>
                         f_n_red = integral_cst_fun_red(h, dm, an),
                         f_m_red = integral_cst_fun_red(h, dm, am);
