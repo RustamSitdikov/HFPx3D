@@ -19,7 +19,15 @@
 
 namespace hfp3d {
 
-    void load_mesh_from_numpy
+    void load_mesh_from_numpy_32
+            (const std::string &src_dir,
+             const std::string &conn_f_name,
+             const std::string &node_f_name,
+             bool is_matlab,
+             il::io_t, il::Array2D <il::int_t> &mesh_conn,
+             il::Array2D<double> &nodes_crd);
+
+    void load_mesh_from_numpy_64
             (const std::string &src_dir,
              const std::string &conn_f_name,
              const std::string &node_f_name,
@@ -32,14 +40,14 @@ namespace hfp3d {
             const il::Array<T> &vector,
             const std::string &trg_dir,
             const std::string &of_name) {
-        std::string path = trg_dir + of_name;
+        std::string f_path = trg_dir + of_name;
         const char* format;
         if (sizeof(T) == sizeof(std::complex<double>)) {
             format = "%.16g%+.16gi\n";
         } else {
-            format = "%21.16g\n";
+            format = "%.16g\n";
         }
-        FILE* of=std::fopen(path.c_str(),"w");
+        FILE* of=std::fopen(f_path.c_str(),"w");
         for (int j=0; j < vector.size(); ++j){
             std::fprintf(of, format, vector[j]);
         }
@@ -51,14 +59,14 @@ namespace hfp3d {
             const il::StaticArray<T, m> &vector,
             const std::string &trg_dir,
             const std::string &of_name) {
-        std::string path = trg_dir + of_name;
+        std::string f_path = trg_dir + of_name;
         const char* format;
         if (sizeof(T) == sizeof(std::complex<double>)) {
             format = "%.16g%+.16gi\n";
         } else {
-            format = "%21.16g\n";
+            format = "%.16g\n";
         }
-        FILE* of=std::fopen(path.c_str(),"w");
+        FILE* of=std::fopen(f_path.c_str(),"w");
         for (int j=0; j < vector.size(); ++j){
             T out = vector[j];
             std::fprintf(of, format, out);
@@ -71,14 +79,14 @@ namespace hfp3d {
             const il::Array2D<T> &matrix,
             const std::string &trg_dir,
             const std::string &of_name) {
-        std::string path = trg_dir + of_name;
+        std::string f_path = trg_dir + of_name;
         const char* format;
         if (sizeof(T) == sizeof(std::complex<double>)) {
             format = "%.16g%+.16gi";
         } else {
-            format = "%21.16g";
+            format = "%.16g";
         }
-        FILE* of=std::fopen(path.c_str(),"w");
+        FILE* of=std::fopen(f_path.c_str(),"w");
         for (int j=0; j < matrix.size(0); ++j) {
             for (int k=0; k < matrix.size(1); ++k) {
                 T out = matrix(j, k);
@@ -95,14 +103,14 @@ namespace hfp3d {
             const il::StaticArray2D<T, m, n> &matrix,
             const std::string &trg_dir,
             const std::string &of_name) {
-        std::string path = trg_dir + of_name;
+        std::string f_path = trg_dir + of_name;
         const char* format;
         if (sizeof(T) == sizeof(std::complex<double>)) {
             format = "%.16g%+.16gi";
             } else {
-            format = "%21.16g";
+            format = "%.16g";
         }
-        FILE* of=std::fopen(path.c_str(),"w");
+        FILE* of=std::fopen(f_path.c_str(),"w");
         for (int j=0; j < matrix.size(0); ++j) {
             for (int k=0; k < matrix.size(1); ++k) {
                 T out = matrix(j, k);
