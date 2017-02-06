@@ -19,8 +19,7 @@ int main() {
 
     double mu = 1.0, nu = 0.35;
 
-    std::string work_directory{"C:/Users/nikolski/ClionProjects/HFPx3D_VC"};
-    // add full path
+    std::string work_directory{""}; // add path
 
     // Matrix assembly for a penny-shaped crack (24 elements)
 
