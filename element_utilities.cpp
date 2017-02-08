@@ -371,18 +371,19 @@ namespace hfp3d {
         il::StaticArray<double, 3> el_centroid{0.0};
 
         for (int j = 0; j < 3; ++j) {
-            for (int k = 0; k < 3; ++k) {
-                el_centroid[j] += el_vert(j, k) / 3.0;
+            for (int v = 0; v < 3; ++v) {
+                el_centroid[j] += el_vert(j, v) / 3.0;
             }
         }
-        for (int n = 0; n < 3; ++n) {
-            int m = (n + 1) % 3;
-            int l = (m + 1) % 3; // the edge across the (n-3)-th node
+        for (int v = 0; v < 3; ++v) {
+            // the edge across the v-th vertex
+            int m = (v + 1) % 3;
+            int l = (m + 1) % 3;
             for (int j = 0; j < 3; ++j) {
-                (coll_pt_crd[n])[j] =
-                        (1.0 - beta) * el_vert(j, n) +
+                (coll_pt_crd[v])[j] =
+                        (1.0 - beta) * el_vert(j, v) +
                         beta * el_centroid[j];
-                (coll_pt_crd[n + 3])[j] =
+                (coll_pt_crd[v + 3])[j] =
                         0.5 * (1.0 - beta) *
                         (el_vert(j, m) + el_vert(j, l)) +
                         beta * el_centroid[j];
@@ -405,17 +406,18 @@ namespace hfp3d {
         il::StaticArray<double, 3> el_centroid{0.0};
 
         for (int j = 0; j < 3; ++j) {
-            for (int k = 0; k < 3; ++k) {
-                el_centroid[j] += el_vert(j, k) / 3.0;
+            for (int v = 0; v < 3; ++v) {
+                el_centroid[j] += el_vert(j, v) / 3.0;
             }
         }
-        for (int n = 0; n < 3; ++n) {
-            int m = (n + 1) % 3;
-            int l = (m + 1) % 3; // the edge across the (n-3)-th node
+        for (int v = 0; v < 3; ++v) {
+            // the edge across the v-th vertex
+            int m = (v + 1) % 3;
+            int l = (m + 1) % 3;
             for (int j = 0; j < 3; ++j) {
-                (coll_pt_crd[n])[j] =
-                        (1.0 - beta) * el_vert(j, n) + beta * el_centroid[j];
-                (coll_pt_crd[n + 3])[j] =
+                (coll_pt_crd[v])[j] =
+                        (1.0 - beta) * el_vert(j, v) + beta * el_centroid[j];
+                (coll_pt_crd[v + 3])[j] =
                         (1.0 - beta) *
                                 (vertex_wts[m] * el_vert(j, m) +
                                         vertex_wts[l] * el_vert(j, l)) /
