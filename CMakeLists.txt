@@ -6,7 +6,7 @@ set(SOURCE_FILES
         il/io/numpy.cpp
         main.cpp
         mesh_file_io.cpp
-        matrix_assembly.cpp
+        system_assembly.cpp
         tensor_utilities.cpp
         element_utilities.cpp
         elasticity_kernel_integration.cpp

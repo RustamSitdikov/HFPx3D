@@ -7,6 +7,7 @@
 // See the LICENSE.TXT file for more details. 
 //
 
+#include <iostream>
 #include <complex>
 #include <il/math.h>
 #include <il/Array2D.h>
@@ -17,19 +18,89 @@
 #include <il/linear_algebra.h>
 // #include <il/linear_algebra/dense/blas/dot.h>
 // #include <il/linear_algebra/dense/blas/blas.h>
-#include "matrix_assembly.h"
+#include "system_assembly.h"
 #include "tensor_utilities.h"
 #include "element_utilities.h"
 #include "elasticity_kernel_integration.h"
 
 namespace hfp3d {
 
+    Dof_Handle make_dof_handle
+            (const il::Array2D<il::int_t> &mesh_conn,
+             const il::Array2D<double> &nodes_crd,
+             int tip_type) {
+        il::int_t n_ele = mesh_conn.size(1);
+        bool is_ext_msh = nodes_crd.size(0) >=5 && mesh_conn.size(0) >=5;
+        Dof_Handle d_h;
+        d_h.n_nod = n_ele * 6;
+        d_h.n_dof = n_ele * 18;
+        d_h.dof_h = il::Array2D<il::int_t>{d_h.n_nod, 3, 0};
+        //d_h.h_dof = il::Array2D<il::int_t>{d_h.n_dof, 2, 0};
+        //d_h.bc_c = il::Array2D<double>{d_h.n_dof, 3, 0.0};
+        il::int_t dof = 0;
+        for (il::int_t i = 0; i < n_ele; ++i) {
+            il::StaticArray<bool, 3> n_st{false};
+            if (is_ext_msh && mesh_conn(3, i) == mesh_conn(4, i)) {
+                for (int v = 0; v < 3; ++v) {
+                    il::int_t n = mesh_conn(v, i);
+                    if (nodes_crd(3, n) == 1 && nodes_crd(4, n) == 1) {
+                        n_st[v] = true;
+                    }
+                }
+            }
+            for (int v = 0; v < 3; ++v) {
+                il::int_t n = i * 6 + v;
+                // check if the vertex v is at the tip
+                if (n_st[v] && (tip_type == 1 || tip_type == 2)) {
+                    for (int l = 0; l < 3; ++l) {
+                        --d_h.n_dof;
+                        d_h.dof_h(n, l) = -1;
+                    }
+                } else {
+                    for (int l = 0; l < 3; ++l) {
+                        d_h.dof_h(n, l) = dof;
+                        //d_h.h_dof(dof, 0) = n;
+                        //d_h.h_dof(dof, 1) = l;
+                        //d_h.bc_c(dof, 0) = 0.0;
+                        //d_h.bc_c(dof, 1) = 1.0;
+                        //d_h.bc_c(dof, 2) = 0.0;
+                        ++dof;
+                    }
+                }
+                // the edge across the v-th vertex
+                int a = (v + 1) % 3;
+                int b = (a + 1) % 3;
+                // check if the edge ab is at the tip
+                if (n_st[a] && n_st[b] && tip_type == 2) {
+                    for (int l = 0; l < 3; ++l) {
+                        --d_h.n_dof;
+                        d_h.dof_h(n + 3, l) = -1;
+                    }
+                } else {
+                    for (int l = 0; l < 3; ++l) {
+                        d_h.dof_h(n + 3, l) = dof;
+                        //d_h.h_dof(dof, 0) = n + 3;
+                        //d_h.h_dof(dof, 1) = l;
+                        //d_h.bc_c(dof, 0) = 0.0;
+                        //d_h.bc_c(dof, 1) = 1.0;
+                        //d_h.bc_c(dof, 2) = 0.0;
+                        ++dof;
+                    }
+                }
+            }
+        }
+        //d_h.h_dof.resize(d_h.n_dof, 2);
+        return d_h;
+    }
+
 // "Global" matrix assembly
 
     il::Array2D<double> make_3dbem_matrix_s
             (double mu, double nu, double beta,
              const il::Array2D<il::int_t> &mesh_conn,
-             const il::Array2D<double> &nodes_crd) {
+             const il::Array2D<double> &nodes_crd,
+             int tip_type,
+             il::io_t, Dof_Handle &dof_hndl) {
 // BEM matrix assembly from boundary mesh geometry data:
 // mesh connectivity (mesh_conn) and nodes' coordinates (nodes_crd)
 
@@ -40,8 +111,11 @@ namespace hfp3d {
         IL_EXPECT_FAST(nodes_crd.size(0) >= 3);
         IL_EXPECT_FAST(nodes_crd.size(1) >= 3); // at least 3 nodes
 
+        dof_hndl = make_dof_handle(mesh_conn, nodes_crd, tip_type);
+
         const il::int_t num_of_elems = mesh_conn.size(1);
-        const il::int_t num_of_dof = 18 * num_of_elems;
+        const il::int_t num_of_dof = dof_hndl.n_dof;
+        //const il::int_t num_of_dof = 18 * num_of_elems;
 
         //IL_EXPECT_FAST(global_matrix.size(0) == 18*num_of_elems);
         //IL_EXPECT_FAST(global_matrix.size(1) == 18*num_of_elems);
@@ -171,13 +245,26 @@ namespace hfp3d {
 
                 // Adding the element-to-element influence sub-matrix
                 // to the global influence matrix
-                IL_EXPECT_FAST(18 * (target_elem + 1) <= global_matrix.size(0));
-                IL_EXPECT_FAST(18 * (source_elem + 1) <= global_matrix.size(1));
-                for (il::int_t j1 = 0; j1 < 18; ++j1) {
-                    for (il::int_t j0 = 0; j0 < 18; ++j0) {
-                        global_matrix(18 * target_elem + j0, 
-                                      18 * source_elem + j1) = 
-                                trac_infl_el2el(j0, j1);
+                //IL_EXPECT_FAST
+                // (18 * (target_elem + 1) <= global_matrix.size(0));
+                //IL_EXPECT_FAST
+                // (18 * (source_elem + 1) <= global_matrix.size(1));
+                for (il::int_t j1 = 0; j1 < 6; ++j1) {
+                    il::int_t i1 = 6 * source_elem + j1;
+                    for (il::int_t j0 = 0; j0 < 6; ++j0) {
+                        il::int_t i0 = 6 * target_elem + j0;
+                        for (il::int_t l1 = 0; l1 < 3; ++l1) {
+                            il::int_t k1 = dof_hndl.dof_h(i1, l1);
+                            il::int_t m1 = 3 * j1 + l1;
+                            for (il::int_t l0 = 0; l0 < 3; ++l0) {
+                                il::int_t k0 = dof_hndl.dof_h(i0, l0);
+                                il::int_t m0 = 3 * j0 + l0;
+                                if (k0 != -1 && k1 != -1) {
+                                    global_matrix(k0, k1) =
+                                            trac_infl_el2el(m0, m1);
+                                }
+                            }
+                        }
                     }
                 }
             }

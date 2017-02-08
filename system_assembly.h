@@ -1,5 +1,5 @@
 //
-// This file is part of HFPx3D_VC.
+// This file is part of HFPx3D.
 //
 // Created by D. Nikolski on 1/12/2017.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
@@ -21,11 +21,27 @@
 
 namespace hfp3d {
 
+    struct Dof_Handle {
+        il::int_t n_nod;
+        il::int_t n_dof;
+        il::Array2D<il::int_t> dof_h;
+        // il::Array2D<il::int_t> h_dof;
+        // il::Array2D<double> bc_c;
+        // bc_c(k, 0)*t + bc_c(k, 1)*DD = bc_c(k, 2)
+    };
+
+    Dof_Handle make_dof_handle
+            (const il::Array2D<il::int_t> &mesh_conn,
+             const il::Array2D<double> &nodes_crd,
+             int tip_type);
+
 // "Global" matrix assembly
     il::Array2D<double> make_3dbem_matrix_s
             (double mu, double nu, double beta,
              const il::Array2D<il::int_t> &mesh_conn,
-             const il::Array2D<double> &nodes_crd);
+             const il::Array2D<double> &nodes_crd,
+             int tip_type,
+             il::io_t, Dof_Handle &dof_hndl);
 
 // Stress at given points (m_pts_crd) vs DD at nodal points (nodes_crd)
     il::Array2D<double> make_3dbem_stress_f_s
