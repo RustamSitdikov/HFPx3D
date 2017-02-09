@@ -10,8 +10,7 @@
 #ifndef IL_ERROR_H
 #define IL_ERROR_H
 
-// <cstdlib> is used for std::abort
-#include <cstdlib>
+#include <il/core/base.h>
 
 namespace il {
 
@@ -21,6 +20,9 @@ enum class ErrorCode {
   failed_precondition,
   already_there,
   not_found,
+  file_not_found,
+  wrong_rank,
+  cannot_close_file,
   integer_overflow,
   bad_allocation,
   division_by_zero,
@@ -30,7 +32,10 @@ enum class ErrorCode {
   nonnegative_number,
   no_convergence,
   wrong_file_format,
+  file_format_version_not_supported,
   wrong_type,
+  wrong_order,
+  cannot_write_to_file,
   wrong_input,
   internal_error,
   unimplemented
@@ -58,7 +63,7 @@ inline Status::Status() {
 
 inline Status::~Status() {
   if (!status_has_been_checked_) {
-    std::abort();
+    il::abort();
   }
 }
 
@@ -87,7 +92,7 @@ inline void Status::ignore_error() {
 inline void Status::abort_on_error() {
   status_has_been_checked_ = true;
   if (error_code_ != il::ErrorCode::ok) {
-    std::abort();
+    il::abort();
   }
 }
 

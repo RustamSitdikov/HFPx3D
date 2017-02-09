@@ -88,11 +88,11 @@ int main() {
     // Matrix assembly for a penny-shaped crack (24 elements)
 
     std::string src_directory{"C:/Users/nikolski/.spyder-py3/3DBEM/"};
-    std::string mesh_conn_fname{"Elems_pennymesh121el_32.npy"};
-    std::string nodes_crd_fname{"Nodes_pennymesh121el_32.npy"};
+    std::string mesh_conn_fname{"Elems_pennymesh24el_32.npy"};
+    std::string nodes_crd_fname{"Nodes_pennymesh24el_32.npy"};
 
-    std::string mf_name{"test_assembly_121_ele.csv"};
-    std::string of_name{"test_solution_121_ele.csv"};
+    std::string mf_name{"test_assembly_24_ele.csv"};
+    std::string of_name{"test_solution_24_ele.csv"};
 
     il::Array2D<il::int_t> mesh_conn;
     il::Array2D<double> nodes_crd;
