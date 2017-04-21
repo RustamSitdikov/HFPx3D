@@ -17,6 +17,7 @@
 namespace hfp3d {
 
 // position of a point with respect to an element
+// (complex local coordinate representation)
     struct HZ {
         double h;
         std::complex<double> z;
@@ -38,7 +39,7 @@ namespace hfp3d {
         il::StaticArray<il::StaticArray<double, 6>, 6> sf_cp;
     };
 
-    // Element's local coordinate system manipulations
+// Element's local coordinate system manipulations
 
     il::StaticArray2D<double, 3, 3> make_el_r_tensor
             (const il::StaticArray2D<double, 3, 3> &el_vert);
@@ -56,7 +57,7 @@ namespace hfp3d {
             (const il::StaticArray2D<double, 3, 3> &el_vert,
              const il::StaticArray2D<double, 3, 3> &r_tensor);
 
-    // Element's basis (shape) functions
+// Element's basis (shape) functions
 
     il::StaticArray2D<std::complex<double>, 6, 6> make_el_sfm_uniform
             (const il::StaticArray2D<double, 3, 3> &el_vert,
@@ -76,7 +77,7 @@ namespace hfp3d {
     il::StaticArray2D<std::complex<double>, 6, 6> shift_el_sfm
             (std::complex<double> z);
 
-    // Collocation points
+// Collocation points
 
     il::StaticArray<il::StaticArray<double, 3>, 6> el_cp_uniform
             (const il::StaticArray2D<double, 3, 3> &el_vert, double beta);
@@ -93,7 +94,7 @@ namespace hfp3d {
                         //il::StaticArray<double, 3> %vert_wts,
                         double beta);
 
-    // Integration over element
+// Integration over one element
 
     il::StaticArray<std::complex<double>, 6> el_p2_cbp_integral
             (std::complex<double> a, std::complex<double> b);
@@ -106,7 +107,7 @@ namespace hfp3d {
             (il::StaticArray2D<std::complex<double>, 6, 6> el_sfm,
              il::StaticArray<std::complex<double>, 3> el_tau);
 
-    // auxiliary functions (norm, cross product)
+// auxiliary functions (norm, cross product)
 
     double l2norm(const il::StaticArray<double, 3> &a);
     il::StaticArray<double, 3> normalize(const il::StaticArray<double, 3> &a);

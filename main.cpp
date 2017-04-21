@@ -11,7 +11,7 @@
 #include "src/cohesion_friction.h"
 #include "src/system_assembly.h"
 #include "src/element_utilities.h"
-#include "src/mesh_utilities.h"
+//#include "src/mesh_utilities.h"
 
 //#include <complex>
 //#include <il/StaticArray.h>
@@ -34,20 +34,23 @@ int main() {
 
     hfp3d::Mesh_Geom mesh;
 
-    il::Array2D<il::int_t> mesh_conn;
-    il::Array2D<double> nodes_crd;
+    hfp3d::Num_Param n_par;
+    n_par.beta = 0.125; // relative collocation points' position
+    n_par.tip_type = 1; // zero DD are enforced only at vertex tip nodes
+    n_par.is_dd_in_glob = true; // DD are sought in global coordinate system
+
     hfp3d::load_mesh_from_numpy_32
             (src_directory, mesh_conn_fname, nodes_crd_fname, true,
-             il::io, mesh_conn, nodes_crd);
+             il::io, mesh);
 
     hfp3d::DoF_Handle_T dof_hndl;
     il::Array2D<double> bem_matrix;
 //    bem_matrix = hfp3d::make_3dbem_matrix_s
-//            (mu, nu, 0.25, mesh_conn, nodes_crd, 1, il::io, dof_hndl);
+//            (mu, nu, mesh, n_par, il::io, dof_hndl);
     bem_matrix = hfp3d::make_3dbem_matrix_vc
-            (mu, nu, 0.25, mesh_conn, nodes_crd, 1, true, il::io, dof_hndl);
+            (mu, nu, mesh, n_par, il::io, dof_hndl);
 
-    il::int_t num_elems = mesh_conn.size(1);
+    il::int_t num_elems = mesh.conn.size(1);
     il::int_t num_dof = dof_hndl.n_dof;
     std::cout << num_elems << " Elements" << std::endl;
     std::cout << 18 * num_elems << " DOF Total" << std::endl;
@@ -102,9 +105,9 @@ int main() {
     for (il::int_t j = 0; j < num_elems; ++j) {
         il::StaticArray2D<double, 3, 3> el_vert;
         for (il::int_t k = 0; k < 3; ++k) {
-            il::int_t n = mesh_conn(k, j);
+            il::int_t n = mesh.conn(k, j);
             for (il::int_t l = 0; l < 3; ++l) {
-                el_vert(l, k) = nodes_crd(l, n);
+                el_vert(l, k) = mesh.nods(l, n);
             }
         }
         il::StaticArray<il::StaticArray<double, 3>, 6> el_np;

@@ -24,6 +24,16 @@ namespace hfp3d {
         il::Array2D<il::int_t> conn; // mesh connectivity
     };
 
+    struct Num_Param {
+        double beta = 0.125; // relative collocation points' position
+        int tip_type = 1; // how to enforce zero DD at the tip:
+        // 0 - no enforcement;
+        // 1 - only at vertex points;
+        // 2 - at vertex and edge nodes
+        bool is_dd_in_glob = true; // defines in what coordinate system
+        // DD components are sought: true - global; false - local
+    };
+
     struct DoF_Handle_T {
         il::int_t n_dof = 0;
         // dof_h.size(0) = number of elements
@@ -35,14 +45,6 @@ namespace hfp3d {
     };
 
     struct Mesh_Data {
-        const double beta = 0.125; // relative collocation points' position
-        const int tip_type = 1; // how to enforce zero DD at the tip:
-                                // 0: no enforcement;
-                                // 1: only at vertex points;
-                                // 2: at vertex and edge nodes
-        const bool is_dd_in_glob = true; // what coordinate system DD
-                                         // components are given in
-
         il::Array2D<il::int_t> tip_el; // list of next-to-tip elements & edges
                                        // (to propagate from)
 

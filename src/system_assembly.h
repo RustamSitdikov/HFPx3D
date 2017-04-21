@@ -37,16 +37,16 @@ namespace hfp3d {
 
 // Static matrix assembly
     il::Array2D<double> make_3dbem_matrix_s
-            (double mu, double nu, double beta,
+            (double mu, double nu,
              const Mesh_Geom &mesh,
-             int tip_type,
+             const Num_Param &n_par,
              il::io_t, DoF_Handle_T &dof_hndl);
 
 // Volume Control matrix assembly (additional row $ column)
     il::Array2D<double> make_3dbem_matrix_vc
-            (double mu, double nu, double beta,
+            (double mu, double nu,
              const Mesh_Geom &mesh,
-             int tip_type, const bool is_dd_in_glob,
+             const Num_Param &n_par,
              il::io_t, DoF_Handle_T &dof_hndl);
 
 // Volume Control system modification (for DD increments)
@@ -61,9 +61,9 @@ namespace hfp3d {
     il::Array2D<double> make_3dbem_stress_f_s
             (double mu, double nu,
              const Mesh_Geom &mesh,
-             const il::Array2D<double> &m_pts_crd,
-             //const il::Array2D<double> &m_pts_dsp,
-             const bool is_dd_in_glob);
+             const Num_Param &n_par,
+             // const Mesh_Data &m_data,
+             const il::Array2D<double> &m_pts_crd);
 
 }
 

@@ -202,9 +202,9 @@ namespace hfp3d {
 
 // Static matrix assembly
     il::Array2D<double> make_3dbem_matrix_s
-            (double mu, double nu, double beta,
+            (double mu, double nu,
              const Mesh_Geom &mesh,
-             int tip_type,
+             const Num_Param &n_par,
              il::io_t, DoF_Handle_T &dof_hndl) {
 // This function performs BEM matrix assembly from boundary mesh geometry data:
 // mesh connectivity (mesh.conn) and nodes' coordinates (mesh.nods)
@@ -216,7 +216,7 @@ namespace hfp3d {
         IL_EXPECT_FAST(mesh.nods.size(0) >= 3);
         IL_EXPECT_FAST(mesh.nods.size(1) >= 3); // at least 3 nodes
 
-        dof_hndl = make_dof_h_triangular(mesh.conn, mesh.nods, 2, tip_type);
+        dof_hndl = make_dof_h_triangular(mesh, 2, n_par.tip_type);
 
         const il::int_t num_ele = mesh.conn.size(1);
         const il::int_t num_dof = dof_hndl.n_dof;
@@ -282,7 +282,7 @@ namespace hfp3d {
 
                 // Collocation points' coordinates
                 il::StaticArray<il::StaticArray<double, 3>, 6> el_cp_crd =
-                        el_cp_uniform(el_vert_t, beta);
+                        el_cp_uniform(el_vert_t, n_par.beta);
                 //il::StaticArray<il::StaticArray<double, 3>, 6> el_cp_crd =
                 // el_cp_nonuniform(el_vert_t,vert_wts_t,beta);
 
@@ -374,11 +374,10 @@ namespace hfp3d {
     }
 
 // Volume Control matrix assembly (additional row $ column)
-    //Alg_Sys_T
     il::Array2D<double> make_3dbem_matrix_vc
-            (double mu, double nu, double beta,
+            (double mu, double nu,
              const Mesh_Geom &mesh,
-             int tip_type, const bool is_dd_in_glob,
+             const Num_Param &n_par,
              il::io_t, DoF_Handle_T &dof_hndl) {
 // This function performs Volume Control BEM matrix assembly
 // from boundary mesh geometry data:
@@ -392,7 +391,7 @@ namespace hfp3d {
         IL_EXPECT_FAST(mesh.nods.size(1) >= 3); // at least 3 nodes
 
         if (dof_hndl.n_dof == 0 || dof_hndl.dof_h.size(0) == 0) {
-            dof_hndl = make_dof_h_triangular(mesh.conn, mesh.nods, 2, tip_type);
+            dof_hndl = make_dof_h_triangular(mesh, 2, n_par.tip_type);
         }
 
         const il::int_t num_ele = mesh.conn.size(1);
@@ -457,7 +456,7 @@ namespace hfp3d {
 
                 // Collocation points' coordinates
                 il::StaticArray<il::StaticArray<double, 3>, 6> el_cp_crd = 
-                        el_cp_uniform(el_vert_t, beta);
+                        el_cp_uniform(el_vert_t, n_par.beta);
                 //il::StaticArray<il::StaticArray<double, 3>, 6> el_cp_crd = 
                 // el_cp_nonuniform(el_vert_t,vert_wts_t,beta);
 
@@ -498,7 +497,7 @@ namespace hfp3d {
                     //trac_cp_x_loc = il::dot
                     // (r_tensor_t, il::Blas::transpose, trac_cp_glob);
 
-                    if (is_dd_in_glob) {
+                    if (n_par.is_dd_in_glob) {
                         // Re-relating DD-to traction influence to DD
                         // w.r. to the reference coordinate system
                         il::StaticArray2D<double, 3, 3> trac_infl_n2p,
@@ -563,7 +562,7 @@ namespace hfp3d {
                 il::StaticArray<double, 3> sf_i_v {0.0};
                 // Integral of normal DD (opening) over the element
                 // for the n_s-th shape function
-                if (is_dd_in_glob) {
+                if (n_par.is_dd_in_glob) {
                     // dot([0, 0, sf_integral], r_tensor_s)
                     for (int j = 0; j < 3; ++j) {
                         sf_i_v[j] = sf_integral * r_tensor_s(2, j);
@@ -668,11 +667,11 @@ namespace hfp3d {
     il::Array2D<double> make_3dbem_stress_f_s
             (double mu, double nu,
              const Mesh_Geom &mesh,
-             const il::Array2D<double> &m_pts_crd,
-             //const il::Array2D<double> &m_pts_dsp,
-             const bool is_dd_in_glob) {
+             const Num_Param &n_par,
+             // const Mesh_Data &m_data,
+             const il::Array2D<double> &m_pts_crd) {
 // This function calculates Stress at given points (m_pts_crd)
-// vs DD at nodal points (mesh.nods)
+// vs DD (m_data.DD) at nodal points (mesh.nods)
 // using boundary mesh geometry data:
 // mesh connectivity (mesh.conn) and nodes' coordinates (mesh.nods)
 
@@ -739,7 +738,7 @@ namespace hfp3d {
                 il::StaticArray2D<double, 6, 18> stress_infl_el2p_glob = 
                         rotate_sim(r_tensor_s, stress_infl_el2p_loc_h);
 
-                if (is_dd_in_glob) {
+                if (n_par.is_dd_in_glob) {
                     // Re-relating DD-to stress influence to DD
                     // w.r. to the reference coordinate system
                     il::StaticArray2D<double, 3, 3> stress_infl_n2p, 
@@ -787,7 +786,7 @@ namespace hfp3d {
         // for (il::int_t k = 0; k < 6 * num_ele; ++k) {
         // for (il::int_t j = 0; j < 3; ++j) {
         // il::int_t l = 3 * k + j;
-        // disp_vect[l] = m_pts_dsp(k, j);
+        // disp_vect[l] = m_data.DD(k, j);
         // }
         // }
         // il::Array<double> stress_vect{6 * num_of_m_pts} =
