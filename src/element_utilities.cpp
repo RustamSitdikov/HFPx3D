@@ -9,6 +9,7 @@
 
 #include <cmath>
 #include <complex>
+#include <il/math.h>
 #include <il/StaticArray.h>
 #include <il/StaticArray2D.h>
 #include <il/linear_algebra.h>
@@ -426,6 +427,139 @@ namespace hfp3d {
             }
         }
         return coll_pt_crd;
+    }
+
+    Ele_Struct set_ele_struct
+            (il::StaticArray2D<double, 3, 3> &el_vert,
+             //il::StaticArray<double, 3> &vert_wts,
+             double beta) {
+// This function defines the whole set of element properties:
+// vertex coordinates, rotational tensor, collocation points,
+// coefficients of nodal shape functions, and their values for each CP
+        Ele_Struct ele_s;
+
+        // set vertices' coordinates
+        for (il::int_t j = 0; j < 3; ++j) {
+            for (il::int_t k = 0; k < 3; ++k) {
+                ele_s.vert(k, j) = el_vert(k, j);
+            }
+            // set vert_wts[j]
+        }
+
+        // Basis (shape) functions and rotation tensor of the el-t
+        ele_s.sf_m = make_el_sfm_uniform(ele_s.vert, il::io, ele_s.r_tensor);
+        //ele_s.sf_m = make_el_sfm_nonuniform
+        // (ele_s.r_tensor, ele_s.el_vert, ele_s.vert_wts);
+
+        // Collocation points' coordinates
+        ele_s.cp_crd = el_cp_uniform(ele_s.vert, beta);
+        //ele_s.cp_crd = el_cp_nonuniform(ele_s.vert, ele_s.vert_wts, beta);
+
+        // values of nodal SF at CP
+        for (int n = 0; n < 6; ++n) {
+            // position of CP
+            HZ hz = make_el_pt_hz
+                    (ele_s.vert, ele_s.cp_crd[n], ele_s.r_tensor);
+            std::complex<double> tau = hz.z;
+            il::StaticArray<std::complex<double>, 6> tau_v {0.0};
+            tau_v[0] = 1.0;
+            tau_v[1] = tau;
+            tau_v[2] = std::conj(tau);
+            tau_v[3] = tau_v[1] * tau_v[1];
+            tau_v[4] = tau_v[2] * tau_v[2];
+            tau_v[5] = tau_v[1] * tau_v[2];
+            il::StaticArray<std::complex<double>, 6> sf_cp_c =
+                    il::dot(ele_s.sf_m, tau_v);
+            for (int k = 0; k < 6; ++k) {
+                (ele_s.sf_cp[n])[k] = std::real(sf_cp_c[k]);
+            }
+        }
+
+        return ele_s;
+    }
+
+
+    il::StaticArray<std::complex<double>, 6> el_p2_cbp_integral
+            (std::complex<double> a, std::complex<double> b) {
+// This function calculates
+// the surface-to-contour integral conversion
+// (Cauchy-Borel-Pompeiu) for monomials
+// of a 2nd order
+        std::complex<double> ca = std::conj(a), cb = std::conj(b),
+                a2 = a * a, b2 = b * b, ab = a * b,
+                ca2 = std::conj(a2), cb2 = std::conj(b2), cab = std::conj(ab),
+                c = (a - b) * il::ii / 4.0;
+        il::StaticArray<std::complex<double>, 6> l_int;
+        l_int[0] = (ca + cb) * c;
+        l_int[1] = (ca * ( 2.0 * a + b ) + cb * ( 2.0 * b + a)) * c / 3.0;
+        l_int[2] = (ca2 + cab + cb2) * c / 3.0;
+        l_int[3] = (ca * (3.0 * a2 + 2.0 * ab + b2) +
+                cb * (3.0 * b2 + 2.0 * ab + a2)) * c / 6.0;
+        l_int[4] = (ca + cb) * (ca2 + cb2) * c / 6.0;
+        l_int[5] = (ca2 * (3.0 * a + b) +
+                2.0 * cab * (a + b) +
+                cb2 * (3.0 * b + a)) * c / 12.0;
+        return l_int;
+    }
+
+/*
+    il::StaticArray<std::complex<double>, 15> el_p4_cbp_integral
+            (std::complex<double> a, std::complex<double> b) {
+// This function calculates
+// the surface-to-contour integral conversion
+// (Cauchy-Borel-Pompeiu) for monomials
+// of a 4th order
+        std::complex<double> ca = std::conj(a), cb = std::conj(b),
+        a2 = a * a, b2 = b * b, ab = a * b,
+        a4 = a2 * a2, b4 = b2 * b2, a2b2 = a2 * b2,
+        ca2 = std::conj(a2), cb2 = std::conj(b2), cab = std::conj(ab),
+        ca4 = std::conj(a4), cb4 = std::conj(b4), ca2b2 = std::conj(a2b2),
+        c = (a - b) * il::ii / 4.0;
+        il::StaticArray<std::complex<double>, 15> l_int;
+        l_int[0] = (ca + cb) * c;
+        l_int[1] = (ca * ( 2.0 * a + b ) + cb * ( 2.0 * b + a)) * c / 3.0;
+        l_int[2] = (ca2 + cab + cb2) * c / 3.0;
+        l_int[3] = (ca * (3.0 * a2 + 2.0 * ab + b2) +
+                cb * (3.0 * b2 + 2.0 * ab + a2)) * c / 6.0;
+        l_int[4] = (ca + cb) * (ca2 + cb2) * c / 6.0;
+        l_int[5] = (ca2 * (3.0 * a + b) +
+                2.0 * cab * (a + b) +
+                cb2 * (3.0 * b + a)) * c / 12.0;
+        l_int[6] =
+        l_int[7] =
+        l_int[8] =
+        l_int[9] =
+        l_int[10] =
+        l_int[11] =
+        l_int[12] =
+        l_int[13] =
+        l_int[14] =
+        return l_int;
+    }
+*/
+
+    il::StaticArray<double, 6> el_p2_sf_integral
+            (il::StaticArray2D<std::complex<double>, 6, 6> el_sfm,
+             il::StaticArray<std::complex<double>, 3> el_tau) {
+// This function calculates the integral
+// of 2nd order polynomial shape functions
+// over an element
+        il::StaticArray<std::complex<double>, 6> l_int, m_int{0.0};
+        for (int m = 0; m < 3; ++m) {
+            int n = (m + 1) % 3;
+            std::complex<double> a = el_tau[m], b = el_tau[n];
+            l_int = el_p2_cbp_integral(a, b);
+            // il::blas(1.0, l_int, 1.0, il::io, m_int);
+            for (int k = 0; k < 6; ++k) {
+                m_int[k] += l_int[k];
+            }
+        }
+        il::blas(1.0, el_sfm, m_int, 0.0, il::io, l_int);
+        il::StaticArray<double, 6> el_sf_int;
+        for (int k = 0; k < 6; ++k) {
+            el_sf_int[k] = std::real(l_int[k]);
+        }
+        return el_sf_int;
     }
 
 }

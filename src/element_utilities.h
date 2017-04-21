@@ -16,9 +16,26 @@
 
 namespace hfp3d {
 
+// position of a point with respect to an element
     struct HZ {
         double h;
         std::complex<double> z;
+    };
+
+// element properties in one strucure
+    struct Ele_Struct {
+        // vertices' coordinates
+        il::StaticArray2D<double, 3, 3> vert;
+        // vertices' "weights" (defining the positions of edge nodes)
+        //il::StaticArray<double, 3> vert_wts;
+        // rotation tensor (reference coordinates to el-t local coordinates)
+        il::StaticArray2D<double, 3, 3> r_tensor;
+        // collocation points' coordinates
+        il::StaticArray<il::StaticArray<double, 3>, 6> cp_crd;
+        // coefficienta of basis (shape) functions of the el-t
+        il::StaticArray2D<std::complex<double>, 6, 6> sf_m;
+        // values of nodal SF at collocation points
+        il::StaticArray<il::StaticArray<double, 6>, 6> sf_cp;
     };
 
     // Element's local coordinate system manipulations
@@ -68,6 +85,26 @@ namespace hfp3d {
             (const il::StaticArray2D<double, 3, 3> &el_vert,
              const il::StaticArray<double, 3> &vertex_wts,
              double beta);
+
+    // This function defines the whole set of element properties:
+    // vertex coordinates, rotational tensor, collocation points,
+    // coefficients of nodal shape functions, and their values for each CP
+    Ele_Struct set_ele_struct(il::StaticArray2D<double, 3, 3> &el_vert,
+                        //il::StaticArray<double, 3> %vert_wts,
+                        double beta);
+
+    // Integration over element
+
+    il::StaticArray<std::complex<double>, 6> el_p2_cbp_integral
+            (std::complex<double> a, std::complex<double> b);
+
+/*
+    il::StaticArray<std::complex<double>, 15> el_p4_cbp_integral
+            (std::complex<double> a, std::complex<double> b);
+*/
+    il::StaticArray<double, 6> el_p2_sf_integral
+            (il::StaticArray2D<std::complex<double>, 6, 6> el_sfm,
+             il::StaticArray<std::complex<double>, 3> el_tau);
 
     // auxiliary functions (norm, cross product)
 

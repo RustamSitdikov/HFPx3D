@@ -7,25 +7,32 @@
 #include <il/linear_algebra/dense/factorization/LU.h>
 #include <il/linear_algebra.h>
 //#include <il/linear_algebra/dense/factorization/linear_solve.h>
-#include "mesh_file_io.h"
-#include "system_assembly.h"
-#include "element_utilities.h"
+#include "src/mesh_file_io.h"
+#include "src/cohesion_friction.h"
+#include "src/system_assembly.h"
+#include "src/element_utilities.h"
+#include "src/mesh_utilities.h"
+
 //#include <complex>
 //#include <il/StaticArray.h>
 //#include <il/StaticArray2D.h>
-//#include "ele_base.h"
+//#include "src/ele_base.h"
 
 int main() {
 
     double mu = 1.0, nu = 0.35;
 
-    std::string src_directory{""}; // add path
-    std::string mesh_conn_fname{"Elems_pennymesh121el_32.npy"};
-    std::string nodes_crd_fname{"Nodes_pennymesh121el_32.npy"};
+    std::string src_directory{"C:/Users/nikolski/ClionProjects/HFPx3D_VC/"
+                                      "Mesh_Files/"}; // add path
+    std::string mesh_conn_fname{"Elems_pennymesh24el_32.npy"};
+    std::string nodes_crd_fname{"Nodes_pennymesh24el_32.npy"};
 
-    std::string work_directory{""}; // add path
-    std::string mf_name{"test_assembly_121_ele.csv"};
-    std::string of_name{"test_solution_121_ele.csv"};
+    std::string work_directory{"C:/Users/nikolski/ClionProjects/HFPx3D_VC/"
+                                       "Test_Output/"}; // add path
+    std::string mf_name{"test_assembly_24_ele.csv"};
+    std::string of_name{"test_solution_24_ele.csv"};
+
+    hfp3d::Mesh_Geom mesh;
 
     il::Array2D<il::int_t> mesh_conn;
     il::Array2D<double> nodes_crd;
@@ -33,30 +40,51 @@ int main() {
             (src_directory, mesh_conn_fname, nodes_crd_fname, true,
              il::io, mesh_conn, nodes_crd);
 
-    hfp3d::Dof_Handle dof_hndl;
+    hfp3d::DoF_Handle_T dof_hndl;
     il::Array2D<double> bem_matrix;
-    bem_matrix = hfp3d::make_3dbem_matrix_s
-            (mu, nu, 0.25, mesh_conn, nodes_crd, 1, il::io, dof_hndl);
+//    bem_matrix = hfp3d::make_3dbem_matrix_s
+//            (mu, nu, 0.25, mesh_conn, nodes_crd, 1, il::io, dof_hndl);
+    bem_matrix = hfp3d::make_3dbem_matrix_vc
+            (mu, nu, 0.25, mesh_conn, nodes_crd, 1, true, il::io, dof_hndl);
+
     il::int_t num_elems = mesh_conn.size(1);
     il::int_t num_dof = dof_hndl.n_dof;
-    std::cout << "Full No of DOF = " << 18 * num_elems << std::endl;
-    std::cout << "No of used DOF = " << num_dof << std::endl;
+    std::cout << num_elems << " Elements" << std::endl;
+    std::cout << 18 * num_elems << " DOF Total" << std::endl;
+    std::cout << 18 * num_elems - num_dof << " Fixed DOF" << std::endl;
+
+/*
+    //dof_hndl.dof_h.resize(num_elems + 1, 18);
+
+    for (il::int_t i = 0; i < dof_hndl.dof_h.size(0); ++i) {
+        std::cout << "El " << i + 1 << std::endl;
+        for (int j = 0; j < 6; ++j) {
+            std::cout << "   Nd " << j + 1 << ":";
+            for (int k = 0; k < 3; ++k) {
+                il::int_t m = j * 3 + k;
+                std::cout << " " << dof_hndl.dof_h(i, m) + 1;
+            }
+            std::cout << std::endl;
+        }
+    }
+*/
 
     hfp3d::save_data_to_csv(bem_matrix, work_directory, mf_name);
 
-    il::Array<double> rhs(num_dof);
+    il::Array<double> rhs(num_dof + 1);
     for (il::int_t j = 0; j < num_elems; ++j) {
         for (int k = 0; k < 6; ++k) {
-            il::int_t n = j * 6 + k;
             for (int l = 0; l < 3; ++l) {
-                //il::int_t dof = n * 3 + l;
-                il::int_t dof = dof_hndl.dof_h(n, l);
+                il::int_t ldof = k * 3 + l;
+                il::int_t dof = dof_hndl.dof_h(j, ldof);
                 if (dof != -1) {
                     rhs[dof] = (l != 1 ? 1.0 : 0.0);
                 }
             }
         }
     }
+    rhs[num_dof] = 0.01;
+
     il::Status status{};
     il::Array<double> dd_v;
     il::LU<il::Array2D<double>> lu_decomposition(bem_matrix, il::io, status);
@@ -85,8 +113,8 @@ int main() {
         for (il::int_t k = 0; k < 6; ++k) {
             il::int_t n = j * 6 + k;
             for (il::int_t l = 0; l < 3; ++l) {
-                //il::int_t dof = n * 3 + l;
-                il::int_t dof = dof_hndl.dof_h(n, l);
+                il::int_t ldof = k * 3 + l;
+                il::int_t dof = dof_hndl.dof_h(j, ldof);
                 dd(n, l) = el_np[k][l];
                 if (dof != -1) {
                     //dd(n, l) = dd_v[dof];
