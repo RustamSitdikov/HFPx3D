@@ -22,6 +22,13 @@ int main() {
 
     double mu = 1.0, nu = 0.35;
 
+    hfp3d::Num_Param n_par;
+/*
+    n_par.beta = 0.125; // relative collocation points' position
+    n_par.tip_type = 1; // zero DD are enforced only at vertex tip nodes
+    n_par.is_dd_in_glob = true; // DD are sought in global coordinate system
+*/
+
     std::string src_directory{"C:/Users/nikolski/ClionProjects/HFPx3D_VC/"
                                       "Mesh_Files/"}; // add path
     std::string mesh_conn_fname{"Elems_pennymesh24el_32.npy"};
@@ -34,27 +41,24 @@ int main() {
 
     hfp3d::Mesh_Geom mesh;
 
-    hfp3d::Num_Param n_par;
-    n_par.beta = 0.125; // relative collocation points' position
-    n_par.tip_type = 1; // zero DD are enforced only at vertex tip nodes
-    n_par.is_dd_in_glob = true; // DD are sought in global coordinate system
-
     hfp3d::load_mesh_from_numpy_32
             (src_directory, mesh_conn_fname, nodes_crd_fname, true,
              il::io, mesh);
 
     hfp3d::DoF_Handle_T dof_hndl;
     il::Array2D<double> bem_matrix;
-//    bem_matrix = hfp3d::make_3dbem_matrix_s
-//            (mu, nu, mesh, n_par, il::io, dof_hndl);
+/*
+    bem_matrix = hfp3d::make_3dbem_matrix_s
+            (mu, nu, mesh, n_par, il::io, dof_hndl);
+*/
     bem_matrix = hfp3d::make_3dbem_matrix_vc
             (mu, nu, mesh, n_par, il::io, dof_hndl);
 
     il::int_t num_elems = mesh.conn.size(1);
     il::int_t num_dof = dof_hndl.n_dof;
     std::cout << num_elems << " Elements" << std::endl;
-    std::cout << 18 * num_elems << " DOF Total" << std::endl;
-    std::cout << 18 * num_elems - num_dof << " Fixed DOF" << std::endl;
+    std::cout << 18 * num_elems << " DoF Total" << std::endl;
+    std::cout << 18 * num_elems - num_dof << " Fixed DoF" << std::endl;
 
 /*
     //dof_hndl.dof_h.resize(num_elems + 1, 18);

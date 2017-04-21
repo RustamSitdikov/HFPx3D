@@ -30,6 +30,7 @@ namespace hfp3d {
         // 0 - no enforcement;
         // 1 - only at vertex points;
         // 2 - at vertex and edge nodes
+        // bool is_part_uniform = true; // how to partition edges
         bool is_dd_in_glob = true; // defines in what coordinate system
         // DD components are sought: true - global; false - local
     };
