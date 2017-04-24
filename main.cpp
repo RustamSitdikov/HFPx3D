@@ -24,12 +24,10 @@ int main() {
     double mu = 1.0, nu = 0.35;
 
     hfp3d::Num_Param n_par;
-/*
     // default parameters:
     n_par.beta = 0.125; // relative collocation points' position
     n_par.tip_type = 1; // zero DD are enforced only at vertex tip nodes
     n_par.is_dd_in_glob = true; // DD are sought in global coordinate system
-*/
 
     std::string src_directory{"C:/Users/nikolski/ClionProjects/HFPx3D_VC/"
                                       "Mesh_Files/"}; // add path
@@ -114,7 +112,7 @@ int main() {
     std::cout << 18 * num_elems << " DoF Total" << std::endl;
     std::cout << 18 * num_elems - num_dof << " Fixed DoF" << std::endl;
 
-    hfp3d::save_data_to_csv(bem_matrix, work_directory, mf_name);
+//    hfp3d::save_data_to_csv(bem_matrix, work_directory, mf_name);
 
     timer.reset();
 
