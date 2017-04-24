@@ -1202,7 +1202,7 @@ namespace hfp3d {
 
         il::StaticArray3D<std::complex<double>, 6, 4, 3> c_array{0.0};
 
-        il::StaticArray<std::complex<double>, 6> v1{0.0}, v2{0.0};
+        il::StaticArray<std::complex<double>, 6> v1{}, v2{};
 
         v1[0] = sin_x / d_1;
         v1[1] = h0_lim * e;

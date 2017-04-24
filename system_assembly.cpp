@@ -125,6 +125,7 @@ namespace hfp3d {
         //il::StaticArray<double, num_of_dof> right_hand_side;
 
         // Loop over "source" elements
+#pragma omp parallel for
         for (il::int_t source_elem = 0; 
              source_elem < num_of_elems; ++source_elem) {
             // Vertices' coordinates

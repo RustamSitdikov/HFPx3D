@@ -14,24 +14,31 @@
 //#include <il/StaticArray.h>
 //#include <il/StaticArray2D.h>
 //#include "ele_base.h"
+#include <il/Timer.h>
+#include <ittnotify.h>
 
 int main() {
 
     double mu = 1.0, nu = 0.35;
 
-    std::string src_directory{""}; // add path
-    std::string mesh_conn_fname{"Elems_pennymesh121el_32.npy"};
-    std::string nodes_crd_fname{"Nodes_pennymesh121el_32.npy"};
+    std::string src_directory{"/home/lecampio/Documents/HFPx3D/Mesh_Files/"}; // add path
+    std::string mesh_conn_fname{"Elems_pennymesh1025el_32.npy"};
+    std::string nodes_crd_fname{"Nodes_pennymesh1025el_32.npy"};
 
-    std::string work_directory{""}; // add path
-    std::string mf_name{"test_assembly_121_ele.csv"};
-    std::string of_name{"test_solution_121_ele.csv"};
+    std::string work_directory{"/home/lecampio/Documents/HFPx3D/Test_Output/"}; // add path
+    std::string mf_name{"test_assembly_1025_ele.csv"};
+    std::string of_name{"test_solution_1025_ele.csv"};
 
     il::Array2D<il::int_t> mesh_conn;
     il::Array2D<double> nodes_crd;
     hfp3d::load_mesh_from_numpy_32
             (src_directory, mesh_conn_fname, nodes_crd_fname, true,
              il::io, mesh_conn, nodes_crd);
+
+    il::Timer timer{};
+    timer.start();
+
+    __itt_resume();
 
     hfp3d::Dof_Handle dof_hndl;
     il::Array2D<double> bem_matrix;
@@ -42,7 +49,7 @@ int main() {
     std::cout << "Full No of DOF = " << 18 * num_elems << std::endl;
     std::cout << "No of used DOF = " << num_dof << std::endl;
 
-    hfp3d::save_data_to_csv(bem_matrix, work_directory, mf_name);
+//    hfp3d::save_data_to_csv(bem_matrix, work_directory, mf_name);
 
     il::Array<double> rhs(num_dof);
     for (il::int_t j = 0; j < num_elems; ++j) {
@@ -59,6 +66,15 @@ int main() {
     }
     il::Status status{};
     il::Array<double> dd_v;
+
+    __itt_pause();
+    timer.stop();
+
+    std::cout << "Assembly: " << timer.elapsed() << std::endl;
+    timer.reset();
+
+    timer.start();
+
     il::LU<il::Array2D<double>> lu_decomposition(bem_matrix, il::io, status);
     // if (!status.ok()) {
     //     // The matrix is singular to the machine precision. You should deal with
@@ -69,6 +85,8 @@ int main() {
     // std::cout << cnd << std::endl;
     dd_v = lu_decomposition.solve(rhs);
     // dd_v = il::linear_solve(bem_matrix, rhs, il::io, status);
+    timer.stop();
+    std::cout << "Solution: " << timer.elapsed() << std::endl;
 
     il::Array2D<double> dd(6 * num_elems, 6);
     for (il::int_t j = 0; j < num_elems; ++j) {
@@ -98,7 +116,7 @@ int main() {
             }
         }
     }
-    hfp3d::save_data_to_csv(dd, work_directory, of_name);
+//    hfp3d::save_data_to_csv(dd, work_directory, of_name);
 
 /*
     std::string npy_of_name{"/test_solution_24_ele.npy"};
