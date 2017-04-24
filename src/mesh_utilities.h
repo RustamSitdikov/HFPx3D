@@ -70,7 +70,7 @@ namespace hfp3d {
 
     // 1D to 2D array conversion for DD
     void write_dd_vector_to_md
-            (const il::Array &dd_v,
+            (const il::Array<double> &dd_v,
              const DoF_Handle_T &dof_h,
              bool include_p,
              const il::Array<il::int_t> inj_pts,
