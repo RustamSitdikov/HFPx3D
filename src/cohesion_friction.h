@@ -15,15 +15,14 @@
 
 namespace hfp3d {
 
-    // fault (crack) "damage state", node-wise
+    // fault (crack) state, node-wise
     struct Frac_State {
+        // "damage state", node-wise
         il::Array<double> mr_open; // max. reached relative opening (w/cr_open)
         il::Array<double> mr_slip; // max. reached relative slip (s/cr_slip)
-    };
 
-    // fault (crack) friction & cohesion forces, node-wise
-    struct Frac_F_C {
-        il::Array<double> slip_friction; // slip (shear) friction
+        // friction & cohesion forces, node-wise
+        il::Array<double> friction_coef; // slip (shear) friction coefficient
         // (tan of friction angle)
         il::Array<double> slip_cohesion; // slip (shear) cohesion
         il::Array<double> open_cohesion; // opening cohesion
@@ -63,14 +62,16 @@ namespace hfp3d {
         double res_sf() { return f_c_param_.res_sf; };
 
         // Calculation of friction & cohesion forces
-        virtual Frac_F_C c_f_forces // (node-wise)
-                (const il::Array2D<double> &dd, // current displacements
-                        // (must be in local coords!)
-                 const Frac_State &p_state) // previous state (damage)
-        = 0; //
+        // (matching them to current DD and "damage state")
+        virtual void match_f_c // (node-wise)
+                (il::Array2D<double> &dd, // current displacements
+                 il::io_t,
+                 Frac_State &f_state) // "damage state" & friction-cohesion
+        = 0; // purely virtual in general
+        // Note: dd must be in local coordinates!
     };
 
-    // Particular friction-cohesion models
+    // Particular friction-cohesion models *************************************
 
     // "Box" function for cohesion; linear slip-weakening for friction
     class F_C_BFW: F_C_Model {
@@ -78,20 +79,22 @@ namespace hfp3d {
         F_C_BFW(F_C_Param f_c_param) :
                 F_C_Model(f_c_param){}
 
-        Frac_F_C c_f_forces
-                (const il::Array2D<double> &dd,
-                 const Frac_State &p_state) {
+        void match_f_c
+                (il::Array2D<double> &dd,
+                 il::io_t,
+                 Frac_State &f_state) {
             IL_EXPECT_FAST(dd.size(0) == 3);
             il::int_t n_nod = dd.size(1);
-            IL_EXPECT_FAST(n_nod == p_state.mr_open.size());
-            IL_EXPECT_FAST(n_nod == p_state.mr_slip.size());
-            Frac_F_C f_c;
-            f_c.slip_friction.resize(n_nod);
-            f_c.slip_cohesion.resize(n_nod);
-            f_c.open_cohesion.resize(n_nod);
+            IL_EXPECT_FAST(n_nod == f_state.mr_open.size());
+            IL_EXPECT_FAST(n_nod == f_state.mr_slip.size());
+            IL_EXPECT_FAST(n_nod == f_state.friction_coef.size());
+            IL_EXPECT_FAST(n_nod == f_state.slip_cohesion.size());
+            IL_EXPECT_FAST(n_nod == f_state.open_cohesion.size());
             for (il::int_t n = 0; n < n_nod; ++n) {
-                double dl_open = dd(2, n) / cr_open();
-                double pr_open = p_state.mr_open[n];
+                double dl_open = dd(2, n) / cr_open(); // relative opening DD
+                // make sure dd(2, n) is positive
+                double pr_open = f_state.mr_open[n]; // prev. opening (damage %)
+                // calculating correction for partial damage (unloading case)
                 double r_s = 0.0;
                 if (dl_open > 0.0 && dl_open < 1.0) {
                     r_s = 1.0;
@@ -99,14 +102,20 @@ namespace hfp3d {
                 if (dl_open > 0.0 && dl_open < pr_open) {
                     r_s *= dl_open / pr_open;
                 }
-                f_c.open_cohesion[n] = peak_ts() * r_s; // opening cohesion
-                f_c.slip_cohesion[n] = peak_sc() * r_s; // shear cohesion
-                double r_f = 0.0;
+                // calculating forces
+                f_state.open_cohesion[n] = peak_ts() * r_s; // opening cohesion
+                f_state.slip_cohesion[n] = peak_sc() * r_s; // shear cohesion
+                // calculating friction
+                double r_f = 0.0; // zero if fully opened (normal DD > cr_open)
                 if (dl_open < 1.0) {
                     r_f = res_sf();
+                    // current sliding DD
                     double dl_slip = dd(0, n) * dd(0, n) + dd(1, n) * dd(1, n);
+                    // the same relative to cr_slip
                     dl_slip = std::sqrt(dl_slip) / cr_slip();
-                    double pr_slip = p_state.mr_slip[n];
+                    // prev. relative sliding DD (damage %)
+                    double pr_slip = f_state.mr_slip[n];
+                    // comparing and calculating friction
                     if (dl_slip < 1.0) {
                         double m_dl_slip = dl_slip;
                         if (dl_slip < pr_slip) {
@@ -116,9 +125,8 @@ namespace hfp3d {
                               (peak_sf() - res_sf())*(1.0 - m_dl_slip);
                     }
                 }
-                f_c.slip_friction[n] = r_f; // friction
+                f_state.friction_coef[n] = r_f; // friction coefficient(s)
             }
-            return f_c;
         }
 
     };
