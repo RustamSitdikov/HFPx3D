@@ -16,6 +16,7 @@
 #include <il/Array2D.h>
 #include <il/StaticArray.h>
 #include <il/StaticArray2D.h>
+#include "mesh_utilities.h"
 
 namespace hfp3d {
 
@@ -24,16 +25,14 @@ namespace hfp3d {
              const std::string &conn_f_name,
              const std::string &node_f_name,
              bool is_matlab,
-             il::io_t, il::Array2D <il::int_t> &mesh_conn,
-             il::Array2D<double> &nodes_crd);
+             il::io_t, Mesh_Geom &mesh);
 
     void load_mesh_from_numpy_64
             (const std::string &src_dir,
              const std::string &conn_f_name,
              const std::string &node_f_name,
              bool is_matlab,
-             il::io_t, il::Array2D <il::int_t> &mesh_conn,
-             il::Array2D<double> &nodes_crd);
+             il::io_t, Mesh_Geom &mesh);
 
     template <typename T>
     void save_data_to_csv(

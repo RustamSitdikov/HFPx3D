@@ -16,12 +16,30 @@
 
 namespace hfp3d {
 
+// position of a point with respect to an element
+// (complex local coordinate representation)
     struct HZ {
         double h;
         std::complex<double> z;
     };
 
-    // Element's local coordinate system manipulations
+// element properties in one strucure
+    struct Ele_Struct {
+        // vertices' coordinates
+        il::StaticArray2D<double, 3, 3> vert;
+        // vertices' "weights" (defining the positions of edge nodes)
+        //il::StaticArray<double, 3> vert_wts;
+        // rotation tensor (reference coordinates to el-t local coordinates)
+        il::StaticArray2D<double, 3, 3> r_tensor;
+        // collocation points' coordinates
+        il::StaticArray<il::StaticArray<double, 3>, 6> cp_crd;
+        // coefficienta of basis (shape) functions of the el-t
+        il::StaticArray2D<std::complex<double>, 6, 6> sf_m;
+        // values of nodal SF at collocation points
+        il::StaticArray<il::StaticArray<double, 6>, 6> sf_cp;
+    };
+
+// Element's local coordinate system manipulations
 
     il::StaticArray2D<double, 3, 3> make_el_r_tensor
             (const il::StaticArray2D<double, 3, 3> &el_vert);
@@ -39,7 +57,7 @@ namespace hfp3d {
             (const il::StaticArray2D<double, 3, 3> &el_vert,
              const il::StaticArray2D<double, 3, 3> &r_tensor);
 
-    // Element's basis (shape) functions
+// Element's basis (shape) functions
 
     il::StaticArray2D<std::complex<double>, 6, 6> make_el_sfm_uniform
             (const il::StaticArray2D<double, 3, 3> &el_vert,
@@ -59,7 +77,7 @@ namespace hfp3d {
     il::StaticArray2D<std::complex<double>, 6, 6> shift_el_sfm
             (std::complex<double> z);
 
-    // Collocation points
+// Collocation points
 
     il::StaticArray<il::StaticArray<double, 3>, 6> el_cp_uniform
             (const il::StaticArray2D<double, 3, 3> &el_vert, double beta);
@@ -69,7 +87,27 @@ namespace hfp3d {
              const il::StaticArray<double, 3> &vertex_wts,
              double beta);
 
-    // auxiliary functions (norm, cross product)
+    // This function defines the whole set of element properties:
+    // vertex coordinates, rotational tensor, collocation points,
+    // coefficients of nodal shape functions, and their values for each CP
+    Ele_Struct set_ele_struct(il::StaticArray2D<double, 3, 3> &el_vert,
+                        //il::StaticArray<double, 3> %vert_wts,
+                        double beta);
+
+// Integration over one element
+
+    il::StaticArray<std::complex<double>, 6> el_p2_cbp_integral
+            (std::complex<double> a, std::complex<double> b);
+
+/*
+    il::StaticArray<std::complex<double>, 15> el_p4_cbp_integral
+            (std::complex<double> a, std::complex<double> b);
+*/
+    il::StaticArray<double, 6> el_p2_sf_integral
+            (il::StaticArray2D<std::complex<double>, 6, 6> el_sfm,
+             il::StaticArray<std::complex<double>, 3> el_tau);
+
+// auxiliary functions (norm, cross product)
 
     double l2norm(const il::StaticArray<double, 3> &a);
     il::StaticArray<double, 3> normalize(const il::StaticArray<double, 3> &a);

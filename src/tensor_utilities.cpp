@@ -32,8 +32,26 @@ namespace hfp3d {
         n_m(2, 4) = nv[0];
         n_m(1, 5) = nv[2];
         n_m(2, 5) = nv[1];
-        il::StaticArray2D<double, 3, 18> TIM = il::dot(n_m, sim);
-        return TIM;
+        il::StaticArray2D<double, 3, 18> tim = il::dot(n_m, sim);
+        return tim;
+    }
+
+    il::StaticArray<double, 3> nv_dot_sim
+            (const il::StaticArray<double, 3> &nv,
+             const il::StaticArray<double, 6> &svf) {
+        // Normal vector (nv) multiplied by stress in vector (svf)
+        il::StaticArray2D<double, 3, 6> n_m{0.0};
+        n_m(0, 0) = nv[0];
+        n_m(1, 1) = nv[1];
+        n_m(2, 2) = nv[2];
+        n_m(0, 3) = nv[1];
+        n_m(1, 3) = nv[0];
+        n_m(0, 4) = nv[2];
+        n_m(2, 4) = nv[0];
+        n_m(1, 5) = nv[2];
+        n_m(2, 5) = nv[1];
+        il::StaticArray<double, 3> trac = il::dot(n_m, svf);
+        return trac;
     }
 
     il::StaticArray2D<double, 6, 18> rotate_sim

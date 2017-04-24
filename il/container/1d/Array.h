@@ -14,6 +14,8 @@
 #include <cstring>
 // <initializer_list> is needed for std::initializer_list<T>
 #include <initializer_list>
+// <new> is needed for placement new
+#include <new>
 // <utility> is needed for std::move
 #include <utility>
 
@@ -404,7 +406,7 @@ Array<T>::Array(il::value_t, std::initializer_list<T> list) {
   bool error = false;
   const il::int_t n = il::safe_convert<il::int_t>(list.size(), il::io, error);
   if (error) {
-    std::abort();
+    il::abort();
   }
 
   if (n > 0) {
@@ -673,10 +675,10 @@ void Array<T>::append(const T& x) {
     const il::int_t n = size();
     bool error = false;
     il::int_t new_capacity =
-        n > 1 ? il::safe_sum(n, n / 2, il::io, error)
+        n > 1 ? il::safe_product(static_cast<il::int_t>(2), n, il::io, error)
               : il::safe_sum(n, static_cast<il::int_t>(1), il::io, error);
     if (error) {
-      std::abort();
+      il::abort();
     }
     T x_copy = x;
     increase_capacity(new_capacity);
@@ -693,10 +695,10 @@ void Array<T>::append(T&& x) {
     const il::int_t n = size();
     bool error = false;
     il::int_t new_capacity =
-        n > 1 ? il::safe_sum(n, n / 2, il::io, error)
+        n > 1 ? il::safe_product(static_cast<il::int_t>(2), n, il::io, error)
               : il::safe_sum(n, static_cast<il::int_t>(1), il::io, error);
     if (error) {
-      std::abort();
+      il::abort();
     }
     increase_capacity(new_capacity);
   }
@@ -715,10 +717,10 @@ void Array<T>::append(il::emplace_t, Args&&... args) {
     const il::int_t n = size();
     bool error = false;
     il::int_t new_capacity =
-        n > 1 ? il::safe_sum(n, n / 2, il::io, error)
+        n > 1 ? il::safe_product(static_cast<il::int_t>(2), n, il::io, error)
               : il::safe_sum(n, static_cast<il::int_t>(1), il::io, error);
     if (error) {
-      std::abort();
+      il::abort();
     }
     increase_capacity(new_capacity);
   };

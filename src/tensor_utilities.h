@@ -18,6 +18,10 @@ namespace hfp3d {
 // Vector and triple tensor multiplication
 // for stress stored as 6-component vector (or 6*N matrix)
 
+    il::StaticArray<double, 3> nv_dot_sim
+            (const il::StaticArray<double, 3>& nv,
+             const il::StaticArray<double, 6>& svf);
+
     il::StaticArray2D<double, 3, 18> nv_dot_sim
             (const il::StaticArray<double, 3>& nv,
              const il::StaticArray2D<double, 6, 18>& sim);

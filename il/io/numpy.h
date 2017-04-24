@@ -7,14 +7,17 @@
 //
 //==============================================================================
 
-#ifndef IL_NEW_NUMPY_H
-#define IL_NEW_NUMPY_H
+#ifndef IL_NUMPY_H
+#define IL_NUMPY_H
+
+#include <string>
 
 #include <il/Array.h>
 #include <il/Array2D.h>
 #include <il/SparseMatrixCSR.h>
 #include <il/String.h>
-#include <il/core/Status.h>
+#include <il/Status.h>
+#include <il/io/io_base.h>
 
 namespace il {
 
@@ -44,34 +47,14 @@ void save_numpy_info(const NumpyInfo& numpy_info, il::io_t, std::FILE* fp,
                      il::Status& status);
 
 template <typename T>
-class SaveHelper {
- public:
-  static void save(const T& x, const il::String& filename, il::io_t,
-                   il::Status& status);
-};
-
-template <typename T>
-void save(const T& x, const il::String& filename, il::io_t,
-          il::Status& status) {
-  il::SaveHelper<T>::save(x, filename, il::io, status);
-}
-
-template <typename T>
-void SaveHelper<T>::save(const T& x, const il::String& filename, il::io_t,
-                         il::Status& status) {
-  IL_UNUSED(x);
-  IL_UNUSED(filename);
-  status.set(il::ErrorCode::unimplemented);
-}
-
-template <typename T>
 class SaveHelper<il::Array<T>> {
  public:
   static void save(const il::Array<T>& v, const il::String& filename, il::io_t,
                    il::Status& status) {
     std::FILE* file = std::fopen(filename.c_string(), "wb");
     if (!file) {
-      status.set(il::ErrorCode::file_not_found);
+      status.set_error(il::Error::filesystem_file_not_found);
+      IL_SET_SOURCE(status);
       return;
     }
 
@@ -85,26 +68,28 @@ class SaveHelper<il::Array<T>> {
     if (!info_status.ok()) {
       const int error = std::fclose(file);
       if (error != 0) {
-        std::abort();
+        il::abort();
       }
-      status.set(info_status.error_code());
+      status = std::move(info_status);
       return;
     }
 
     std::size_t written = std::fwrite(v.data(), sizeof(T),
                                       static_cast<std::size_t>(v.size()), file);
     if (static_cast<il::int_t>(written) != v.size()) {
-      status.set(il::ErrorCode::cannot_write_to_file);
+      status.set_error(il::Error::filesystem_no_write_access);
+      IL_SET_SOURCE(status);
       return;
     }
 
     const int error = std::fclose(file);
     if (error != 0) {
-      status.set(il::ErrorCode::cannot_close_file);
+      status.set_error(il::Error::filesystem_cannot_close_file);
+      IL_SET_SOURCE(status);
       return;
     }
 
-    status.set(il::ErrorCode::ok);
+    status.set_ok();
     return;
   }
 };
@@ -116,7 +101,8 @@ class SaveHelper<il::Array2D<T>> {
                    il::io_t, il::Status& status) {
     std::FILE* file = std::fopen(filename.c_string(), "wb");
     if (!file) {
-      status.set(il::ErrorCode::file_not_found);
+      status.set_error(il::Error::filesystem_file_not_found);
+      IL_SET_SOURCE(status);
       return;
     }
 
@@ -130,9 +116,9 @@ class SaveHelper<il::Array2D<T>> {
     if (!info_status.ok()) {
       const int error = std::fclose(file);
       if (error != 0) {
-        std::abort();
+        il::abort();
       }
-      status.set(info_status.error_code());
+      status = std::move(info_status);
       return;
     }
 
@@ -140,39 +126,23 @@ class SaveHelper<il::Array2D<T>> {
         std::fwrite(A.data(), sizeof(T),
                     static_cast<std::size_t>(A.size(0) * A.size(1)), file);
     if (static_cast<il::int_t>(written) != A.size(0) * A.size(1)) {
-      status.set(il::ErrorCode::cannot_write_to_file);
+      status.set_error(il::Error::filesystem_no_write_access);
+      IL_SET_SOURCE(status);
       return;
     }
 
     const int error = std::fclose(file);
     if (error != 0) {
-      status.set(il::ErrorCode::cannot_close_file);
+      status.set_error(il::Error::filesystem_cannot_close_file);
+      IL_SET_SOURCE(status);
       return;
     }
 
-    status.set(il::ErrorCode::ok);
+    status.set_ok();
     return;
   }
 };
 
-template <typename T>
-class LoadHelper {
- public:
-  static T load(const il::String& filename, il::io_t, il::Status& status);
-};
-
-template <typename T>
-T load(const il::String& filename, il::io_t, il::Status& status) {
-  return il::LoadHelper<T>::load(filename, il::io, status);
-}
-
-template <typename T>
-T LoadHelper<T>::load(const il::String& filename, il::io_t,
-                      il::Status& status) {
-  IL_UNUSED(filename);
-  status.set(il::ErrorCode::unimplemented);
-  return T{};
-}
 
 template <typename T>
 class LoadHelper<il::Array<T>> {
@@ -183,39 +153,44 @@ class LoadHelper<il::Array<T>> {
 
     std::FILE* file = std::fopen(filename.c_string(), "r+b");
     if (!file) {
-      status.set(il::ErrorCode::file_not_found);
+      status.set_error(il::Error::filesystem_file_not_found);
+      IL_SET_SOURCE(status);
       return v;
     }
 
     il::Status info_status{};
     il::NumpyInfo numpy_info = il::get_numpy_info(il::io, file, info_status);
     if (!info_status.ok()) {
-      status.set(info_status.error_code());
+      status = std::move(info_status);
       return v;
     }
 
     if (!(numpy_info.type == il::numpy_type<T>::value)) {
-      status.set(il::ErrorCode::wrong_type);
+      status.set_error(il::Error::binary_file_wrong_type);
+      IL_SET_SOURCE(status);
       return v;
     } else if (numpy_info.shape.size() != 1) {
-      status.set(il::ErrorCode::wrong_rank);
+      status.set_error(il::Error::binary_file_wrong_rank);
+      IL_SET_SOURCE(status);
       return v;
     }
 
     v.resize(numpy_info.shape[0]);
     const std::size_t read = fread(v.data(), sizeof(T), v.size(), file);
     if (static_cast<il::int_t>(read) != v.size()) {
-      status.set(il::ErrorCode::wrong_file_format);
+      status.set_error(il::Error::binary_file_wrong_format);
+      IL_SET_SOURCE(status);
       return v;
     }
 
     const int error = std::fclose(file);
     if (error != 0) {
-      status.set(il::ErrorCode::cannot_close_file);
+      status.set_error(il::Error::filesystem_cannot_close_file);
+      IL_SET_SOURCE(status);
       return v;
     }
 
-    status.set(il::ErrorCode::ok);
+    status.set_ok();
     return v;
   }
 };
@@ -229,25 +204,29 @@ class LoadHelper<il::Array2D<T>> {
 
     std::FILE* file = std::fopen(filename.c_string(), "r+b");
     if (!file) {
-      status.set(il::ErrorCode::file_not_found);
+      status.set_error(il::Error::filesystem_file_not_found);
+      IL_SET_SOURCE(status);
       return v;
     }
 
     il::Status info_status{};
     il::NumpyInfo numpy_info = il::get_numpy_info(il::io, file, info_status);
     if (!info_status.ok()) {
-      status.set(info_status.error_code());
+      status = std::move(info_status);
       return v;
     }
 
     if (!(numpy_info.type == il::numpy_type<T>::value)) {
-      status.set(il::ErrorCode::wrong_type);
+      status.set_error(il::Error::binary_file_wrong_type);
+      IL_SET_SOURCE(status);
       return v;
     } else if (numpy_info.shape.size() != 2) {
-      status.set(il::ErrorCode::wrong_rank);
+      status.set_error(il::Error::binary_file_wrong_rank);
+      IL_SET_SOURCE(status);
       return v;
     } else if (!numpy_info.fortran_order) {
-      status.set(il::ErrorCode::wrong_order);
+      status.set_error(il::Error::binary_file_wrong_endianness);
+      IL_SET_SOURCE(status);
       return v;
     }
 
@@ -255,17 +234,19 @@ class LoadHelper<il::Array2D<T>> {
     const il::int_t n = v.size(0) * v.size(1);
     const std::size_t read = fread(v.data(), sizeof(T), n, file);
     if (static_cast<il::int_t>(read) != n) {
-      status.set(il::ErrorCode::wrong_file_format);
+      status.set_error(il::Error::binary_file_wrong_format);
+      IL_SET_SOURCE(status);
       return v;
     }
 
     const int error = std::fclose(file);
     if (error != 0) {
-      status.set(il::ErrorCode::cannot_close_file);
+      status.set_error(il::Error::filesystem_cannot_close_file);
+      IL_SET_SOURCE(status);
       return v;
     }
 
-    status.set(il::ErrorCode::ok);
+    status.set_ok();
     return v;
   }
 };
@@ -296,11 +277,11 @@ class LoadHelper<il::SparseMatrixCSR<il::int_t, double>> {
     local_status.abort_on_error();
 
     const il::int_t n = row.size() - 1;
-    status.set(il::ErrorCode::ok);
+    status.set_ok();
     return il::SparseMatrixCSR<il::int_t, double>{
         n, n, std::move(column), std::move(row), std::move(element)};
   }
 };
 }
 
-#endif  // IL_NEW_NUMPY_H
+#endif  // IL_NUMPY_H
