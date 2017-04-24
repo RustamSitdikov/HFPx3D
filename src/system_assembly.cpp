@@ -209,7 +209,7 @@ namespace hfp3d {
 // This function performs BEM matrix assembly from boundary mesh geometry data:
 // mesh connectivity (mesh.conn) and nodes' coordinates (mesh.nods)
 
-// Naive way: no parallelization, no ACA
+// Naive way: no ACA. For parallel assembly uncomment line 235
 
         IL_EXPECT_FAST(mesh.conn.size(0) >= 3);
         IL_EXPECT_FAST(mesh.conn.size(1) >= 1); // at least 1 element
@@ -232,6 +232,7 @@ namespace hfp3d {
         //il::StaticArray<double, num_dof> right_hand_side;
 
         // Loop over "source" elements
+//#pragma omp parallel for
         for (il::int_t source_elem = 0;
              source_elem < num_ele; ++source_elem) {
             // Vertices' coordinates
@@ -383,7 +384,7 @@ namespace hfp3d {
 // from boundary mesh geometry data:
 // mesh connectivity (mesh.conn) and nodes' coordinates (mesh.nods)
 
-// Naive way: no parallelization, no ACA
+// Naive way: no ACA. For parallel assembly, uncomment line 410
 
         IL_EXPECT_FAST(mesh.conn.size(0) >= 3);
         IL_EXPECT_FAST(mesh.conn.size(1) >= 1); // at least 1 element
@@ -406,7 +407,8 @@ namespace hfp3d {
         //alg_sys.rhside = il::Array<double>{num_dof+1, 0.0};
 
         // Loop over "source" elements
-        for (il::int_t source_elem = 0; 
+//#pragma omp parallel for
+        for (il::int_t source_elem = 0;
              source_elem < num_ele; ++source_elem) {
             // Vertices' coordinates
             il::StaticArray2D<double, 3, 3> el_vert_s;
@@ -657,12 +659,6 @@ namespace hfp3d {
         return alg_system;
     }
 
-// use std::function<double(double)> cohesion
-// or std::function<il::StaticArray<double, 3>
-// (il::StaticArray<double, 3>)> fric_cohesion
-// [friction, shear cohesion, opening cohesion]
-// vs [shear 1, shear 2, normal] traction
-
 // Stress at given points (m_pts_crd) vs DD at nodal points (mesh.nods)
     il::Array2D<double> make_3dbem_stress_f_s
             (double mu, double nu,
@@ -675,7 +671,7 @@ namespace hfp3d {
 // using boundary mesh geometry data:
 // mesh connectivity (mesh.conn) and nodes' coordinates (mesh.nods)
 
-// Naive way: no parallelization, no ACA
+// Naive way: no ACA. For parallel assembly, uncomment line 688
 
         IL_EXPECT_FAST(mesh.conn.size(0) >= 3);
         IL_EXPECT_FAST(mesh.conn.size(1) >= 1); // at least 1 element
@@ -689,6 +685,7 @@ namespace hfp3d {
         il::Array2D<double> stress_infl_matrix(6 * num_of_m_pts, num_dof);
 
         // Loop over elements
+//#pragma omp parallel for
         for (il::int_t source_elem = 0; source_elem < num_ele; ++source_elem) {
             // Vertices' coordinates
             il::StaticArray2D<double, 3, 3> el_vert_s;
