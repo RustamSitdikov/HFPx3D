@@ -12,11 +12,12 @@
 #include "src/system_assembly.h"
 #include "src/element_utilities.h"
 //#include "src/mesh_utilities.h"
+#include <il/Timer.h>
+//#include <ittnotify.h>
 
 //#include <complex>
 //#include <il/StaticArray.h>
 //#include <il/StaticArray2D.h>
-//#include "src/ele_base.h"
 
 int main() {
 
@@ -24,6 +25,7 @@ int main() {
 
     hfp3d::Num_Param n_par;
 /*
+    // default parameters:
     n_par.beta = 0.125; // relative collocation points' position
     n_par.tip_type = 1; // zero DD are enforced only at vertex tip nodes
     n_par.is_dd_in_glob = true; // DD are sought in global coordinate system
@@ -45,6 +47,12 @@ int main() {
             (src_directory, mesh_conn_fname, nodes_crd_fname, true,
              il::io, mesh);
 
+
+    il::Timer timer{};
+    timer.start();
+
+//    __itt_resume();
+
     hfp3d::DoF_Handle_T dof_hndl;
     il::Array2D<double> bem_matrix;
 /*
@@ -56,9 +64,14 @@ int main() {
 
     il::int_t num_elems = mesh.conn.size(1);
     il::int_t num_dof = dof_hndl.n_dof;
-    std::cout << num_elems << " Elements" << std::endl;
-    std::cout << 18 * num_elems << " DoF Total" << std::endl;
-    std::cout << 18 * num_elems - num_dof << " Fixed DoF" << std::endl;
+
+/*
+// use std::function<double(double)> cohesion
+// or std::function<il::StaticArray<double, 3>
+// (il::StaticArray<double, 3>)> fric_cohesion
+// [friction, shear cohesion, opening cohesion]
+// vs [shear 1, shear 2, normal] traction
+*/
 
 /*
     //dof_hndl.dof_h.resize(num_elems + 1, 18);
@@ -76,8 +89,6 @@ int main() {
     }
 */
 
-    hfp3d::save_data_to_csv(bem_matrix, work_directory, mf_name);
-
     il::Array<double> rhs(num_dof + 1);
     for (il::int_t j = 0; j < num_elems; ++j) {
         for (int k = 0; k < 6; ++k) {
@@ -94,6 +105,21 @@ int main() {
 
     il::Status status{};
     il::Array<double> dd_v;
+
+//    __itt_pause();
+    timer.stop();
+
+    std::cout << "Assembly: " << timer.elapsed() << "s" << std::endl;
+    std::cout << num_elems << " Elements" << std::endl;
+    std::cout << 18 * num_elems << " DoF Total" << std::endl;
+    std::cout << 18 * num_elems - num_dof << " Fixed DoF" << std::endl;
+
+    hfp3d::save_data_to_csv(bem_matrix, work_directory, mf_name);
+
+    timer.reset();
+
+    timer.start();
+
     il::LU<il::Array2D<double>> lu_decomposition(bem_matrix, il::io, status);
     // if (!status.ok()) {
     //     // The matrix is singular to the machine precision. You should deal with
@@ -104,6 +130,9 @@ int main() {
     // std::cout << cnd << std::endl;
     dd_v = lu_decomposition.solve(rhs);
     // dd_v = il::linear_solve(bem_matrix, rhs, il::io, status);
+
+    timer.stop();
+    std::cout << "Solution: " << timer.elapsed() << "s" << std::endl;
 
     il::Array2D<double> dd(6 * num_elems, 6);
     for (il::int_t j = 0; j < num_elems; ++j) {
