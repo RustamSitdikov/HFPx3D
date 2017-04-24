@@ -46,13 +46,13 @@ namespace hfp3d {
     };
 
     struct Mesh_Data {
-        il::Array2D<il::int_t> tip_el; // list of next-to-tip elements & edges
-                                       // (to propagate from)
+        il::Array2D<il::int_t> tip_el; // list of next-to-tip elements
+                                       // & edges (to propagate from)
 
         il::Array<il::int_t> ae_set; // set of "active" (slid or opened) elems
 
-        il::Array2D<double> DD; // displacement discontinuities
-        il::Array<double> PP; // fluid pressure
+        il::Array2D<double> dd; // displacement discontinuities
+        il::Array<double> pp; // fluid pressure
     };
 
     // DoF handle initialization for a crack (fixed DoF at crack tip nodes)
@@ -61,6 +61,21 @@ namespace hfp3d {
              int ap_order,
              int tip_type);
 
+    // 2D to 1D array conversion for DD
+    il::Array<double> get_dd_vector_from_md
+            (const Mesh_Data &m_data,
+             const DoF_Handle_T &dof_h,
+             bool include_p,
+             const il::Array<il::int_t> inj_pts);
+
+    // 1D to 2D array conversion for DD
+    void write_dd_vector_to_md
+            (const il::Array &dd_v,
+             const DoF_Handle_T &dof_h,
+             bool include_p,
+             const il::Array<il::int_t> inj_pts,
+             il::io_t,
+             Mesh_Data & m_data);
 
 }
 

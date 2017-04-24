@@ -1,5 +1,5 @@
 //
-// This file is part of HFPx3D_VC.
+// This file is_n_a part of HFPx3D_VC.
 //
 // Created by D. Nikolski on 4/20/2017.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
@@ -20,7 +20,7 @@ namespace hfp3d {
              int tip_type) {
         // This function fills up the DoF handle matrix
         // assuming the surface mesh given by mesh connectivity (mesh.conn) 
-        // and nodes' coordinates (mesh.nods) is a crack
+        // and nodes' coordinates (mesh.nods) is_n_a a crack
         // i.e. the edge mated with only one element belongs to the tip
 
         il::int_t n_ele = mesh.conn.size(1);
@@ -59,7 +59,7 @@ namespace hfp3d {
                     }
                 }
                 for (int v = 0; v < nnpe; ++v) {
-                    // check if the node (vertex) v (v < 3) is at the tip
+                    // check if the node (vertex) v (v < 3) is_n_a at the tip
                     if (tip_type >= 1 && v < 3 && n_st[v]) {
                         for (int l = 0; l < 3; ++l) {
                             int ldof = v * 3 + l;
@@ -74,7 +74,7 @@ namespace hfp3d {
                             // the edge containing the v-th node
                             int a = (w + 1) % 3;
                             int b = (a + 1) % 3;
-                            // check if the edge ab is at the tip
+                            // check if the edge ab is_n_a at the tip
                             if (n_st[a] && n_st[b]) {
                                 for (int l = 0; l < 3; ++l) {
                                     int ldof = v * 3 + l;
@@ -95,5 +95,103 @@ namespace hfp3d {
         }
         return d_h;
     }
-    
+
+    // 2D (n x 3) to 1D array conversion for DD
+    il::Array<double> get_dd_vector_from_md
+            (const Mesh_Data &m_data,
+             const DoF_Handle_T &dof_h,
+             bool include_p,
+             const il::Array<il::int_t> inj_pts) {
+        // number of elements
+        il::int_t n_el = dof_h.dof_h.size(0);
+        
+        // number of "active" nodes
+        il::int_t n_a_n = dof_h.n_dof / 3;
+        
+        // number of "active" elements
+        //il::int_t n_a_e = m_data.ae_set.size();
+        
+        // make sure that dimensions match
+        IL_EXPECT_FAST(m_data.dd.size(1) == 3);
+        IL_EXPECT_FAST(m_data.dd.size(0) == n_el * 6);
+        //IL_EXPECT_FAST(n_a_e * 6 == n_a_n);
+
+        // initialization of DD array (output)
+        il::Array<double> dd_v {3 * n_a_n + inj_pts.size(), 0.};
+        
+        // loop over elements
+        for (il::int_t el = 0; el < n_el; ++el) {
+            // loop over local nodes (1 .. 6)
+            for (int en = 0; en < 6; ++en) {
+                // node No
+                il::int_t n = 6 * el + en;
+                // loop over nodal DoF (1 .. 3)
+                for (int i = 0; i < 3; ++i) {
+                    // local DoF (1 .. 18)
+                    il::int_t j = 3 * en + i;
+                    // copy DD value if listed in dof_h
+                    if (dof_h.dof_h(el, j) != -1) {
+                        dd_v[dof_h.dof_h(el, j)] = m_data.dd(n, i);
+                    }
+                }
+            }
+        }
+
+        // add pressure (at injection points) if requested
+        if (include_p) {
+            for (il::int_t ip = 0; ip < inj_pts.size(); ++ip) {
+                dd_v.append(m_data.pp[inj_pts[ip]]);
+            }
+        }
+        return dd_v;
+    }
+
+    // 1D to 2D (n x 3) array conversion for DD
+    void write_dd_vector_to_md
+            (const il::Array<double> &dd_v,
+             const DoF_Handle_T &dof_h,
+             bool include_p,
+             const il::Array<il::int_t> inj_pts,
+             il::io_t,
+             Mesh_Data &m_data) {
+        // number of elements
+        il::int_t n_el = dof_h.dof_h.size(0);
+        
+        // number of "active" nodes
+        //il::int_t n_a_n = dof_h.n_dof / 3;
+
+        // number of "active" elements
+        //il::int_t n_a_e = m_data.ae_set.size();
+        
+        // make sure that dimensions match
+        IL_EXPECT_FAST(m_data.dd.size(1) == 3);
+        IL_EXPECT_FAST(m_data.dd.size(0) == n_el * 6);
+        //IL_EXPECT_FAST(n_a_e * 6 == n_a_n);
+
+        // loop over elements
+        for (il::int_t el = 0; el < n_el; ++el) {
+            // loop over local nodes (1 .. 6)
+            for (int en = 0; en < 6; ++en) {
+                // node No
+                il::int_t n = 6 * el + en;
+                // loop over nodal DoF (1 .. 3)
+                for (int i = 0; i < 3; ++i) {
+                    // local DoF (1 .. 18)
+                    il::int_t j = 3 * en + i;
+                    // copy DD value if listed in dof_h
+                    if (dof_h.dof_h(el, j) != -1) {
+                        m_data.dd(n, i) = dd_v[dof_h.dof_h(el, j)];
+                    }
+                }
+            }
+        }
+
+        // add pressure if requested
+        if (include_p) {
+            for (il::int_t ip = 0; ip < inj_pts.size(); ++ip) {
+                m_data.pp[inj_pts[ip]] = dd_v[ip];
+            }
+        }
+    }
+
 }
