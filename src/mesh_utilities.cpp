@@ -13,20 +13,21 @@
 
 namespace hfp3d {
 
-// DoF handle initialization for a crack (fixed DoF at crack tip nodes)
-    DoF_Handle_T make_dof_h_triangular
-            (const Mesh_Geom &mesh,
+    // DoF handle initialization for a crack (fixed DoF at crack tip nodes)
+    DoF_Handle_T make_dof_h_crack
+            (const Mesh_Geom_T &mesh,
              int ap_order,
              int tip_type) {
         // This function fills up the DoF handle matrix
         // assuming the surface mesh given by mesh connectivity (mesh.conn) 
-        // and nodes' coordinates (mesh.nods) is_n_a a crack
+        // and nodes' coordinates (mesh.nods) is an isolated crack
         // i.e. the edge mated with only one element belongs to the tip
 
         il::int_t n_ele = mesh.conn.size(1);
         bool is_ext_msh = ap_order > 0 &&
                           mesh.nods.size(0) >= 5 && mesh.conn.size(0) >= 5;
         IL_EXPECT_FAST(ap_order >= 0);
+        // number of nodes per element (triangular)
         int nnpe = (ap_order + 1) * (ap_order + 2) / 2;
         int edge_nn = 0;
         if (ap_order > 1) {
@@ -96,9 +97,85 @@ namespace hfp3d {
         return d_h;
     }
 
+    // mesh (solution) data initialization for an undisturbed fault
+    Mesh_Data_T init_mesh_data_p_fault
+            (const Mesh_Geom_T &i_mesh,
+             int ap_order,
+             //int tip_type,
+             il::Array2D<il::int_t> inj_pts) {
+        // This function makes the DoF handles for DD and pressure
+        // assuming the surface mesh given by mesh connectivity (mesh.conn)
+        // and nodes' coordinates (mesh.nods) is a fault w. injection points
+        // defined by inj_pts listing elements and local nodes (1..6) where
+        // the pressure is applied
+
+        IL_EXPECT_FAST(ap_order >= 0);
+        // number of elements
+        il::int_t n_el = i_mesh.conn.size(1);
+        // number of nodes per element (triangular)
+        int nnpe = (ap_order + 1) * (ap_order + 2) / 2;
+        // number of DD DoF per element
+        int ndpe = 3 * nnpe;
+        // number of injection-affected elements
+        il::int_t n_ie = inj_pts.size(0);
+        IL_EXPECT_FAST(inj_pts.size(1) >= nnpe + 1);
+
+        Mesh_Data_T m_data;
+        // pass input mesh (i_mesh) handle
+        m_data.mesh = i_mesh;
+
+        // DD DoF initialization
+        m_data.dof_h_dd.dof_h = il::Array2D<il::int_t>{n_el, ndpe, -1};
+        // pressure DoF initialization (for discontinuous Galerkin scheme)
+        m_data.dof_h_pp.dof_h = il::Array2D<il::int_t>{n_el, nnpe, -1};
+        // pressure DoF initialization (for continuous scheme, e.g. FV)
+        //m_data.dof_h_dd = il::Array2D<il::int_t>{?, ?, -1};
+
+        // DD and pressure arrays initialization
+        m_data.dd = il::Array2D<double> {n_el * nnpe, 3, 0.0};
+        // for discontinuous Galerkin scheme
+        m_data.pp = il::Array<double> {n_el * nnpe, 0.0};
+        // for continuous scheme, e.g. FV
+        //m_data.pp = il::Array<double> {?, 0.0};
+
+        // fluid and failure activated elements initialization
+        m_data.fe_set = il::Array<il::int_t> {n_ie};
+        m_data.ae_set = il::Array<il::int_t> {n_ie};
+
+        // setting fe, ae, and DoF handles
+        // limited by the injection "spot"
+        il::int_t g_dd_dof = 0, g_pp_dof = 0;
+        // loop over elements w. injection points
+        for (il::int_t i_el = 0; i_el < n_ie; ++i_el) {
+            // element No
+            il::int_t el = inj_pts(i_el, 0);
+            // adding element to "filled" and "active" sets
+            m_data.fe_set[i_el] = el;
+            m_data.ae_set[i_el] = el;
+            // loop over nodal points of the element
+            for (int n = 0; n < nnpe; ++n) {
+                il::int_t i_n = inj_pts(i_el, n + 1);
+                // look if pressure is applied at the node
+                if (i_n != -1) {
+                    ++g_pp_dof;
+                    m_data.dof_h_pp.dof_h(el, n) = g_pp_dof;
+                    for (int l = 0; l < 3; ++l) {
+                        int ldof = n * 3 + l;
+                        ++g_dd_dof;
+                        m_data.dof_h_dd.dof_h(el, ldof) = g_dd_dof;
+                    }
+                }
+            }
+        }
+        m_data.dof_h_dd.n_dof = g_dd_dof;
+        m_data.dof_h_pp.n_dof = g_pp_dof;
+
+        return m_data;
+    }
+
     // 2D (n x 3) to 1D array conversion for DD
     il::Array<double> get_dd_vector_from_md
-            (const Mesh_Data &m_data,
+            (const Mesh_Data_T &m_data,
              const DoF_Handle_T &dof_h,
              bool include_p,
              const il::Array<il::int_t> inj_pts) {
@@ -153,7 +230,7 @@ namespace hfp3d {
              bool include_p,
              const il::Array<il::int_t> inj_pts,
              il::io_t,
-             Mesh_Data &m_data) {
+             Mesh_Data_T &m_data) {
         // number of elements
         il::int_t n_el = dof_h.dof_h.size(0);
         

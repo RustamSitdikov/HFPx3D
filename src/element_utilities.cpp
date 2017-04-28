@@ -429,14 +429,14 @@ namespace hfp3d {
         return coll_pt_crd;
     }
 
-    Ele_Struct set_ele_struct
+    Element_Struct_T set_ele_struct
             (il::StaticArray2D<double, 3, 3> &el_vert,
              //il::StaticArray<double, 3> &vert_wts,
              double beta) {
 // This function defines the whole set of element properties:
 // vertex coordinates, rotational tensor, collocation points,
 // coefficients of nodal shape functions, and their values for each CP
-        Ele_Struct ele_s;
+        Element_Struct_T ele_s;
 
         // set vertices' coordinates
         for (il::int_t j = 0; j < 3; ++j) {

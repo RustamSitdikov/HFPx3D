@@ -6,8 +6,8 @@
 // See the LICENSE.TXT file for more details. 
 //
 
-#ifndef HFPX3D_VC_COHESION_FRICTION_H
-#define HFPX3D_VC_COHESION_FRICTION_H
+#ifndef INC_HFPX3D_COHESION_FRICTION_H
+#define INC_HFPX3D_COHESION_FRICTION_H
 
 #include <il/math.h>
 #include <il/Array.h>
@@ -16,7 +16,7 @@
 namespace hfp3d {
 
     // fault (crack) state, node-wise
-    struct Frac_State {
+    struct Frac_State_T {
         // "damage state", node-wise
         il::Array<double> mr_open; // max. reached relative opening (w/cr_open)
         il::Array<double> mr_slip; // max. reached relative slip (s/cr_slip)
@@ -29,7 +29,7 @@ namespace hfp3d {
     };
 
     // friction & cohesion parameters
-    struct F_C_Param {
+    struct F_C_Param_T {
         double cr_open; // critical opening
         double peak_ts; // peak tensile stress
         double cr_slip; // critical slip
@@ -41,10 +41,10 @@ namespace hfp3d {
     // General form of friction-cohesion model
     class F_C_Model {
     private:
-        F_C_Param f_c_param_;
+        F_C_Param_T f_c_param_;
 
     public:
-        F_C_Model(F_C_Param f_c_param) {
+        F_C_Model(F_C_Param_T f_c_param) {
             f_c_param_.cr_open = f_c_param.cr_open;
             f_c_param_.peak_ts = f_c_param.peak_ts;
             f_c_param_.cr_slip = f_c_param.cr_slip;
@@ -53,7 +53,7 @@ namespace hfp3d {
             f_c_param_.res_sf = f_c_param.res_sf;
         };
 
-        F_C_Param f_c_param() { return f_c_param_; };
+        F_C_Param_T f_c_param() { return f_c_param_; };
         double cr_open() { return f_c_param_.cr_open; };
         double cr_slip() { return f_c_param_.cr_slip; };
         double peak_ts() { return f_c_param_.peak_ts; };
@@ -66,7 +66,7 @@ namespace hfp3d {
         virtual void match_f_c // (node-wise)
                 (il::Array2D<double> &dd, // current displacements
                  il::io_t,
-                 Frac_State &f_state) // "damage state" & friction-cohesion
+                 Frac_State_T &f_state) // "damage state" & friction-cohesion
         = 0; // purely virtual in general
         // Note: dd must be in local coordinates!
     };
@@ -76,13 +76,13 @@ namespace hfp3d {
     // "Box" function for cohesion; linear slip-weakening for friction
     class F_C_BFW: F_C_Model {
 
-        F_C_BFW(F_C_Param f_c_param) :
+        F_C_BFW(F_C_Param_T f_c_param) :
                 F_C_Model(f_c_param){}
 
         void match_f_c
                 (il::Array2D<double> &dd,
                  il::io_t,
-                 Frac_State &f_state) {
+                 Frac_State_T &f_state) {
             IL_EXPECT_FAST(dd.size(0) == 3);
             il::int_t n_nod = dd.size(1);
             IL_EXPECT_FAST(n_nod == f_state.mr_open.size());
@@ -133,4 +133,4 @@ namespace hfp3d {
 
 }
 
-#endif //HFPX3D_VC_COHESION_FRICTION_H
+#endif //INC_HFPX3D_COHESION_FRICTION_H

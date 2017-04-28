@@ -9,8 +9,8 @@
 
 //
 
-#ifndef INC_3D_BEM_H_POTENTIAL_H
-#define INC_3D_BEM_H_POTENTIAL_H
+#ifndef INC_HFPX3D_H_POTENTIAL_H
+#define INC_HFPX3D_H_POTENTIAL_H
 
 #include <complex>
 #include <il/StaticArray3D.h>
@@ -31,4 +31,4 @@ namespace hfp3d {
              std::complex<double> d);
 
 }
-#endif //INC_3D_BEM_H_POTENTIAL_H
+#endif //INC_HFPX3D_H_POTENTIAL_H

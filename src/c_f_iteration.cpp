@@ -26,8 +26,8 @@ namespace hfp3d {
     // This function performs one iteration step
     // of the volume control scheme on a pre-existing mesh
     // with ability to add new elements (this part is under development)
-            (const Mesh_Geom &mesh, // triangulation data
-             const Num_Param &n_par, // mesh preprocessing params: beta etc
+            (const Mesh_Geom_T &mesh, // triangulation data
+             const Num_Param_T &n_par, // mesh preprocessing params: beta etc
              double mu, double nu, // shear modulus, Poisson ratio
              const il::StaticArray<double, 6> &s_inf, // stress at infinity
              const F_C_Model &cf_m, // friction-cohesion model
@@ -36,7 +36,7 @@ namespace hfp3d {
              const Frac_State &prev_cp_state, // "damage state" @ prev time step
              double t_vol, // injected volume at the current time step
              il::io_t,
-             Mesh_Data &m_data, // DD, pressure at nodal points
+             Mesh_Data_T &m_data, // DD, pressure at nodal points
              DoF_Handle_T &dof_h,
              Frac_State &iter_cp_state // "damage state" @ current time step
             ) {

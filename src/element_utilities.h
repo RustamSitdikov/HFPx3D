@@ -7,8 +7,8 @@
 // See the LICENSE.TXT file for more details. 
 //
 
-#ifndef INC_3D_BEM_ELE_BASE_H
-#define INC_3D_BEM_ELE_BASE_H
+#ifndef INC_HFPX3D_ELEM_UTILITIES_H
+#define INC_HFPX3D_ELEM_UTILITIES_H
 
 #include <complex>
 #include <il/StaticArray.h>
@@ -24,7 +24,7 @@ namespace hfp3d {
     };
 
 // element properties in one strucure
-    struct Ele_Struct {
+    struct Element_Struct_T {
         // vertices' coordinates
         il::StaticArray2D<double, 3, 3> vert;
         // vertices' "weights" (defining the positions of edge nodes)
@@ -38,6 +38,8 @@ namespace hfp3d {
         // values of nodal SF at collocation points
         il::StaticArray<il::StaticArray<double, 6>, 6> sf_cp;
     };
+
+/////// the utilities ///////
 
 // Element's local coordinate system manipulations
 
@@ -90,7 +92,7 @@ namespace hfp3d {
     // This function defines the whole set of element properties:
     // vertex coordinates, rotational tensor, collocation points,
     // coefficients of nodal shape functions, and their values for each CP
-    Ele_Struct set_ele_struct(il::StaticArray2D<double, 3, 3> &el_vert,
+    Element_Struct_T set_ele_struct(il::StaticArray2D<double, 3, 3> &el_vert,
                         //il::StaticArray<double, 3> %vert_wts,
                         double beta);
 
@@ -116,4 +118,4 @@ namespace hfp3d {
 
 }
 
-#endif //INC_3D_BEM_ELE_BASE_H
+#endif //INC_HFPX3D_ELEM_UTILITIES_H

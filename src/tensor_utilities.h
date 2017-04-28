@@ -7,8 +7,8 @@
 // See the LICENSE.TXT file for more details. 
 //
 
-#ifndef INC_3D_BEM_TENSOR_OPER_H
-#define INC_3D_BEM_TENSOR_OPER_H
+#ifndef INC_HFPX3D_TENSOR_UTILITIES_H
+#define INC_HFPX3D_TENSOR_UTILITIES_H
 
 #include <il/Array2D.h>
 #include <il/StaticArray2D.h>
@@ -56,4 +56,4 @@ namespace hfp3d {
              il::io_t, T_A &a);
 
 }
-#endif //INC_3D_BEM_TENSOR_OPER_H
+#endif //INC_HFPX3D_TENSOR_UTILITIES_H

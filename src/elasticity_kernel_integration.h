@@ -7,8 +7,8 @@
 // See the LICENSE.TXT file for more details. 
 //
 
-#ifndef INC_3D_BEM_ELAST_KER_INT_H
-#define INC_3D_BEM_ELAST_KER_INT_H
+#ifndef INC_HFPX3D_ELAST_KER_INT_H
+#define INC_HFPX3D_ELAST_KER_INT_H
 
 #include <complex>
 #include <il/StaticArray.h>
@@ -66,4 +66,4 @@ namespace hfp3d {
 
 }
 
-#endif //INC_3D_BEM_ELAST_KER_INT_H
+#endif //INC_HFPX3D_ELAST_KER_INT_H

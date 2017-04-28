@@ -22,7 +22,7 @@ namespace hfp3d {
              const std::string &conn_f_name,
              const std::string &node_f_name,
              bool is_matlab,
-             il::io_t, Mesh_Geom &mesh) {
+             il::io_t, Mesh_Geom_T &mesh) {
 // This function reads the mesh connectivity matrix (3*N_elements)
 // (32-bit integer)
 // and node coordinates matrix (3*N_nodes) from numpy binary files
@@ -60,7 +60,7 @@ namespace hfp3d {
              const std::string &conn_f_name,
              const std::string &node_f_name,
              bool is_matlab,
-             il::io_t, Mesh_Geom &mesh) {
+             il::io_t, Mesh_Geom_T &mesh) {
 // This function reads the mesh connectivity matrix (3*N_elements)
 // (64-bit integer)
 // and node coordinates matrix (3*N_nodes) from numpy binary files

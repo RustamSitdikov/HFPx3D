@@ -7,8 +7,8 @@
 // See the LICENSE.TXT file for more details. 
 //
 
-#ifndef INC_3D_BEM_LOAD_MESH_FROM_FILE_H
-#define INC_3D_BEM_LOAD_MESH_FROM_FILE_H
+#ifndef INC_HFPX3D_MESH_FILE_IO_H
+#define INC_HFPX3D_MESH_FILE_IO_H
 
 #include <cstdio>
 #include <complex>
@@ -25,14 +25,14 @@ namespace hfp3d {
              const std::string &conn_f_name,
              const std::string &node_f_name,
              bool is_matlab,
-             il::io_t, Mesh_Geom &mesh);
+             il::io_t, Mesh_Geom_T &mesh);
 
     void load_mesh_from_numpy_64
             (const std::string &src_dir,
              const std::string &conn_f_name,
              const std::string &node_f_name,
              bool is_matlab,
-             il::io_t, Mesh_Geom &mesh);
+             il::io_t, Mesh_Geom_T &mesh);
 
     template <typename T>
     void save_data_to_csv(
@@ -123,4 +123,4 @@ namespace hfp3d {
 
 }
 
-#endif //INC_3D_BEM_LOAD_MESH_FROM_FILE_H
+#endif //INC_HFPX3D_MESH_FILE_IO_H

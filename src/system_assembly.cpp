@@ -203,20 +203,22 @@ namespace hfp3d {
 // Static matrix assembly
     il::Array2D<double> make_3dbem_matrix_s
             (double mu, double nu,
-             const Mesh_Geom &mesh,
-             const Num_Param &n_par,
+             const Mesh_Geom_T &mesh,
+             const Num_Param_T &n_par,
              il::io_t, DoF_Handle_T &dof_hndl) {
 // This function performs BEM matrix assembly from boundary mesh geometry data:
 // mesh connectivity (mesh.conn) and nodes' coordinates (mesh.nods)
 
-// Naive way: no ACA. For parallel assembly uncomment line 235
+// Naive way: no ACA. For parallel assembly uncomment line 237
 
         IL_EXPECT_FAST(mesh.conn.size(0) >= 3);
         IL_EXPECT_FAST(mesh.conn.size(1) >= 1); // at least 1 element
         IL_EXPECT_FAST(mesh.nods.size(0) >= 3);
         IL_EXPECT_FAST(mesh.nods.size(1) >= 3); // at least 3 nodes
 
-        dof_hndl = make_dof_h_triangular(mesh, 2, n_par.tip_type);
+        if (dof_hndl.n_dof == 0 || dof_hndl.dof_h.size(0) == 0) {
+            dof_hndl = make_dof_h_crack(mesh, 2, n_par.tip_type);
+        }
 
         const il::int_t num_ele = mesh.conn.size(1);
         const il::int_t num_dof = dof_hndl.n_dof;
@@ -377,14 +379,14 @@ namespace hfp3d {
 // Volume Control matrix assembly (additional row $ column)
     il::Array2D<double> make_3dbem_matrix_vc
             (double mu, double nu,
-             const Mesh_Geom &mesh,
-             const Num_Param &n_par,
+             const Mesh_Geom_T &mesh,
+             const Num_Param_T &n_par,
              il::io_t, DoF_Handle_T &dof_hndl) {
 // This function performs Volume Control BEM matrix assembly
 // from boundary mesh geometry data:
 // mesh connectivity (mesh.conn) and nodes' coordinates (mesh.nods)
 
-// Naive way: no ACA. For parallel assembly, uncomment line 410
+// Naive way: no ACA. For parallel assembly, uncomment line 412
 
         IL_EXPECT_FAST(mesh.conn.size(0) >= 3);
         IL_EXPECT_FAST(mesh.conn.size(1) >= 1); // at least 1 element
@@ -392,7 +394,7 @@ namespace hfp3d {
         IL_EXPECT_FAST(mesh.nods.size(1) >= 3); // at least 3 nodes
 
         if (dof_hndl.n_dof == 0 || dof_hndl.dof_h.size(0) == 0) {
-            dof_hndl = make_dof_h_triangular(mesh, 2, n_par.tip_type);
+            dof_hndl = make_dof_h_crack(mesh, 2, n_par.tip_type);
         }
 
         const il::int_t num_ele = mesh.conn.size(1);
@@ -499,7 +501,7 @@ namespace hfp3d {
                     //trac_cp_x_loc = il::dot
                     // (r_tensor_t, il::Blas::transpose, trac_cp_glob);
 
-                    if (n_par.is_dd_in_glob) {
+                    if (!n_par.is_dd_local) {
                         // Re-relating DD-to traction influence to DD
                         // w.r. to the reference coordinate system
                         il::StaticArray2D<double, 3, 3> trac_infl_n2p,
@@ -564,7 +566,7 @@ namespace hfp3d {
                 il::StaticArray<double, 3> sf_i_v {0.0};
                 // Integral of normal DD (opening) over the element
                 // for the n_s-th shape function
-                if (n_par.is_dd_in_glob) {
+                if (!n_par.is_dd_local) {
                     // dot([0, 0, sf_integral], r_tensor_s)
                     for (int j = 0; j < 3; ++j) {
                         sf_i_v[j] = sf_integral * r_tensor_s(2, j);
@@ -662,8 +664,8 @@ namespace hfp3d {
 // Stress at given points (m_pts_crd) vs DD at nodal points (mesh.nods)
     il::Array2D<double> make_3dbem_stress_f_s
             (double mu, double nu,
-             const Mesh_Geom &mesh,
-             const Num_Param &n_par,
+             const Mesh_Geom_T &mesh,
+             const Num_Param_T &n_par,
              // const Mesh_Data &m_data,
              const il::Array2D<double> &m_pts_crd) {
 // This function calculates Stress at given points (m_pts_crd)
@@ -671,7 +673,7 @@ namespace hfp3d {
 // using boundary mesh geometry data:
 // mesh connectivity (mesh.conn) and nodes' coordinates (mesh.nods)
 
-// Naive way: no ACA. For parallel assembly, uncomment line 688
+// Naive way: no ACA. For parallel assembly, uncomment line 690
 
         IL_EXPECT_FAST(mesh.conn.size(0) >= 3);
         IL_EXPECT_FAST(mesh.conn.size(1) >= 1); // at least 1 element
@@ -735,7 +737,7 @@ namespace hfp3d {
                 il::StaticArray2D<double, 6, 18> stress_infl_el2p_glob = 
                         rotate_sim(r_tensor_s, stress_infl_el2p_loc_h);
 
-                if (n_par.is_dd_in_glob) {
+                if (!n_par.is_dd_local) {
                     // Re-relating DD-to stress influence to DD
                     // w.r. to the reference coordinate system
                     il::StaticArray2D<double, 3, 3> stress_infl_n2p, 

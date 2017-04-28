@@ -11,8 +11,8 @@
 // on a triangular boundary mesh with 2nd order
 // polynomial approximation of unknowns
 
-#ifndef INC_3D_BEM_MATRIX_ASM_H
-#define INC_3D_BEM_MATRIX_ASM_H
+#ifndef INC_HFPX3D_MATRIX_ASM_H
+#define INC_HFPX3D_MATRIX_ASM_H
 
 #include <complex>
 #include <il/Array2D.h>
@@ -38,15 +38,15 @@ namespace hfp3d {
 // Static matrix assembly
     il::Array2D<double> make_3dbem_matrix_s
             (double mu, double nu,
-             const Mesh_Geom &mesh,
-             const Num_Param &n_par,
+             const Mesh_Geom_T &mesh,
+             const Num_Param_T &n_par,
              il::io_t, DoF_Handle_T &dof_hndl);
 
 // Volume Control matrix assembly (additional row $ column)
     il::Array2D<double> make_3dbem_matrix_vc
             (double mu, double nu,
-             const Mesh_Geom &mesh,
-             const Num_Param &n_par,
+             const Mesh_Geom_T &mesh,
+             const Num_Param_T &n_par,
              il::io_t, DoF_Handle_T &dof_hndl);
 
 // Volume Control system modification (for DD increments)
@@ -60,11 +60,11 @@ namespace hfp3d {
 // Stress at given points (m_pts_crd) vs DD at nodal points (nodes_crd)
     il::Array2D<double> make_3dbem_stress_f_s
             (double mu, double nu,
-             const Mesh_Geom &mesh,
-             const Num_Param &n_par,
+             const Mesh_Geom_T &mesh,
+             const Num_Param_T &n_par,
              // const Mesh_Data &m_data,
              const il::Array2D<double> &m_pts_crd);
 
 }
 
-#endif //INC_3D_BEM_MATRIX_ASM_H
+#endif //INC_HFPX3D_MATRIX_ASM_H
