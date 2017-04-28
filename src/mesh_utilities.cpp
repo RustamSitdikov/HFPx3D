@@ -102,7 +102,7 @@ namespace hfp3d {
             (const Mesh_Geom_T &i_mesh,
              int ap_order,
              //int tip_type,
-             il::Array2D<il::int_t> inj_pts) {
+             il::Array2D<il::int_t> inj_loc) {
         // This function makes the DoF handles for DD and pressure
         // assuming the surface mesh given by mesh connectivity (mesh.conn)
         // and nodes' coordinates (mesh.nods) is a fault w. injection points
@@ -117,8 +117,8 @@ namespace hfp3d {
         // number of DD DoF per element
         int ndpe = 3 * nnpe;
         // number of injection-affected elements
-        il::int_t n_ie = inj_pts.size(0);
-        IL_EXPECT_FAST(inj_pts.size(1) >= nnpe + 1);
+        il::int_t n_ie = inj_loc.size(0);
+        IL_EXPECT_FAST(inj_loc.size(1) >= nnpe + 1);
 
         Mesh_Data_T m_data;
         // pass input mesh (i_mesh) handle
@@ -133,7 +133,7 @@ namespace hfp3d {
 
         // DD and pressure arrays initialization
         m_data.dd = il::Array2D<double> {n_el * nnpe, 3, 0.0};
-        // for discontinuous Galerkin scheme
+        // for discontinuous Galerkin scheme, element-wise
         m_data.pp = il::Array<double> {n_el * nnpe, 0.0};
         // for continuous scheme, e.g. FV
         //m_data.pp = il::Array<double> {?, 0.0};
@@ -148,13 +148,13 @@ namespace hfp3d {
         // loop over elements w. injection points
         for (il::int_t i_el = 0; i_el < n_ie; ++i_el) {
             // element No
-            il::int_t el = inj_pts(i_el, 0);
+            il::int_t el = inj_loc(i_el, 0);
             // adding element to "filled" and "active" sets
             m_data.fe_set[i_el] = el;
             m_data.ae_set[i_el] = el;
             // loop over nodal points of the element
             for (int n = 0; n < nnpe; ++n) {
-                il::int_t i_n = inj_pts(i_el, n + 1);
+                il::int_t i_n = inj_loc(i_el, n + 1);
                 // look if pressure is applied at the node
                 if (i_n != -1) {
                     ++g_pp_dof;
@@ -173,29 +173,35 @@ namespace hfp3d {
         return m_data;
     }
 
-    // 2D (n x 3) to 1D array conversion for DD
+    // 2D (n x 3) to 1D (RHS) array conversion for DD
+    // according to DoF handles
     il::Array<double> get_dd_vector_from_md
             (const Mesh_Data_T &m_data,
-             const DoF_Handle_T &dof_h,
+             const DoF_Handle_T &dof_h_dd,
              bool include_p,
-             const il::Array<il::int_t> inj_pts) {
+             const DoF_Handle_T &dof_h_pp) {
         // number of elements
-        il::int_t n_el = dof_h.dof_h.size(0);
-        
-        // number of "active" nodes
-        il::int_t n_a_n = dof_h.n_dof / 3;
-        
-        // number of "active" elements
-        //il::int_t n_a_e = m_data.ae_set.size();
-        
-        // make sure that dimensions match
-        IL_EXPECT_FAST(m_data.dd.size(1) == 3);
-        IL_EXPECT_FAST(m_data.dd.size(0) == n_el * 6);
-        //IL_EXPECT_FAST(n_a_e * 6 == n_a_n);
+        il::int_t n_el = dof_h_dd.dof_h.size(0);
 
-        // initialization of DD array (output)
-        il::Array<double> dd_v {3 * n_a_n + inj_pts.size(), 0.};
-        
+        // number of DoF for DD
+        il::int_t n_dd_dof = dof_h_dd.n_dof;
+
+        // number of DoF for pressure
+        il::int_t n_pp_dof = (include_p ? dof_h_pp.n_dof: 0);
+
+        // make sure that dimensions match
+        IL_EXPECT_FAST(dof_h_dd.dof_h.size(0) == n_el);
+        IL_EXPECT_FAST(m_data.dd.size(0) == n_el * 6);
+        IL_EXPECT_FAST(m_data.dd.size(1) == 3);
+        if (include_p) {
+            IL_EXPECT_FAST(dof_h_pp.dof_h.size(0) == n_el);
+            IL_EXPECT_FAST(m_data.pp.size() == n_el);
+        }
+
+        // initialization of RHS vector (output)
+        il::Array<double> rhs_v {n_dd_dof + n_pp_dof, 0.};
+
+        // copying DD values
         // loop over elements
         for (il::int_t el = 0; el < n_el; ++el) {
             // loop over local nodes (1 .. 6)
@@ -206,45 +212,61 @@ namespace hfp3d {
                 for (int i = 0; i < 3; ++i) {
                     // local DoF (1 .. 18)
                     il::int_t j = 3 * en + i;
-                    // copy DD value if listed in dof_h
-                    if (dof_h.dof_h(el, j) != -1) {
-                        dd_v[dof_h.dof_h(el, j)] = m_data.dd(n, i);
+                    // copying the DD value if listed in dof_h_dd
+                    if (dof_h_dd.dof_h(el, j) != -1) {
+                        rhs_v[dof_h_dd.dof_h(el, j)] = m_data.dd(n, i);
                     }
                 }
             }
         }
 
-        // add pressure (at injection points) if requested
+        // copying pressure values if requested
         if (include_p) {
-            for (il::int_t ip = 0; ip < inj_pts.size(); ++ip) {
-                dd_v.append(m_data.pp[inj_pts[ip]]);
+            // loop over elements
+            for (il::int_t el = 0; el < n_el; ++el) {
+                // loop over local nodes (1 .. 6)
+                for (int en = 0; en < 6; ++en) {
+                    // node No
+                    il::int_t n = 6 * el + en;
+                    // copy pressure value if listed in dof_h_pp
+                    if (dof_h_pp.dof_h(el, n) != -1) {
+                        rhs_v[dof_h_pp.dof_h(el, n)] = m_data.pp[n];
+                    }
+                }
             }
         }
-        return dd_v;
+        return rhs_v;
     }
 
-    // 1D to 2D (n x 3) array conversion for DD
+    // 1D (RHS) to 2D (n x 3) array conversion for DD
+    // according to DoF handles
     void write_dd_vector_to_md
-            (const il::Array<double> &dd_v,
-             const DoF_Handle_T &dof_h,
+            (const il::Array<double> &rhs_v,
+             const DoF_Handle_T &dof_h_dd,
              bool include_p,
-             const il::Array<il::int_t> inj_pts,
+             const DoF_Handle_T &dof_h_pp,
              il::io_t,
              Mesh_Data_T &m_data) {
         // number of elements
-        il::int_t n_el = dof_h.dof_h.size(0);
-        
-        // number of "active" nodes
-        //il::int_t n_a_n = dof_h.n_dof / 3;
+        il::int_t n_el = dof_h_dd.dof_h.size(0);
 
-        // number of "active" elements
-        //il::int_t n_a_e = m_data.ae_set.size();
-        
+        // number of DoF for DD
+        il::int_t n_dd_dof = dof_h_dd.n_dof;
+
+        // number of DoF for pressure
+        il::int_t n_pp_dof = (include_p ? dof_h_pp.n_dof: 0);
+
         // make sure that dimensions match
-        IL_EXPECT_FAST(m_data.dd.size(1) == 3);
+        IL_EXPECT_FAST(dof_h_dd.dof_h.size(0) == n_el);
         IL_EXPECT_FAST(m_data.dd.size(0) == n_el * 6);
-        //IL_EXPECT_FAST(n_a_e * 6 == n_a_n);
+        IL_EXPECT_FAST(m_data.dd.size(1) == 3);
+        if (include_p) {
+            IL_EXPECT_FAST(dof_h_pp.dof_h.size(0) == n_el);
+            IL_EXPECT_FAST(m_data.pp.size() == n_el);
+        }
+        IL_EXPECT_FAST(rhs_v.size() == n_dd_dof + n_pp_dof);
 
+        // copying values
         // loop over elements
         for (il::int_t el = 0; el < n_el; ++el) {
             // loop over local nodes (1 .. 6)
@@ -255,18 +277,17 @@ namespace hfp3d {
                 for (int i = 0; i < 3; ++i) {
                     // local DoF (1 .. 18)
                     il::int_t j = 3 * en + i;
-                    // copy DD value if listed in dof_h
-                    if (dof_h.dof_h(el, j) != -1) {
-                        m_data.dd(n, i) = dd_v[dof_h.dof_h(el, j)];
+                    // copying the DD value if listed in dof_h_dd
+                    if (dof_h_dd.dof_h(el, j) != -1) {
+                        m_data.dd(n, i) = rhs_v[dof_h_dd.dof_h(el, j)];
                     }
                 }
-            }
-        }
-
-        // add pressure if requested
-        if (include_p) {
-            for (il::int_t ip = 0; ip < inj_pts.size(); ++ip) {
-                m_data.pp[inj_pts[ip]] = dd_v[ip];
+                // copying the pressure value if requested
+                if (include_p) {
+                    if (dof_h_pp.dof_h(el, en) != -1) {
+                        m_data.pp[n] = rhs_v[n_dd_dof + dof_h_pp.dof_h(el, en)];
+                    }
+                }
             }
         }
     }

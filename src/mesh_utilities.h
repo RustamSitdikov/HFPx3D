@@ -27,14 +27,30 @@ namespace hfp3d {
 
         // mesh connectivity
         il::Array2D<il::int_t> conn;
+
+        // material ID
+        //il::Array<int> mat_id;
     };
 
     // physical model parameters
+    struct Properties_T {};
+
+    // load parameters
+    struct Load_T {
+        // stress at infinity
+        il::StaticArray<double, 6> s_inf{};
+
+        // injection locations (elements, nodes)
+        il::Array2D<il::int_t> inj_loc{};
+
+        // injection rate(s)
+        il::Array<double> inj_rate{};
+    };
 
     // numerical simulation parameters
     struct Num_Param_T {
         // order (0, 1, or 2) of approximating (shape) functions for DD
-        // int appr_order = 2;
+        // int approx_order = 2;
 
         // relative collocation points' position
         double beta = 0.125;
@@ -51,10 +67,9 @@ namespace hfp3d {
 
         // how to partition edges
         // bool is_part_uniform = true;
-
     };
 
-    // DoF handle type
+    // DoF handle structure
     struct DoF_Handle_T {
         // No of DoF in use
         il::int_t n_dof = 0;
@@ -97,15 +112,15 @@ namespace hfp3d {
         // fluid pressure, for all nodes
         il::Array<double> pp;
 
-        // damage %, dilatancy, etc
+        // dependent variables: rates, damage %, dilatancy, etc
 
-        // convergence
+        // convergence (discrepancy)
 
         // status
         il::Status status{};
     };
 
-    /////// some utilities ///////
+/////// some utilities ///////
 
     // DoF handle initialization for an isolated crack
     // (fixed DoF at crack tip nodes defined by tip_type)
@@ -119,24 +134,25 @@ namespace hfp3d {
             (const Mesh_Geom_T &mesh,
              int ap_order,
              //int tip_type,
-             il::Array2D<il::int_t> inj_pts);
+             il::Array2D<il::int_t> inj_loc);
 
     // 2D to 1D array conversion for DD
+    // according to DoF handles
     il::Array<double> get_dd_vector_from_md
             (const Mesh_Data_T &m_data,
              const DoF_Handle_T &dof_h,
              bool include_p,
-             const il::Array<il::int_t> inj_pts);
+             const DoF_Handle_T &dof_h_pp);
 
     // 1D to 2D array conversion for DD
+    // according to DoF handles
     void write_dd_vector_to_md
             (const il::Array<double> &dd_v,
-             const DoF_Handle_T &dof_h,
+             const DoF_Handle_T &dof_h_dd,
              bool include_p,
-             const il::Array<il::int_t> inj_pts,
+             const DoF_Handle_T &dof_h_pp,
              il::io_t,
              Mesh_Data_T &m_data);
-
 }
 
 #endif //INC_HFPX3D_MESH_UTILITIES_H

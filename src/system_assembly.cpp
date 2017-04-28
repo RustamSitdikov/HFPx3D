@@ -25,7 +25,7 @@
 
 namespace hfp3d {
 
-// Element-to-point influence matrix (submatrix of the global one)
+    // Element-to-point influence matrix (submatrix of the global one)
     il::StaticArray2D<double, 6, 18>
     make_local_3dbem_submatrix
             (const int kernel_id,
@@ -200,7 +200,7 @@ namespace hfp3d {
         return stress_el_2_el_infl;
     }
 
-// Static matrix assembly
+    // Static matrix assembly
     il::Array2D<double> make_3dbem_matrix_s
             (double mu, double nu,
              const Mesh_Geom_T &mesh,
@@ -376,7 +376,146 @@ namespace hfp3d {
         return global_matrix;
     }
 
-// Volume Control matrix assembly (additional row $ column)
+    // Stress at given points (m_pts_crd) vs DD at nodal points (mesh.nods)
+    il::Array2D<double> make_3dbem_stress_f_s
+            (double mu, double nu,
+             const Mesh_Geom_T &mesh,
+             const Num_Param_T &n_par,
+             //const Mesh_Data_T &m_data,
+             const il::Array2D<double> &m_pts_crd) {
+// This function calculates Stress at given points (m_pts_crd)
+// vs DD (m_data.DD) at nodal points (mesh.nods)
+// using boundary mesh geometry data:
+// mesh connectivity (mesh.conn) and nodes' coordinates (mesh.nods)
+
+// Naive way: no ACA. For parallel assembly, uncomment line 690
+
+        IL_EXPECT_FAST(mesh.conn.size(0) >= 3);
+        IL_EXPECT_FAST(mesh.conn.size(1) >= 1); // at least 1 element
+        IL_EXPECT_FAST(mesh.nods.size(0) >= 3);
+        IL_EXPECT_FAST(mesh.nods.size(1) >= 3); // at least 3 nodes
+
+        const il::int_t num_ele = mesh.conn.size(1);
+        const il::int_t num_dof = 18 * num_ele;
+        const il::int_t num_of_m_pts = m_pts_crd.size(1);
+
+        il::Array2D<double> stress_infl_matrix(6 * num_of_m_pts, num_dof);
+
+        // Loop over elements
+//#pragma omp parallel for
+        for (il::int_t source_elem = 0; source_elem < num_ele; ++source_elem) {
+            // Vertices' coordinates
+            il::StaticArray2D<double, 3, 3> el_vert_s;
+            //il::StaticArray<double, 3> vert_wts_t;
+            for (il::int_t j = 0; j < 3; ++j) {
+                il::int_t n = mesh.conn(j, source_elem);
+                for (il::int_t k = 0; k < 3; ++k) {
+                    el_vert_s(k, j) = mesh.nods(k, n);
+                }
+                // get vert_wts_s[j]
+            }
+
+            // Basis (shape) functions and
+            // rotation tensor (r_tensor_s) of the element (source_elem)
+            il::StaticArray2D<double, 3, 3> r_tensor_s;
+            il::StaticArray2D<std::complex<double>, 6, 6> sfm =
+                    make_el_sfm_uniform(el_vert_s, il::io, r_tensor_s);
+            //il::StaticArray2D<std::complex<double>, 6, 6> sfm =
+            // make_el_sfm_nonuniform(r_tensor, el_vert, vert_wts_s);
+
+            // Complex-valued positions of "source" element nodes
+            il::StaticArray<std::complex<double>, 3> tau =
+                    make_el_tau_crd(el_vert_s, r_tensor_s);
+
+            // Loop over monitoring points
+            for (il::int_t m_pt = 0; m_pt < num_of_m_pts; ++m_pt) {
+                // Monitoring points' coordinates
+                il::StaticArray<double, 3> m_p_crd;
+                for (il::int_t j = 0; j < 3; ++j) {
+                    m_p_crd[j] = m_pts_crd(j, m_pt);
+                }
+
+                // Shifting to the monitoring point
+                HZ hz = make_el_pt_hz(el_vert_s, m_p_crd, r_tensor_s);
+
+                // Calculating DD-to stress influence
+                // w.r. to the source element's local coordinate system
+                il::StaticArray2D<double, 6, 18> stress_infl_el2p_loc_h =
+                        make_local_3dbem_submatrix
+                                (1, mu, nu, hz.h, hz.z, tau, sfm);
+                //il::StaticArray2D<double, 6, 18> stress_infl_el2p_loc_t =
+                // make_local_3dbem_submatrix
+                // (0, mu, nu, hz.h, hz.z, tau, sfm);
+
+                // Rotating stress at m_pt
+                // to the reference ("global") coordinate system
+                il::StaticArray2D<double, 6, 18> stress_infl_el2p_glob =
+                        rotate_sim(r_tensor_s, stress_infl_el2p_loc_h);
+
+                if (!n_par.is_dd_local) {
+                    // Re-relating DD-to stress influence to DD
+                    // w.r. to the reference coordinate system
+                    il::StaticArray2D<double, 3, 3> stress_infl_n2p,
+                            stress_infl_n2p_glob;
+                    for (int n_s = 0; n_s < 6; ++n_s) {
+                        // taking a block (one node of the "source" element)
+                        for (int j = 0; j < 3; ++j) {
+                            for (int k = 0; k < 6; ++k) {
+                                stress_infl_n2p(k, j) =
+                                        stress_infl_el2p_glob(k, 3 * n_s + j);
+                            }
+                        }
+
+                        // Coordinate rotation (inverse)
+                        stress_infl_n2p_glob =
+                                il::dot(stress_infl_n2p, r_tensor_s);
+
+                        // Adding the block to the element-to-point
+                        // influence sub-matrix
+                        for (int j = 0; j < 3; ++j) {
+                            for (int k = 0; k < 6; ++k) {
+                                stress_infl_el2p_glob(k, 3 * n_s + j) =
+                                        stress_infl_n2p_glob(k, j);
+                            }
+                        }
+                    }
+                }
+
+                // Adding the element-to-point influence sub-matrix
+                // to the global stress matrix
+                IL_EXPECT_FAST(6 * (m_pt + 1) <= stress_infl_matrix.size(0));
+                IL_EXPECT_FAST(18 * (source_elem + 1) <=
+                               stress_infl_matrix.size(1));
+                for (il::int_t j1 = 0; j1 < 18; ++j1) {
+                    for (il::int_t j0 = 0; j0 < 6; ++j0) {
+                        stress_infl_matrix
+                                (6 * m_pt + j0, 18 * source_elem + j1) =
+                                stress_infl_el2p_glob(j0, j1);
+                    }
+                }
+            }
+        }
+        return stress_infl_matrix;
+        // il::Array<double> disp_vect{num_dof};
+        // for (il::int_t k = 0; k < 6 * num_ele; ++k) {
+        // for (il::int_t j = 0; j < 3; ++j) {
+        // il::int_t l = 3 * k + j;
+        // disp_vect[l] = m_data.DD(k, j);
+        // }
+        // }
+        // il::Array<double> stress_vect{6 * num_of_m_pts} =
+        // il::dot(stress_infl_matrix, disp_vect);
+        // il::Array2D<double> stress_array{num_of_m_pts, 6};
+        // for (il::int_t k = 0; k < num_of_m_pts; ++k) {
+        // for (il::int_t j = 0; j < 6; ++j) {
+        // il::int_t l = 6 * k + j;
+        // stress_array(k, j) = stress_vec[l];
+        // }
+        // }
+        // return stress_array;
+    }
+
+    // Volume Control matrix assembly (additional row $ column)
     il::Array2D<double> make_3dbem_matrix_vc
             (double mu, double nu,
              const Mesh_Geom_T &mesh,
@@ -592,8 +731,8 @@ namespace hfp3d {
         return global_matrix;
     }
 
-// Volume Control system modification (for DD increments)
-    Alg_Sys_T mod_3dbem_system_vc
+    // Volume Control system modification (for DD increments)
+    SAE_T mod_3dbem_system_vc
             (const il::Array2D<double> &orig_matrix,
              const DoF_Handle_T &orig_dof_hndl,
              const DoF_Handle_T &dof_hndl,
@@ -612,11 +751,11 @@ namespace hfp3d {
         const il::int_t used_ndof = dof_hndl.n_dof;
         // check if the used matrix is smaller that the original matrix
         IL_EXPECT_FAST(used_ndof > 0 && used_ndof <= orig_ndof);
-        Alg_Sys_T alg_system;
+        SAE_T alg_system;
         // RHS
-        alg_system.rhside = il::Array<double>{used_ndof + 1};
+        alg_system.rhs_v = il::Array<double>{used_ndof + 1};
         // (sought volume delta)
-        alg_system.rhside[used_ndof] = delta_v;
+        alg_system.rhs_v[used_ndof] = delta_v;
         const il::int_t tsize = delta_t.size();
         IL_EXPECT_FAST( tsize == full_ndof ||
                         tsize == orig_ndof ||
@@ -649,155 +788,16 @@ namespace hfp3d {
                     // RHS (sought traction delta)
                     if (tsize == full_ndof) {
                         il::int_t f_s_dof = s_ele * ndpe + j;
-                        alg_system.rhside[s_dof] = delta_t[f_s_dof];
+                        alg_system.rhs_v[s_dof] = delta_t[f_s_dof];
                     } else if (tsize == orig_ndof) {
-                        alg_system.rhside[s_dof] = delta_t[o_s_dof];
+                        alg_system.rhs_v[s_dof] = delta_t[o_s_dof];
                     } else {
-                        alg_system.rhside[s_dof] = delta_t[s_dof];
+                        alg_system.rhs_v[s_dof] = delta_t[s_dof];
                     }
                 }
             }
         }
         return alg_system;
-    }
-
-// Stress at given points (m_pts_crd) vs DD at nodal points (mesh.nods)
-    il::Array2D<double> make_3dbem_stress_f_s
-            (double mu, double nu,
-             const Mesh_Geom_T &mesh,
-             const Num_Param_T &n_par,
-             // const Mesh_Data &m_data,
-             const il::Array2D<double> &m_pts_crd) {
-// This function calculates Stress at given points (m_pts_crd)
-// vs DD (m_data.DD) at nodal points (mesh.nods)
-// using boundary mesh geometry data:
-// mesh connectivity (mesh.conn) and nodes' coordinates (mesh.nods)
-
-// Naive way: no ACA. For parallel assembly, uncomment line 690
-
-        IL_EXPECT_FAST(mesh.conn.size(0) >= 3);
-        IL_EXPECT_FAST(mesh.conn.size(1) >= 1); // at least 1 element
-        IL_EXPECT_FAST(mesh.nods.size(0) >= 3);
-        IL_EXPECT_FAST(mesh.nods.size(1) >= 3); // at least 3 nodes
-
-        const il::int_t num_ele = mesh.conn.size(1);
-        const il::int_t num_dof = 18 * num_ele;
-        const il::int_t num_of_m_pts = m_pts_crd.size(1);
-
-        il::Array2D<double> stress_infl_matrix(6 * num_of_m_pts, num_dof);
-
-        // Loop over elements
-//#pragma omp parallel for
-        for (il::int_t source_elem = 0; source_elem < num_ele; ++source_elem) {
-            // Vertices' coordinates
-            il::StaticArray2D<double, 3, 3> el_vert_s;
-            //il::StaticArray<double, 3> vert_wts_t;
-            for (il::int_t j = 0; j < 3; ++j) {
-                il::int_t n = mesh.conn(j, source_elem);
-                for (il::int_t k = 0; k < 3; ++k) {
-                    el_vert_s(k, j) = mesh.nods(k, n);
-                }
-                // get vert_wts_s[j]
-            }
-
-            // Basis (shape) functions and
-            // rotation tensor (r_tensor_s) of the element (source_elem)
-            il::StaticArray2D<double, 3, 3> r_tensor_s;
-            il::StaticArray2D<std::complex<double>, 6, 6> sfm = 
-                    make_el_sfm_uniform(el_vert_s, il::io, r_tensor_s);
-            //il::StaticArray2D<std::complex<double>, 6, 6> sfm = 
-            // make_el_sfm_nonuniform(r_tensor, el_vert, vert_wts_s);
-
-            // Complex-valued positions of "source" element nodes
-            il::StaticArray<std::complex<double>, 3> tau = 
-                    make_el_tau_crd(el_vert_s, r_tensor_s);
-
-            // Loop over monitoring points
-            for (il::int_t m_pt = 0; m_pt < num_of_m_pts; ++m_pt) {
-                // Monitoring points' coordinates
-                il::StaticArray<double, 3> m_p_crd;
-                for (il::int_t j = 0; j < 3; ++j) {
-                    m_p_crd[j] = m_pts_crd(j, m_pt);
-                }
-
-                // Shifting to the monitoring point
-                HZ hz = make_el_pt_hz(el_vert_s, m_p_crd, r_tensor_s);
-
-                // Calculating DD-to stress influence
-                // w.r. to the source element's local coordinate system
-                il::StaticArray2D<double, 6, 18> stress_infl_el2p_loc_h = 
-                        make_local_3dbem_submatrix
-                                (1, mu, nu, hz.h, hz.z, tau, sfm);
-                //il::StaticArray2D<double, 6, 18> stress_infl_el2p_loc_t = 
-                // make_local_3dbem_submatrix
-                // (0, mu, nu, hz.h, hz.z, tau, sfm);
-
-                // Rotating stress at m_pt
-                // to the reference ("global") coordinate system
-                il::StaticArray2D<double, 6, 18> stress_infl_el2p_glob = 
-                        rotate_sim(r_tensor_s, stress_infl_el2p_loc_h);
-
-                if (!n_par.is_dd_local) {
-                    // Re-relating DD-to stress influence to DD
-                    // w.r. to the reference coordinate system
-                    il::StaticArray2D<double, 3, 3> stress_infl_n2p, 
-                            stress_infl_n2p_glob;
-                    for (int n_s = 0; n_s < 6; ++n_s) {
-                        // taking a block (one node of the "source" element)
-                        for (int j = 0; j < 3; ++j) {
-                            for (int k = 0; k < 6; ++k) {
-                                stress_infl_n2p(k, j) = 
-                                        stress_infl_el2p_glob(k, 3 * n_s + j);
-                            }
-                        }
-
-                        // Coordinate rotation (inverse)
-                        stress_infl_n2p_glob = 
-                                il::dot(stress_infl_n2p, r_tensor_s);
-
-                        // Adding the block to the element-to-point
-                        // influence sub-matrix
-                        for (int j = 0; j < 3; ++j) {
-                            for (int k = 0; k < 6; ++k) {
-                                stress_infl_el2p_glob(k, 3 * n_s + j) = 
-                                        stress_infl_n2p_glob(k, j);
-                            }
-                        }
-                    }
-                }
-
-                // Adding the element-to-point influence sub-matrix
-                // to the global stress matrix
-                IL_EXPECT_FAST(6 * (m_pt + 1) <= stress_infl_matrix.size(0));
-                IL_EXPECT_FAST(18 * (source_elem + 1) <=
-                                       stress_infl_matrix.size(1));
-                for (il::int_t j1 = 0; j1 < 18; ++j1) {
-                    for (il::int_t j0 = 0; j0 < 6; ++j0) {
-                        stress_infl_matrix
-                                (6 * m_pt + j0, 18 * source_elem + j1) = 
-                                stress_infl_el2p_glob(j0, j1);
-                    }
-                }
-            }
-        }
-        return stress_infl_matrix;
-        // il::Array<double> disp_vect{num_dof};
-        // for (il::int_t k = 0; k < 6 * num_ele; ++k) {
-        // for (il::int_t j = 0; j < 3; ++j) {
-        // il::int_t l = 3 * k + j;
-        // disp_vect[l] = m_data.DD(k, j);
-        // }
-        // }
-        // il::Array<double> stress_vect{6 * num_of_m_pts} =
-        // il::dot(stress_infl_matrix, disp_vect);
-        // il::Array2D<double> stress_array{num_of_m_pts, 6};
-        // for (il::int_t k = 0; k < num_of_m_pts; ++k) {
-        // for (il::int_t j = 0; j < 6; ++j) {
-        // il::int_t l = 6 * k + j;
-        // stress_array(k, j) = stress_vec[l];
-        // }
-        // }
-        // return stress_array;
     }
 
 }
