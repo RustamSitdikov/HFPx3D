@@ -29,7 +29,7 @@ namespace hfp3d {
         il::Array<double> rhs_v{};
     };
 
-/////// the utilities ///////
+/////// Elastostatics utilities ///////
 
     // Element-to-point influence matrix (submatrix of the global one)
     il::StaticArray2D<double, 6, 18> make_local_3dbem_submatrix
