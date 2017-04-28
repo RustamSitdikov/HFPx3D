@@ -110,6 +110,11 @@ namespace hfp3d {
         // the pressure is applied
 
         IL_EXPECT_FAST(ap_order >= 0);
+
+        Mesh_Data_T m_data;
+        // pass input mesh (i_mesh) handle
+        m_data.mesh = &i_mesh;
+
         // number of elements
         il::int_t n_el = i_mesh.conn.size(1);
         // number of nodes per element (triangular)
@@ -119,10 +124,6 @@ namespace hfp3d {
         // number of injection-affected elements
         il::int_t n_ie = inj_loc.size(0);
         IL_EXPECT_FAST(inj_loc.size(1) >= nnpe + 1);
-
-        Mesh_Data_T m_data;
-        // pass input mesh (i_mesh) handle
-        m_data.mesh = i_mesh;
 
         // DD DoF initialization
         m_data.dof_h_dd.dof_h = il::Array2D<il::int_t>{n_el, ndpe, -1};

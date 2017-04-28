@@ -88,7 +88,7 @@ namespace hfp3d {
     // solution state
     struct Mesh_Data_T {
         // link to the Mesh object
-        Mesh_Geom_T &mesh;
+        const Mesh_Geom_T* mesh;
 
         // current time
         double time = 0;
