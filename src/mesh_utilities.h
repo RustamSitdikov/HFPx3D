@@ -17,6 +17,7 @@
 #include <il/Array2D.h>
 #include <il/StaticArray.h>
 #include <il/StaticArray2D.h>
+#include "cohesion_friction.h"
 
 namespace hfp3d {
 
@@ -29,22 +30,42 @@ namespace hfp3d {
         il::Array2D<il::int_t> conn;
 
         // material ID
-        //il::Array<int> mat_id;
+        il::Array<int> mat_id;
     };
 
     // physical model parameters
-    struct Properties_T {};
+    struct Properties_T {
+        // shear moduli, for each mat ID
+        il::Array<double> mu;
+        // Poisson ratios, for each mat ID
+        il::Array<double> nu;
+        // contact model ID, for each mat ID (see cohesion_friction.h)
+        il::Array<int> c_model_id;
+
+/*
+        // max friction coeff-s
+        il::Array<double> fr_c;
+        // max cohesion (shear)
+        il::Array<double> sc_f;
+        // max cohesive forces (opening)
+        il::Array<double> oc_f;
+        // critical openings
+        il::Array<double> w_cr;
+        // critical slips
+        il::Array<double> s_cr;
+*/
+    };
 
     // load parameters
     struct Load_T {
         // stress at infinity
-        il::StaticArray<double, 6> s_inf{};
+        il::StaticArray<double, 6> s_inf;
 
         // injection locations (elements, nodes)
-        il::Array2D<il::int_t> inj_loc{};
+        il::Array2D<il::int_t> inj_loc;
 
         // injection rate(s)
-        il::Array<double> inj_rate{};
+        il::Array<double> inj_rate;
     };
 
     // numerical simulation parameters
@@ -75,7 +96,7 @@ namespace hfp3d {
         il::int_t n_dof = 0;
 
         // element-wise list of DoF
-        il::Array2D<il::int_t> dof_h{};
+        il::Array2D<il::int_t> dof_h;
         // dof_h.size(0) = number of elements
         // dof_h.size(1) = number of degrees of freedom per element
         // dof_h(j, k) = -1 means fixed degree of freedom
@@ -88,7 +109,7 @@ namespace hfp3d {
     // solution state
     struct Mesh_Data_T {
         // link to the Mesh object
-        const Mesh_Geom_T* mesh;
+        Mesh_Geom_T mesh;
 
         // current time
         double time = 0;
@@ -104,8 +125,8 @@ namespace hfp3d {
         // elem No; node a (1..3); node b (1..3); prev. edge No; next edge No
 
         // element-wise DoF handles for DD and pressure
-        DoF_Handle_T dof_h_dd{};
-        DoF_Handle_T dof_h_pp{};
+        DoF_Handle_T dof_h_dd;
+        DoF_Handle_T dof_h_pp;
 
         // displacement discontinuities, for all nodes
         il::Array2D<double> dd;
@@ -113,6 +134,7 @@ namespace hfp3d {
         il::Array<double> pp;
 
         // dependent variables: rates, damage %, dilatancy, etc
+        Frac_State_T frac_state;
 
         // convergence (discrepancy)
 
@@ -140,9 +162,7 @@ namespace hfp3d {
     // according to DoF handles
     il::Array<double> get_dd_vector_from_md
             (const Mesh_Data_T &m_data,
-             const DoF_Handle_T &dof_h,
-             bool include_p,
-             const DoF_Handle_T &dof_h_pp);
+             bool include_p);
 
     // 1D to 2D array conversion for DD
     // according to DoF handles

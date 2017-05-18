@@ -113,7 +113,7 @@ namespace hfp3d {
 
         Mesh_Data_T m_data;
         // pass input mesh (i_mesh) handle
-        m_data.mesh = &i_mesh;
+        m_data.mesh = i_mesh;
 
         // number of elements
         il::int_t n_el = i_mesh.conn.size(1);
@@ -178,24 +178,22 @@ namespace hfp3d {
     // according to DoF handles
     il::Array<double> get_dd_vector_from_md
             (const Mesh_Data_T &m_data,
-             const DoF_Handle_T &dof_h_dd,
-             bool include_p,
-             const DoF_Handle_T &dof_h_pp) {
+             bool include_p) {
         // number of elements
-        il::int_t n_el = dof_h_dd.dof_h.size(0);
+        il::int_t n_el = m_data.dof_h_dd.dof_h.size(0);
 
         // number of DoF for DD
-        il::int_t n_dd_dof = dof_h_dd.n_dof;
+        il::int_t n_dd_dof = m_data.dof_h_dd.n_dof;
 
         // number of DoF for pressure
-        il::int_t n_pp_dof = (include_p ? dof_h_pp.n_dof: 0);
+        il::int_t n_pp_dof = (include_p ? m_data.dof_h_pp.n_dof: 0);
 
         // make sure that dimensions match
-        IL_EXPECT_FAST(dof_h_dd.dof_h.size(0) == n_el);
+        IL_EXPECT_FAST(m_data.dof_h_dd.dof_h.size(0) == n_el);
         IL_EXPECT_FAST(m_data.dd.size(0) == n_el * 6);
         IL_EXPECT_FAST(m_data.dd.size(1) == 3);
         if (include_p) {
-            IL_EXPECT_FAST(dof_h_pp.dof_h.size(0) == n_el);
+            IL_EXPECT_FAST(m_data.dof_h_pp.dof_h.size(0) == n_el);
             IL_EXPECT_FAST(m_data.pp.size() == n_el);
         }
 
@@ -214,8 +212,8 @@ namespace hfp3d {
                     // local DoF (1 .. 18)
                     il::int_t j = 3 * en + i;
                     // copying the DD value if listed in dof_h_dd
-                    if (dof_h_dd.dof_h(el, j) != -1) {
-                        rhs_v[dof_h_dd.dof_h(el, j)] = m_data.dd(n, i);
+                    if (m_data.dof_h_dd.dof_h(el, j) != -1) {
+                        rhs_v[m_data.dof_h_dd.dof_h(el, j)] = m_data.dd(n, i);
                     }
                 }
             }
@@ -230,8 +228,8 @@ namespace hfp3d {
                     // node No
                     il::int_t n = 6 * el + en;
                     // copy pressure value if listed in dof_h_pp
-                    if (dof_h_pp.dof_h(el, n) != -1) {
-                        rhs_v[dof_h_pp.dof_h(el, n)] = m_data.pp[n];
+                    if (m_data.dof_h_pp.dof_h(el, n) != -1) {
+                        rhs_v[m_data.dof_h_pp.dof_h(el, n)] = m_data.pp[n];
                     }
                 }
             }
@@ -267,9 +265,18 @@ namespace hfp3d {
         }
         IL_EXPECT_FAST(rhs_v.size() == n_dd_dof + n_pp_dof);
 
+/*
+        m_data.dof_h_dd = dof_h_dd;
+        m_data.dof_h_pp = dof_h_pp;
+
+        m_data.ae_set.resize(0);
+        m_data.fe_set.resize(0);
+*/
+
         // copying values
         // loop over elements
         for (il::int_t el = 0; el < n_el; ++el) {
+            bool is_a = false, is_f = false;
             // loop over local nodes (1 .. 6)
             for (int en = 0; en < 6; ++en) {
                 // node No
@@ -281,14 +288,23 @@ namespace hfp3d {
                     // copying the DD value if listed in dof_h_dd
                     if (dof_h_dd.dof_h(el, j) != -1) {
                         m_data.dd(n, i) = rhs_v[dof_h_dd.dof_h(el, j)];
+                        is_a = true;
                     }
                 }
                 // copying the pressure value if requested
                 if (include_p) {
                     if (dof_h_pp.dof_h(el, en) != -1) {
                         m_data.pp[n] = rhs_v[n_dd_dof + dof_h_pp.dof_h(el, en)];
+                        is_f = true;
                     }
                 }
+            }
+            // updating "active" and "pressurized" elements lists
+            if (is_a) {
+                m_data.ae_set.append(el);
+            }
+            if (is_f) {
+                m_data.fe_set.append(el);
             }
         }
     }
