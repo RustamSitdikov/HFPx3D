@@ -47,7 +47,7 @@ namespace hfp3d {
         // const std::complex<double> I(0.0, 1.0);
 
         // scaling ("-" sign comes from traction Somigliana ID, H-term)
-        double scale = -mu / (4.0 * M_PI * (1.0 - nu));
+        double scale = -mu / (4.0 * il::pi * (1.0 - nu));
         // tolerance parameters
         const double h_tol = 1.0E-16, a_tol = 1.0E-8;
 
@@ -84,15 +84,15 @@ namespace hfp3d {
                 int q = (j + k) % 3;
                 chi(k, j) = phi[q] - psi[j];
                 // make sure it's between -pi and pi (add or subtract 2*pi)
-                if (chi(k, j) <= -M_PI)
-                    while (chi(k, j) <= -M_PI)
-                        chi(k, j) += 2.0 * M_PI;
-                else if (chi(k, j) > M_PI)
-                    while (chi(k, j) > M_PI)
-                        chi(k, j) -= 2.0 * M_PI;
+                if (chi(k, j) <= -il::pi)
+                    while (chi(k, j) <= -il::pi)
+                        chi(k, j) += 2.0 * il::pi;
+                else if (chi(k, j) > il::pi)
+                    while (chi(k, j) > il::pi)
+                        chi(k, j) -= 2.0 * il::pi;
                 // reprooving for "degenerate" edges
                 // (chi angles too close to 90 degrees)
-                if (fabs(M_PI_2 - std::fabs(chi(k, j))) < a_tol) {
+                if (fabs(0.5 * il::pi - std::fabs(chi(k, j))) < a_tol) {
                     is_90_ang(k, j) = true;
                     IsDegen = true;
                 }
