@@ -484,15 +484,21 @@ namespace hfp3d {
 // This function calculates
 // the surface-to-contour integral conversion
 // (Cauchy-Borel-Pompeiu) for monomials
-// of a 2nd order
+// of 2nd order
         std::complex<double> ca = std::conj(a), cb = std::conj(b),
                 a2 = a * a, b2 = b * b, ab = a * b,
-                ca2 = std::conj(a2), cb2 = std::conj(b2), cab = std::conj(ab),
-                c = (a - b) * il::ii / 4.0;
+                ca2 = std::conj(a2), cb2 = std::conj(b2), cab = std::conj(ab);
+        std::complex<double> c = 0.25 * il::ii * (a - b);
         il::StaticArray<std::complex<double>, 6> l_int;
+
+        // const part
         l_int[0] = (ca + cb) * c;
+
+        // linear part; ~\tau , ~\tau\conj
         l_int[1] = (ca * ( 2.0 * a + b ) + cb * ( 2.0 * b + a)) * c / 3.0;
         l_int[2] = (ca2 + cab + cb2) * c / 3.0;
+
+        // quadratic part; ~\tau^2 , ~\tau\conj^2, ~\tau*\tau\conj
         l_int[3] = (ca * (3.0 * a2 + 2.0 * ab + b2) +
                 cb * (3.0 * b2 + 2.0 * ab + a2)) * c / 6.0;
         l_int[4] = (ca + cb) * (ca2 + cb2) * c / 6.0;
@@ -508,32 +514,58 @@ namespace hfp3d {
 // This function calculates
 // the surface-to-contour integral conversion
 // (Cauchy-Borel-Pompeiu) for monomials
-// of a 4th order
+// of 4th order
         std::complex<double> ca = std::conj(a), cb = std::conj(b),
-        a2 = a * a, b2 = b * b, ab = a * b,
+        a2 = a * a, b2 = b * b, ab = a * b, a3 = a * a2, b3 = b * b2,
         a4 = a2 * a2, b4 = b2 * b2, a2b2 = a2 * b2,
+        //a5 = a3 * a2, b5 = b3 * b2, a6 = a3 * a3, b6 = b3 * b3,
+        amb2 = (a - b) * (a - b),
         ca2 = std::conj(a2), cb2 = std::conj(b2), cab = std::conj(ab),
+        ca3 = std::conj(a3), cb3 = std::conj(b3),
         ca4 = std::conj(a4), cb4 = std::conj(b4), ca2b2 = std::conj(a2b2),
-        c = (a - b) * il::ii / 4.0;
+        c = 0.25 * il::ii * (a - b);
         il::StaticArray<std::complex<double>, 15> l_int;
+
+        // const part
         l_int[0] = (ca + cb) * c;
+
+        // linear part; ~\tau , ~\tau\conj
         l_int[1] = (ca * ( 2.0 * a + b ) + cb * ( 2.0 * b + a)) * c / 3.0;
         l_int[2] = (ca2 + cab + cb2) * c / 3.0;
+
+        // quadratic part; ~\tau^2 , ~\tau\conj^2, ~\tau*\tau\conj
         l_int[3] = (ca * (3.0 * a2 + 2.0 * ab + b2) +
                 cb * (3.0 * b2 + 2.0 * ab + a2)) * c / 6.0;
         l_int[4] = (ca + cb) * (ca2 + cb2) * c / 6.0;
         l_int[5] = (ca2 * (3.0 * a + b) +
                 2.0 * cab * (a + b) +
                 cb2 * (3.0 * b + a)) * c / 12.0;
-        l_int[6] =
-        l_int[7] =
-        l_int[8] =
-        l_int[9] =
-        l_int[10] =
-        l_int[11] =
-        l_int[12] =
-        l_int[13] =
-        l_int[14] =
+
+        // cubic part;
+        l_int[6] = ((4.0 * a5 - 5.0 * a4 * b + b5) * ca +
+                    (a5 - 5.0 * a * b4 + 4.0 * b5) * cb) / amb2 * c / 10.0;
+        l_int[7] = ((3.0 * a2 + 4.0 * ab + 3.0 * b2) * cab +
+                6.0 * a2 * ca2 + (3.0 * ab + b2) * ca2 +
+                (a2 + 3.0 * ab) * cb2 + 6.0 * b2 * cb2) * c / 30.0;
+        l_int[8] = ((4.0 * a + b) * ca3 + (3.0 * a + 2.0 * b) * ca2 * cb +
+                (2.0 * a + 3.0 * b) * ca * cb2 +
+                (a + 4.0 * b) * cb3) * c / 30.0;
+        l_int[9] = (ca5 - cb5) / (ca - cb) * c / 10.0;
+
+        // 4-ic part;
+        l_int[10] = ((5.0 * a6 - 6.0 * a5 * b + b6) * ca +
+                    (a6 - 6.0 * a * b5 + 5.0 * b6) * cb) / amb2 * c / 15.0;
+        l_int[11] = ((10.0 * a3 + 6.0 * a2 * b + 3.0 * a * b2 + b3) * ca2 +
+                2.0 * (a + b) * (2.0 * a2 + ab + 2.0 b2) * cab +
+                (a3 + 3.0 * a2 * b + 6.0 * a * b2 + 10.0 * b3) * cb2) * c / 60.0;
+        l_int[12] = ((10.0 * a2 + 4.0 * ab + b2) * ca3 +
+                3.0 * (2.0 * a2 + 2.0 * ab + b2) * ca2 * cb +
+                3.0 * (a2 + 2.0 * ab + 2.0 * b2) * ca * cb2 +
+                (a2 + 4.0 * ab + 10.0 * b2) * c3) * c / 90.0;
+        l_int[13] = ((5.0 * a + b) * ca4 + 2.0 * (2.0 * a + b) * ca3 * cb +
+                3.0 * (a + b) * ca2b2 + 2.0 (a + 2.0 * b) * ca * cb3 +
+                (a + 5.0 * b) * cb4) * c / 60.0;
+        l_int[14] = (ca6 - cb6) / (ca - cb) * c / 15.0;
         return l_int;
     }
 */
