@@ -1,0 +1,207 @@
+// main.cpp will be used for testing the code parts under development
+
+//#include <cstdio>
+#include <iostream>
+#include <il/Array.h>
+#include <il/Array2D.h>
+#include <il/linear_algebra/dense/factorization/LU.h>
+#include <il/linear_algebra.h>
+//#include <il/linear_algebra/dense/factorization/linear_solve.h>
+#include "src/mesh_file_io.h"
+#include "src/system_assembly.h"
+//#include "src/mesh_utilities.h"
+#include "src/element_utilities.h"
+#include "src/tensor_utilities.h"
+//#include <complex>
+//#include <il/StaticArray.h>
+//#include <il/StaticArray2D.h>
+#include <il/Timer.h>
+//#include <ittnotify.h>
+
+int main() {
+
+    // model parameters
+    double mu = 1.0, nu = 0.35;
+
+    // numerical simulation parameters
+    hfp3d::Num_Param_T n_par; // default: beta = 0.125; tip_type = 1; DD in global
+
+    hfp3d::Load_T load;
+    // stress at infinity (in-situ stress)
+    load.s_inf = il::StaticArray<double, 6> {0.0};
+    load.s_inf[2] = 1.0; load.s_inf[4] = 1.0;
+
+    // mesh
+    hfp3d::Mesh_Geom_T mesh;
+
+/*
+    std::string src_f = __FILE__;
+    std::string src_dir = src_f.substr(0, src_f.rfind("\\"));
+    while (src_dir.find("\\")!=std::string::npos) {
+        src_dir.replace(src_dir.find("\\"),1,"/");
+    }
+*/
+    std::string src_dir{"C:/Users/nikolski/ClionProjects/HFPx3D_VC"};
+    // std::string src_dir{"/home/nikolski/Documents/HFPx3D"};
+    // std::string src_dir{"/home/lecampio/Documents/HFPx3D"};
+
+    std::string input_dir{src_dir + "/Mesh_Files/"};
+    std::string mesh_conn_fname{"Elems_pennymesh24el_32.npy"};
+    std::string nodes_crd_fname{"Nodes_pennymesh24el_32.npy"};
+
+    std::string output_dir{src_dir + "/Test_Output/"};
+    std::string mf_name{"test_assembly_24_ele.csv"};
+    std::string of_name{"test_solution_24_ele.csv"};
+
+    hfp3d::load_mesh_from_numpy_32
+            (input_dir, mesh_conn_fname, nodes_crd_fname, true,
+             il::io, mesh);
+
+    il::Timer timer{};
+    timer.start();
+
+//    __itt_resume();
+
+    //hfp3d::DoF_Handle_T dof_handle;
+    //dof_handle = hfp3d::make_dof_h_crack(mesh ,2, 1);
+    //il::Array2D<double> bem_matrix;
+    //bem_matrix = hfp3d::make_3dbem_matrix_s(mu, nu, mesh, n_par, il::io, dof_handle);
+    //il::Array<double> rhs{num_dof, 0.0};
+
+    il::int_t num_elems = mesh.conn.size(1);
+    hfp3d::Mesh_Data_T mesh_data;
+    mesh_data.mesh = mesh;
+    mesh_data.dof_h_dd = hfp3d::make_dof_h_crack(mesh, 2, 1);
+    il::int_t num_dof = mesh_data.dof_h_dd.n_dof;
+    mesh_data.dd = il::Array2D<double> {num_elems * 6, 3, 0.0};
+
+    il::Array2D<il::int_t> ip(0, 7, 0);
+    hfp3d::Mesh_Data_T mdf = hfp3d::init_mesh_data_p_fault(mesh, 2, ip);
+
+    hfp3d::SAE_T sae;
+    sae.matrix = hfp3d::make_3dbem_matrix_s
+            (mu, nu, mesh, n_par, il::io, mesh_data.dof_h_dd);
+
+    sae.rhs_v = il::Array<double> {num_dof, 0.0};
+    for (il::int_t el = 0; el < num_elems; ++el) {
+        // element vertices' coordinates
+        il::StaticArray2D<double, 3, 3> el_vert;
+        for (il::int_t j = 0; j < 3; ++j) {
+            il::int_t n = mesh.conn(j, el);
+            for (il::int_t k = 0; k < 3; ++k) {
+                el_vert(k, j) = mesh.nods(k, n);
+            }
+        }
+
+        // Rotation tensor for the element
+        il::StaticArray2D<double, 3, 3> r_tensor =
+                hfp3d::make_el_r_tensor(el_vert);
+
+        // Normal vector at collocation point (x)
+        il::StaticArray<double, 3> norm_v;
+        for (int j = 0; j < 3; ++j) {
+            norm_v[j] = -r_tensor(2, j);
+        }
+        // induced traction
+        il::StaticArray<double, 3> trac_inf =
+                hfp3d::nv_dot_sim(norm_v, load.s_inf);
+
+        // setting the RHS of the system (loads)
+        for (int ln = 0; ln < 6; ++ln) {
+            //il::int_t n = el * 6 + ln;
+            for (int l = 0; l < 3; ++l) {
+                il::int_t ldof = ln * 3 + l;
+                //il::int_t dof = dof_handle.dof_h(el, ldof);
+                il::int_t dof = mesh_data.dof_h_dd.dof_h(el, ldof);
+                if (dof != -1) {
+                    //rhs[dof] = (l != 1 ? 1.0 : 0.0);
+                    sae.rhs_v[dof] = -trac_inf[l];
+                }
+            }
+        }
+    }
+    il::Status status{};
+    il::Array<double> dd_v;
+
+//    __itt_pause();
+    timer.stop();
+
+    std::cout << "Assembly: " << timer.elapsed() << "s" << std::endl;
+    std::cout << 18 * num_elems << " DoF Total" << std::endl;
+    std::cout << 18 * num_elems - num_dof << " Fixed DoF" << std::endl;
+
+    timer.reset();
+    timer.start();
+
+    // dd_v = il::linear_solve(bem_matrix, rhs, il::io, status);
+    //il::LU<il::Array2D<double>> lu_decomposition(bem_matrix, il::io, status);
+    il::LU<il::Array2D<double>> lu_decomposition(sae.matrix, il::io, status);
+    // if (!status.ok()) {
+    //     // The matrix is singular to the machine precision. You should deal with
+    //     // the error.
+    // }
+    status.abort_on_error();
+    // double cnd = lu_decomposition.condition_number(il::Norm::L2, );
+    // std::cout << cnd << std::endl;
+    //dd_v = lu_decomposition.solve(rhs);
+    dd_v = lu_decomposition.solve(sae.rhs_v);
+
+    timer.stop();
+    std::cout << "Solution: " << timer.elapsed() << "s" << std::endl;
+
+    hfp3d::write_dd_vector_to_md
+            (dd_v, mesh_data.dof_h_dd,
+             false, mesh_data.dof_h_pp,
+             il::io, mesh_data);
+
+/*
+    // saving matrix to a .CSV file
+    hfp3d::save_data_to_csv(sae.matrix, output_dir, mf_name);
+*/
+
+/*
+    // the 2D array for nodal points' coordinates and DD - initialization
+    il::Array2D<double> out_dd(6 * num_elems, 6);
+
+    // saving the solution (nodes + DD) to a .CSV file
+    for (il::int_t j = 0; j < num_elems; ++j) {
+        il::StaticArray2D<double, 3, 3> el_vert;
+        for (il::int_t k = 0; k < 3; ++k) {
+            il::int_t n = mesh.conn(k, j);
+            for (il::int_t l = 0; l < 3; ++l) {
+                el_vert(l, k) = mesh.nods(l, n);
+            }
+        }
+        il::StaticArray<il::StaticArray<double, 3>, 6> el_np;
+        el_np = hfp3d::el_cp_uniform(el_vert, 0.0);
+        // el_np = hfp3d::el_cp_nonuniform(el_vert, v_wts, 0.0);
+        for (il::int_t k = 0; k < 6; ++k) {
+            il::int_t n = j * 6 + k;
+            for (il::int_t l = 0; l < 3; ++l) {
+                //il::int_t dof = n * 3 + l;
+                il::int_t l_dof = k * 3 + l;
+                il::int_t g_dof = mesh_data.dof_h_dd.dof_h(j, l_dof);
+                out_dd(n, l) = el_np[k][l];
+                if (g_dof != -1) {
+                    //out_dd(n, l) = dd_v[dof];
+                    out_dd(n, l + 3) = dd_v[g_dof];
+                } else {
+                    //out_dd(n, l) = 0.0;
+                    out_dd(n, l + 3) = 0.0;
+                }
+            }
+        }
+    }
+
+    hfp3d::save_data_to_csv(out_dd, output_dir, of_name);
+*/
+
+/*
+    std::string npy_of_name{"/test_solution_24_ele.npy"};
+    // il::Status status{};
+    il::save(out_dd, output_dir + npy_of_name, il::io, status);
+    status.abort_on_error();
+*/
+
+    return 0;
+}
