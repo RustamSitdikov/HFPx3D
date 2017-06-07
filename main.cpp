@@ -34,14 +34,13 @@ int main() {
     // mesh
     hfp3d::Mesh_Geom_T mesh;
 
-/*
     std::string src_f = __FILE__;
-    std::string src_dir = src_f.substr(0, src_f.rfind("\\"));
-    while (src_dir.find("\\")!=std::string::npos) {
-        src_dir.replace(src_dir.find("\\"),1,"/");
+    while (src_f.find("\\")!=std::string::npos) {
+        src_f.replace(src_f.find("\\"),1,"/");
     }
-*/
-    std::string src_dir{"C:/Users/nikolski/ClionProjects/HFPx3D_VC"};
+    std::string src_dir = src_f.substr(0, src_f.rfind("/"));
+
+    // std::string src_dir{"C:/Users/nikolski/ClionProjects/HFPx3D_VC"};
     // std::string src_dir{"/home/nikolski/Documents/HFPx3D"};
     // std::string src_dir{"/home/lecampio/Documents/HFPx3D"};
 
@@ -154,12 +153,9 @@ int main() {
              false, mesh_data.dof_h_pp,
              il::io, mesh_data);
 
-/*
     // saving matrix to a .CSV file
     hfp3d::save_data_to_csv(sae.matrix, output_dir, mf_name);
-*/
 
-/*
     // the 2D array for nodal points' coordinates and DD - initialization
     il::Array2D<double> out_dd(6 * num_elems, 6);
 
@@ -194,7 +190,6 @@ int main() {
     }
 
     hfp3d::save_data_to_csv(out_dd, output_dir, of_name);
-*/
 
 /*
     std::string npy_of_name{"/test_solution_24_ele.npy"};
