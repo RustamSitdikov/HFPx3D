@@ -24,12 +24,11 @@ set(SOURCE_FILES
         ${SOURCE_FILES_DIR}/h_potential.cpp
         )
 
-#add_executable(HFPx3D_VC ${SOURCE_FILES})
+add_executable(HFPx3D_VC ${SOURCE_FILES})
 
 ####### IL_MKL case
-#link_directories(${SOURCE_FILES} $ENV{MKLROOT}/lib)
+
 link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/../compiler/lib)
-add_executable(HFPx3D_VC ${SOURCE_FILES})
 target_compile_definitions(HFPx3D_VC PRIVATE IL_MKL=1 IL_BLAS=1)
 target_include_directories(HFPx3D_VC PRIVATE ${CMAKE_SOURCE_DIR} $ENV{MKLROOT}/include)
 target_link_libraries(HFPx3D_VC mkl_intel_lp64 mkl_core mkl_intel_thread dl iomp5 pthread m)
@@ -39,9 +38,9 @@ add_custom_command(TARGET HFPx3D_VC
         /usr/bin/install_name_tool -add_rpath /opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/lib
         $<TARGET_FILE:HFPx3D_VC>)
 
-####### IL_OPENBLAS case
 #[[
-add_executable(HFPx3D_VC ${SOURCE_FILES})
+####### IL_OPENBLAS case
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_OPENBLAS -DIL_BLAS")
 target_include_directories(HFPx3D_VC PRIVATE ${CMAKE_SOURCE_DIR})
 target_link_libraries(HFPx3D_VC openblas)

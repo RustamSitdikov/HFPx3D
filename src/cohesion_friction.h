@@ -64,9 +64,9 @@ namespace hfp3d {
         // Calculation of friction & cohesion forces
         // (matching them to current DD and "damage state")
         virtual void match_f_c // (node-wise)
-                (il::Array2D<double> &dd, // current displacements
-                 il::io_t,
-                 Frac_State_T &f_state) // "damage state" & friction-cohesion
+        (il::Array2D<double> &dd, // current displacements
+                il::io_t,
+                Frac_State_T &f_state) // "damage state" & friction-cohesion
         = 0; // purely virtual in general
         // Note: dd must be in local coordinates!
     };
