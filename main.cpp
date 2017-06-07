@@ -45,12 +45,12 @@ int main() {
     // std::string src_dir{"/home/lecampio/Documents/HFPx3D"};
 
     std::string input_dir{src_dir + "/Mesh_Files/"};
-    std::string mesh_conn_fname{"Elems_pennymesh24el_32.npy"};
-    std::string nodes_crd_fname{"Nodes_pennymesh24el_32.npy"};
+    std::string mesh_conn_fname{"Elems_pennymesh121el_32.npy"};
+    std::string nodes_crd_fname{"Nodes_pennymesh121el_32.npy"};
 
     std::string output_dir{src_dir + "/Test_Output/"};
-    std::string mf_name{"test_assembly_24_ele.csv"};
-    std::string of_name{"test_solution_24_ele.csv"};
+    std::string mf_name{"test_assembly_121_ele.csv"};
+    std::string of_name{"test_solution_121_ele.csv"};
 
     hfp3d::load_mesh_from_numpy_32
             (input_dir, mesh_conn_fname, nodes_crd_fname, true,
