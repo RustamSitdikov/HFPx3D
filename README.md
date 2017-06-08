@@ -1,16 +1,15 @@
 # HFPx3D
-3D BEM
-Volume Control solver for pressurized fractures
+3D BEM solver for pressurized fractures
 
-Developed by Geo-Energy Laboratory, École Polytechnique Fédérale de Lausanne
-(EPFL),
-Switzerland.
+Volume Control version
+
+developed by Geo-Energy Laboratory, École Polytechnique Fédérale de Lausanne
+(EPFL), Switzerland.
 
 ![GEL-EPFL logo](http://gel.epfl.ch/files/content/sites/gel/files/Pictures/LOGOGEL-final-right-01.png)
 
 ## Important notes
-
-**MeshFiles/** contains surface mesh (triangulation) data.
+**MeshFiles/** folder contains surface mesh (triangulation) data.
 There are two binary files for each surface:
 - **Elems_... .npy** for connectivity matrix (node numbers of each element)
 - **Nodes_... .npy** for coordinates of the nodes
@@ -30,3 +29,7 @@ files from https://github.com/insideloop/InsideLoop
 and copy the **il/** folder to the project directory (not to **src/**!).
 
 **Notice (temporary):** To resolve an issue with `il::I`, in **il/math.h** replace "I" with "ii"
+##
+**CMakeLists.txt** may require modifications depending on the math library used.
+If OpenBlas is used instead of MKL (typically, in Windows), comment and
+un-comment the corresponding blocks.
