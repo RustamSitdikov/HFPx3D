@@ -8,16 +8,21 @@ developed by Geo-Energy Laboratory, École Polytechnique Fédérale de Lausanne
 
 ![GEL-EPFL logo](http://gel.epfl.ch/files/content/sites/gel/files/Pictures/LOGOGEL-final-right-01.png)
 
+Please note that the project is a work in progress.
+Updates will be followed up with a short description here
+or in more details on the **wiki** page
+(https://github.com/GeoEnergyLab-EPFL/HFPx3D/wiki).
+
 ## Important notes
 **MeshFiles/** folder contains surface mesh (triangulation) data.
-There are two binary files for each surface:
+There are two **numpy** binary files for each surface:
 - **Elems_... .npy** for connectivity matrix (node numbers of each element)
 - **Nodes_... .npy** for coordinates of the nodes
 
-32- and 64-bit floating point data are marked with **_32** and **_64**.
+32- and 64-bit floating point data are marked as **_32.npy** and **_64.npy**.
 
 **Save_m_as_npy** sctipt can be used to save data from MATLAB .mat files in
-.npy format.
+**numpy** format.
 ##
 This code uses the **InsideLoop library** (https://github.com/insideloop/InsideLoop)
 
