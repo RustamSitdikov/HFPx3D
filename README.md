@@ -20,11 +20,13 @@ There are two binary files for each surface:
 **Save_m_as_npy** sctipt can be used to save data from MATLAB .mat files in
 .npy format.
 ##
-**Important:** This code uses the **InsideLoop library** (https://github.com/insideloop/InsideLoop)
+This code uses the **InsideLoop library** (https://github.com/insideloop/InsideLoop)
 
 ![InsideLoop icon](http://www.insideloop.io/wp-content/uploads/2014/09/inside-loop-logo-front.png)
 
-It is strongly suggested to use the latest version of the library. Download
+Although the source codes of the library are provided, it is strongly suggested
+to use the latest version of the library. Please clone/download the source
+files from https://github.com/insideloop/InsideLoop
 and copy the **il/** folder to the project directory (not to **src/**!).
 
 **Notice (temporary):** To resolve an issue with `il::I`, in **il/math.h** replace "I" with "ii"
