@@ -5,9 +5,10 @@ Volume Control solver for pressurized fractures
 ![GEL-EPFL logo](http://gel.epfl.ch/files/content/sites/gel/files/Pictures/LOGOGEL-final-right-01.png)
 
 **MeshFiles/** contains surface mesh (triangulation) data.
-There are two files for each surface:
-- **Elems_.npy** for connectivity matrix (node numbers of each element)
-- **Nodes_.npy** for coordinates of the nodes
+There are two binary files for each surface:
+- **Elems_... .npy** for connectivity matrix (node numbers of each element)
+- **Nodes_... .npy** for coordinates of the nodes
+**_32** and **_64** stand for 32- and 64-bit floating point format.
 
 **Save_m_as_npy** sctipt can be used to save data from MATLAB .mat files in
 .npy format.
