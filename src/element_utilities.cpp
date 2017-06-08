@@ -478,13 +478,13 @@ namespace hfp3d {
         return ele_s;
     }
 
+// Integration of shape functions over the element
 
     il::StaticArray<std::complex<double>, 6> el_p2_cbp_integral
             (std::complex<double> a, std::complex<double> b) {
 // This function calculates
 // the surface-to-contour integral conversion
-// (Cauchy-Borel-Pompeiu) for monomials
-// of 2nd order
+// (Cauchy-Borel-Pompeiu) for monomials of 2nd order
         std::complex<double> ca = std::conj(a), cb = std::conj(b),
                 a2 = a * a, b2 = b * b, ab = a * b,
                 ca2 = std::conj(a2), cb2 = std::conj(b2), cab = std::conj(ab);
@@ -513,8 +513,7 @@ namespace hfp3d {
             (std::complex<double> a, std::complex<double> b) {
 // This function calculates
 // the surface-to-contour integral conversion
-// (Cauchy-Borel-Pompeiu) for monomials
-// of 4th order
+// (Cauchy-Borel-Pompeiu) for monomials of 4th order
         std::complex<double> ca = std::conj(a), cb = std::conj(b),
         a2 = a * a, b2 = b * b, ab = a * b, a3 = a * a2, b3 = b * b2,
         a4 = a2 * a2, b4 = b2 * b2, a2b2 = a2 * b2,
