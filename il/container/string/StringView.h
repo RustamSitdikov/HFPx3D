@@ -47,7 +47,7 @@ class ConstStringView {
   ConstStringView substring(il::int_t i0, il::int_t i1) const;
   bool is_empty() const;
   bool operator==(const char* string) const;
-  const char* c_string() const;
+  const char* as_c_string() const;
   const std::uint8_t* begin() const;
   const std::uint8_t* end() const;
 };
@@ -240,7 +240,7 @@ inline bool ConstStringView::operator==(const char* string) const {
   return match;
 }
 
-inline const char* ConstStringView::c_string() const {
+inline const char* ConstStringView::as_c_string() const {
   return reinterpret_cast<const char*>(data_);
 }
 

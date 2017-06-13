@@ -53,7 +53,7 @@ NumpyInfo get_numpy_info(il::io_t, std::FILE* fp, il::Status& status) {
   //
   il::Array<char> second_buffer{header_length + 1};
   StringView header = StringView{second_buffer.begin(), header_length + 1};
-  char* success = fgets(header.as_c_string(), header_length + 1, fp);
+  char* success = fgets(second_buffer.begin(), header_length + 1, fp);
   if (success == nullptr || !(header.is_char(header.size() - 2, '\n'))) {
     status.set_error(il::Error::binary_file_wrong_format);
     IL_SET_SOURCE(status);
@@ -110,8 +110,7 @@ NumpyInfo get_numpy_info(il::io_t, std::FILE* fp, il::Status& status) {
   }
   for (il::int_t i = 0; i < numpy_info.shape.size(); ++i) {
     const il::int_t i3 = il::search(",", shape_string);
-    numpy_info.shape[i] =
-        std::atoll(shape_string.substring(0, i3).as_c_string());
+    numpy_info.shape[i] = std::atoll(shape_string.substring(0, i3).as_c_string());
     shape_string = shape_string.substring(i3 + 1);
   }
 

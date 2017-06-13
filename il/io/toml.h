@@ -125,7 +125,7 @@ inline void save_array(const il::Array<il::Dynamic> &array, il::io_t,
       } break;
       case il::DynamicType::array: {
         save_array(array[j].as_const_array(), il::io, file, status);
-        if (status.is_error()) {
+        if (!status.is_ok()) {
           status.rearm();
           return;
         }
@@ -166,8 +166,7 @@ inline void save_aux(const il::HashMapArray<il::String, il::Dynamic> &toml,
           break;
         case il::DynamicType::string:
           error2 = std::fputs("\"", file);
-          error3 =
-              std::fputs(toml.value(i).as_const_string().as_c_string(), file);
+          error3 = std::fputs(toml.value(i).as_const_string().as_c_string(), file);
           error4 = std::fputs("\"", file);
           break;
         case il::DynamicType::array: {
@@ -197,7 +196,7 @@ inline void save_aux(const il::HashMapArray<il::String, il::Dynamic> &toml,
                status);
       IL_UNUSED(error3);
       IL_UNUSED(error4);
-      if (status.is_error()) {
+      if (!status.is_ok()) {
         status.rearm();
         return;
       }
@@ -221,7 +220,7 @@ class SaveHelper<il::HashMapArray<il::String, il::Dynamic>> {
 
     il::String root_name{};
     save_aux(toml, root_name, il::io, file, status);
-    if (status.is_error()) {
+    if (!status.is_ok()) {
       status.rearm();
       return;
     }
