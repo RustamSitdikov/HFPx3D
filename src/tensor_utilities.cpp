@@ -71,7 +71,7 @@ namespace hfp3d {
                 sm_3x3(m, l) = sm_3x3(l, m);
             }
             sm_3x3_interm = il::dot(sm_3x3, rt);
-            sm_3x3_rotated = il::dot(rt, il::Blas::transpose, sm_3x3_interm);
+            sm_3x3_rotated = il::dot(rt, il::Blas::kTranspose, sm_3x3_interm);
             for (int j = 0; j < 3; ++j) {
                 int l = (j + 1) % 3;
                 int m = (l + 1) % 3;

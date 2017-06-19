@@ -319,13 +319,13 @@ namespace hfp3d {
                     il::StaticArray2D<double, 3, 18> trac_el2p_loc =
                             nv_dot_sim(nrm_cp_loc, stress_infl_el2p_loc_h);
                     il::StaticArray2D<double, 3, 18> trac_cp_glob =
-                            il::dot(r_tensor_s, il::Blas::transpose,
+                            il::dot(r_tensor_s, il::Blas::kTranspose,
                                     trac_el2p_loc);
 
                     // Alternative 3: calculating traction
                     // in terms of local coordinates at CP
                     //trac_cp_x_loc = il::dot
-                    // (r_tensor_t, il::Blas::transpose, trac_cp_glob);
+                    // (r_tensor_t, il::Blas::kTranspose, trac_cp_glob);
 
                     // Re-relating DD-to traction influence to DD
                     // w.r. to the reference coordinate system
@@ -633,12 +633,12 @@ namespace hfp3d {
                     il::StaticArray2D<double, 3, 18> trac_el2p_loc =
                             nv_dot_sim(nrm_cp_loc, stress_infl_el2p_loc_h);
                     il::StaticArray2D<double, 3, 18> trac_cp_glob = il::dot
-                            (r_tensor_s, il::Blas::transpose, trac_el2p_loc);
+                            (r_tensor_s, il::Blas::kTranspose, trac_el2p_loc);
 
                     // Alternative 3: traction vector
                     // in terms of local coordinates at CP
                     //trac_cp_x_loc = il::dot
-                    // (r_tensor_t, il::Blas::transpose, trac_cp_glob);
+                    // (r_tensor_t, il::Blas::kTranspose, trac_cp_glob);
 
                     if (!n_par.is_dd_local) {
                         // Re-relating DD-to traction influence to DD

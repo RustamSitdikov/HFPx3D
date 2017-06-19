@@ -94,7 +94,7 @@ namespace hfp3d {
 // coordinate transform from "global" (reference) 
 // Cartesian coordinate system to the element's local one
 // Note: use il::dot(r_tensor, a) for R.a
-// and il::dot(r_tensor, il::Blas::transpose, a) for R^T.a
+// and il::dot(r_tensor, il::Blas::kTranspose, a) for R^T.a
         il::StaticArray<std::complex<double>, 3> tau{0.0};
         il::StaticArray<double, 3> loc_origin;
         il::StaticArray2D<double, 3, 3> b_vects{0.0};

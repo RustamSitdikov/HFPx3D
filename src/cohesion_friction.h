@@ -63,12 +63,63 @@ namespace hfp3d {
 
         // Calculation of friction & cohesion forces
         // (matching them to current DD and "damage state")
-        virtual void match_f_c // (node-wise)
-        (il::Array2D<double> &dd, // current displacements
-                il::io_t,
-                Frac_State_T &f_state) // "damage state" & friction-cohesion
+        virtual void match_f_c
+                (il::Array2D<double> &dd, // current displacements
+                 bool is_dd_local,
+                 il::io_t,
+                 Frac_State_T &f_state) // "damage state" & friction-cohesion
         = 0; // purely virtual in general
         // Note: dd must be in local coordinates!
+
+        // Calculation of max. relative (to critical) displacements
+        // (called after finished the new time step)
+        void update_mrd
+                (il::Array2D<double> &dd, // current displacements
+                 bool is_dd_local,
+                 il::io_t,
+                 Frac_State_T &f_state // "damage state" & friction-cohesion
+                ) {
+            IL_EXPECT_FAST(dd.size(1) == 3);
+            il::int_t n_nod = dd.size(0);
+            IL_EXPECT_FAST(n_nod == f_state.mr_open.size());
+            IL_EXPECT_FAST(n_nod == f_state.mr_slip.size());
+            IL_EXPECT_FAST(n_nod == f_state.friction_coef.size());
+            IL_EXPECT_FAST(n_nod == f_state.slip_cohesion.size());
+            IL_EXPECT_FAST(n_nod == f_state.open_cohesion.size());
+            il::StaticArray<double, 3> nodal_dd{};
+            for (il::int_t n = 0; n < n_nod; ++n) {
+                for (int i = 0; i < 3; ++i) {
+                    nodal_dd[i] = dd(n, i);
+                }
+                if (!is_dd_local) {}
+                // current opening DD relative to cr_open
+                double dl_open = nodal_dd[2] / cr_open(); // relative opening DD
+                // make sure dd(2, n) is positive!
+                // current sliding DD
+                double dl_slip = nodal_dd[0] * nodal_dd[0] + nodal_dd[1] * nodal_dd[1];
+                // current sliding DD relative to cr_slip
+                dl_slip = std::sqrt(dl_slip) / cr_slip();
+                double pr_open = f_state.mr_open[n]; // prev. opening (damage %)
+                double pr_slip = f_state.mr_slip[n]; // prev. slip (damage %)
+                // updating the "damage %" (state)
+                if (dl_slip > pr_slip) {
+                    f_state.mr_slip[n] = dl_slip;
+                }
+                if (dl_slip >= 1.0) {
+                    // f_state.mr_slip[n] = 1.0;
+                    // f_state.mr_open[n] = 1.0;
+                }
+                if (dl_open >= 1.0) {
+                    f_state.mr_open[n] = 1.0;
+                    // f_state.mr_slip[n] = 1.0;
+                } else {
+                    if (dl_open > pr_open) {
+                        f_state.mr_open[n] = dl_open;
+                    }
+                }
+            }
+
+        };
     };
 
     // Particular friction-cohesion models *************************************
@@ -81,19 +132,27 @@ namespace hfp3d {
 
         void match_f_c
                 (il::Array2D<double> &dd,
+                 bool is_dd_local,
                  il::io_t,
                  Frac_State_T &f_state) {
-            IL_EXPECT_FAST(dd.size(0) == 3);
-            il::int_t n_nod = dd.size(1);
+            IL_EXPECT_FAST(dd.size(1) == 3);
+            il::int_t n_nod = dd.size(0);
             IL_EXPECT_FAST(n_nod == f_state.mr_open.size());
             IL_EXPECT_FAST(n_nod == f_state.mr_slip.size());
             IL_EXPECT_FAST(n_nod == f_state.friction_coef.size());
             IL_EXPECT_FAST(n_nod == f_state.slip_cohesion.size());
             IL_EXPECT_FAST(n_nod == f_state.open_cohesion.size());
+            il::StaticArray<double, 3> nodal_dd{};
             for (il::int_t n = 0; n < n_nod; ++n) {
-                double dl_open = dd(2, n) / cr_open(); // relative opening DD
+                for (int i = 0; i < 3; ++i) {
+                    nodal_dd[i] = dd(n, i);
+                }
+                if (!is_dd_local) {}
+                double dl_open = nodal_dd[2] / cr_open(); // relative 
+                // opening DD
                 // make sure dd(2, n) is positive
-                double pr_open = f_state.mr_open[n]; // prev. opening (damage %)
+                double pr_open = f_state.mr_open[n]; // prev. opening
+                // (damage %)
                 // calculating correction for partial damage (unloading case)
                 double r_s = 0.0;
                 if (dl_open > 0.0 && dl_open < 1.0) {
@@ -110,7 +169,7 @@ namespace hfp3d {
                 if (dl_open < 1.0) {
                     r_f = res_sf();
                     // current sliding DD
-                    double dl_slip = dd(0, n) * dd(0, n) + dd(1, n) * dd(1, n);
+                    double dl_slip = nodal_dd[0] * nodal_dd[0] + nodal_dd[1] * nodal_dd[1];
                     // the same relative to cr_slip
                     dl_slip = std::sqrt(dl_slip) / cr_slip();
                     // prev. relative sliding DD (damage %)

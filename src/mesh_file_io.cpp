@@ -12,7 +12,7 @@
 #include <il/Array2D.h>
 #include <il/StaticArray.h>
 #include <il/StaticArray2D.h>
-#include <il/io/numpy.h>
+#include <il/io/numpy/numpy.h>
 #include "mesh_file_io.h"
 
 namespace hfp3d {
@@ -31,7 +31,7 @@ namespace hfp3d {
 
         il::Array2D<int> mesh_conn_tmp = il::load<il::Array2D<int>>
                 (f_path, il::io, status);
-        status.abort_on_error();
+        status.abortOnError();
         mesh.conn.resize(mesh_conn_tmp.size(0), mesh_conn_tmp.size(1));
         for (il::int_t k = 0; k < mesh.conn.size(1); ++k) {
             for (il::int_t j = 0; j < mesh.conn.size(0); ++j) {
@@ -41,7 +41,7 @@ namespace hfp3d {
 
         mesh.nods = il::load<il::Array2D<double>>
                 (src_dir + node_f_name, il::io, status);
-        status.abort_on_error();
+        status.abortOnError();
 
         if (is_matlab) {
             // conversion from Matlab (array numbering starting with 1)
@@ -69,11 +69,11 @@ namespace hfp3d {
 
         mesh.conn = il::load<il::Array2D<il::int_t>>
                 (f_path, il::io, status);
-        status.abort_on_error();
+        status.abortOnError();
 
         mesh.nods = il::load<il::Array2D<double>>
                 (src_dir + node_f_name, il::io, status);
-        status.abort_on_error();
+        status.abortOnError();
 
         if (is_matlab) {
             // conversion from Matlab (array numbering starting with 1)

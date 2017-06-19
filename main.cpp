@@ -2,25 +2,56 @@
 
 //#include <cstdio>
 #include <iostream>
+//#include <cassert>
+//#include <sys/stat.h>
+//#include <complex>
+//#include <ittnotify.h>
+
+#include <il/Timer.h>
+#include <il/Toml.h>
+//#include <il/String.h>
 #include <il/Array.h>
 #include <il/Array2D.h>
+//#include <il/StaticArray.h>
+//#include <il/StaticArray2D.h>
 #include <il/linear_algebra/dense/factorization/LU.h>
 #include <il/linear_algebra.h>
 //#include <il/linear_algebra/dense/factorization/linear_solve.h>
+
 #include "src/mesh_file_io.h"
 #include "src/system_assembly.h"
 //#include "src/mesh_utilities.h"
 #include "src/element_utilities.h"
 #include "src/tensor_utilities.h"
-//#include <complex>
-//#include <il/StaticArray.h>
-//#include <il/StaticArray2D.h>
-#include <il/Timer.h>
-//#include <ittnotify.h>
 
 int main() {
 
-    // model parameters
+    // source files directory (containing main.cpp)
+    std::string src_f = __FILE__;
+    while (src_f.find("\\")!=std::string::npos) {
+        src_f.replace(src_f.find("\\"),1,"/");
+    }
+    std::string src_dir = src_f.substr(0, src_f.rfind("/"));
+
+    // std::string src_dir{"C:/Users/nikolski/ClionProjects/HFPx3D_VC"};
+    // std::string src_dir{"/home/nikolski/Documents/HFPx3D"};
+    // std::string src_dir{"/home/lecampio/Documents/HFPx3D"};
+
+    std::string default_f_name = src_dir + "/config.toml";
+//    il::String f_name(default_f_name.c_str());
+    il::String f_name = "C:/Users/nikolski/ClionProjects/HFPx3D_VC/config.toml";
+
+    il::Status status{};
+
+    // reading configuration & parameters
+    auto config =
+            il::load<il::MapArray<il::String, il::Dynamic>>(f_name, il::io, status);
+
+    status.abortOnError();
+
+    // input (triangulation) files
+
+    // material properties
     double mu = 1.0, nu = 0.35;
 
     // numerical simulation parameters
@@ -34,28 +65,19 @@ int main() {
     // mesh
     hfp3d::Mesh_Geom_T mesh;
 
-    std::string src_f = __FILE__;
-    while (src_f.find("\\")!=std::string::npos) {
-        src_f.replace(src_f.find("\\"),1,"/");
-    }
-    std::string src_dir = src_f.substr(0, src_f.rfind("/"));
-
-    // std::string src_dir{"C:/Users/nikolski/ClionProjects/HFPx3D_VC"};
-    // std::string src_dir{"/home/nikolski/Documents/HFPx3D"};
-    // std::string src_dir{"/home/lecampio/Documents/HFPx3D"};
-
     std::string input_dir{src_dir + "/Mesh_Files/"};
-    std::string mesh_conn_fname{"Elems_pennymesh121el_32.npy"};
-    std::string nodes_crd_fname{"Nodes_pennymesh121el_32.npy"};
+    std::string mesh_conn_fname{"Elems_pennymesh24el_32.npy"};
+    std::string nodes_crd_fname{"Nodes_pennymesh24el_32.npy"};
 
     std::string output_dir{src_dir + "/Test_Output/"};
-    std::string mf_name{"test_assembly_121_ele.csv"};
-    std::string of_name{"test_solution_121_ele.csv"};
+    std::string mf_name{"test_assembly_24_ele.csv"};
+    std::string of_name{"test_solution_24_ele.csv"};
 
     hfp3d::load_mesh_from_numpy_32
             (input_dir, mesh_conn_fname, nodes_crd_fname, true,
              il::io, mesh);
 
+    // resetting the timer
     il::Timer timer{};
     timer.start();
 
@@ -119,7 +141,6 @@ int main() {
             }
         }
     }
-    il::Status status{};
     il::Array<double> dd_v;
 
 //    __itt_pause();
@@ -139,7 +160,7 @@ int main() {
     //     // The matrix is singular to the machine precision. You should deal with
     //     // the error.
     // }
-    status.abort_on_error();
+    status.abortOnError();
     // double cnd = lu_decomposition.condition_number(il::Norm::L2, );
     // std::cout << cnd << std::endl;
     //dd_v = lu_decomposition.solve(rhs);
@@ -195,7 +216,7 @@ int main() {
     std::string npy_of_name{"/test_solution_24_ele.npy"};
     // il::Status status{};
     il::save(out_dd, output_dir + npy_of_name, il::io, status);
-    status.abort_on_error();
+    status.abortOnError();
 */
 
     return 0;
