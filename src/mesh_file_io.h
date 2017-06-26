@@ -11,6 +11,7 @@
 #define INC_HFPX3D_MESH_FILE_IO_H
 
 #include <cstdio>
+//#include <iostream>
 #include <complex>
 #include <il/Array.h>
 #include <il/Array2D.h>
@@ -28,6 +29,13 @@ namespace hfp3d {
              il::io_t, Mesh_Geom_T &mesh);
 
     void load_mesh_from_numpy_64
+            (const std::string &src_dir,
+             const std::string &conn_f_name,
+             const std::string &node_f_name,
+             bool is_matlab,
+             il::io_t, Mesh_Geom_T &mesh);
+
+    void load_mesh_from_csv
             (const std::string &src_dir,
              const std::string &conn_f_name,
              const std::string &node_f_name,
