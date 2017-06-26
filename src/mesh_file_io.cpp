@@ -113,7 +113,9 @@ namespace hfp3d {
                 while((pos = line.find(",", pos)) < line.length()) {
                     ++n_r_t;
                 }
-                if (n_r_t + 1 != n_col && n_col > 0) {}
+                if (n_r_t + 1 != n_col && n_col > 0) {
+                    std::cout << "Row size is not constant" << std::endl;
+                }
                 else n_col = n_r_t + 1;
             }
             mesh.conn.resize(n_col, n_row);
@@ -135,7 +137,7 @@ namespace hfp3d {
             }
         }
         else {
-            std::cout << "Can't open the file";
+            std::cout << "Can't open the file" << std::endl;
         }
 
         f_path = src_dir + node_f_name;
@@ -151,7 +153,9 @@ namespace hfp3d {
                 while((pos = line.find(",", pos)) < line.length()) {
                     ++n_r_t;
                 }
-                if (n_r_t + 1 != n_col && n_col > 0) {}
+                if (n_r_t + 1 != n_col && n_col > 0) {
+                    std::cout << "Row size is not constant" << std::endl;
+                }
                 else n_col = n_r_t + 1;
             }
             mesh.nods.resize(n_col, n_row);
@@ -163,7 +167,7 @@ namespace hfp3d {
             }
         }
         else {
-            std::cout << "Can't open the file";
+            std::cout << "Can't open the file" << std::endl;
         }
     }
 
