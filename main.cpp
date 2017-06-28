@@ -9,7 +9,7 @@
 
 #include <il/Timer.h>
 #include <il/Toml.h>
-//#include <il/String.h>
+#include <il/String.h>
 #include <il/Array.h>
 #include <il/Array2D.h>
 //#include <il/StaticArray.h>
@@ -20,7 +20,7 @@
 
 #include "src/mesh_file_io.h"
 #include "src/system_assembly.h"
-//#include "src/mesh_utilities.h"
+#include "src/surface_mesh_utilities.h"
 #include "src/element_utilities.h"
 #include "src/tensor_utilities.h"
 
@@ -32,26 +32,82 @@ int main() {
         src_f.replace(src_f.find("\\"),1,"/");
     }
     std::string src_dir = src_f.substr(0, src_f.rfind("/"));
-
     // std::string src_dir{"C:/Users/nikolski/ClionProjects/HFPx3D_VC"};
     // std::string src_dir{"/home/nikolski/Documents/HFPx3D"};
     // std::string src_dir{"/home/lecampio/Documents/HFPx3D"};
 
     std::string default_f_name = src_dir + "/config.toml";
-//    il::String f_name(default_f_name.c_str());
-    il::String f_name = "C:/Users/nikolski/ClionProjects/HFPx3D_VC/config.toml";
+    il::String config_f_name(default_f_name.c_str());
+    // il::String config_f_name =
+    // "C:/Users/nikolski/ClionProjects/HFPx3D_VC/config.toml";
+
+    std::string default_input_dir{src_dir + "/Mesh_Files/"};
+    // std::string mesh_conn_fname{"Elems_pennymesh24el_32.npy"};
+    // std::string nodes_crd_fname{"Nodes_pennymesh24el_32.npy"};
+
+    std::string default_output_dir{src_dir + "/Test_Output/"};
+
+    il::String mf_name = "test_assembly_24_ele.csv";
+    il::String of_name = "test_solution_24_ele.csv";
+    // std::string mf_name{"test_assembly_24_ele.csv"};
+    // std::string of_name{"test_solution_24_ele.csv"};
+
+    //il::String src_f_name(src_dir.c_str());
+    il::String in_dir_name((src_dir + "/").c_str());
+    il::String out_dir_name((src_dir + "/").c_str());
+    il::String m_c_f_name;
+    il::String m_n_f_name;
+    il::String i_f_format;
 
     il::Status status{};
 
     // reading configuration & parameters
     auto config =
-            il::load<il::MapArray<il::String, il::Dynamic>>(f_name, il::io, status);
+            il::load<il::MapArray<il::String, il::Dynamic>>
+                    (config_f_name, il::io, status);
 
     status.abortOnError();
 
-    // input (triangulation) files
+    // reading input (triangulation) files
+    il::int_t pos = config.search("input_directory");
+    if (config.found(pos) && config.value(pos).isString()) {
+        in_dir_name.append(config.value(pos).asString());
+    } else {
+        in_dir_name = il::String(default_input_dir.c_str());
+    }
+    in_dir_name.append("/");
+    pos = config.search("mesh_conn_fname");
+    if (config.found(pos) && config.value(pos).isString()) {
+        m_c_f_name.append(config.value(pos).asString());
+    } else {
+        std::cout << "Can't find the input file" << std::endl;
+        abort();
+    }
+    pos = config.search("nodes_crd_fname");
+    if (config.found(pos) && config.value(pos).isString()) {
+        m_n_f_name.append(config.value(pos).asString());
+    } else {
+        std::cout << "Can't find the input file" << std::endl;
+        abort();
+    }
+    pos = config.search("input_format");
+    if (config.found(pos) && config.value(pos).isString()) {
+        i_f_format = config.value(pos).asString();
+    } else {
+        i_f_format = "npy32";
+    }
+    pos = config.search("output_directory");
+    if (config.found(pos) && config.value(pos).isString()) {
+        out_dir_name.append(config.value(pos).asString());
+    } else {
+        out_dir_name = il::String(default_output_dir.c_str());
+    }
 
-    // material properties
+
+    // material properties (default)
+    //hfp3d::Properties_T properties_list;
+    //properties_list.mu = il::Array<double>{1, 1.0};
+    //properties_list.nu = il::Array<double>{1, 0.35};
     double mu = 1.0, nu = 0.35;
 
     // numerical simulation parameters
@@ -60,22 +116,50 @@ int main() {
     hfp3d::Load_T load;
     // stress at infinity (in-situ stress)
     load.s_inf = il::StaticArray<double, 6> {0.0};
-    load.s_inf[2] = 1.0; load.s_inf[4] = 1.0;
+    // load.s_inf[2] = 1.0; load.s_inf[4] = 1.0;
+    pos = config.search("S_xx");
+    if (config.found(pos) && config.value(pos).isDouble()) {
+        load.s_inf[0] = (config.value(pos).toDouble());
+    }
+    pos = config.search("S_yy");
+    if (config.found(pos) && config.value(pos).isDouble()) {
+        load.s_inf[1] = (config.value(pos).toDouble());
+    }
+    pos = config.search("S_zz");
+    if (config.found(pos) && config.value(pos).isDouble()) {
+        load.s_inf[2] = (config.value(pos).toDouble());
+    }
+    pos = config.search("S_xy");
+    if (config.found(pos) && config.value(pos).isDouble()) {
+        load.s_inf[3] = (config.value(pos).toDouble());
+    }
+    pos = config.search("S_xz");
+    if (config.found(pos) && config.value(pos).isDouble()) {
+        load.s_inf[4] = (config.value(pos).toDouble());
+    }
+    pos = config.search("S_yz");
+    if (config.found(pos) && config.value(pos).isDouble()) {
+        load.s_inf[5] = (config.value(pos).toDouble());
+    }
 
     // mesh
     hfp3d::Mesh_Geom_T mesh;
 
-    std::string input_dir{src_dir + "/Mesh_Files/"};
-    std::string mesh_conn_fname{"Elems_pennymesh24el_32.npy"};
-    std::string nodes_crd_fname{"Nodes_pennymesh24el_32.npy"};
+    // loading the mesh from files
+    if (i_f_format == "csv") {
+        hfp3d::load_mesh_from_csv
+                (in_dir_name, m_c_f_name, m_n_f_name, true, il::io, mesh);
+    } else if (i_f_format == "npy64") {
+        hfp3d::load_mesh_from_numpy_64
+                (in_dir_name, m_c_f_name, m_n_f_name, true, il::io, mesh);
+    } else { // treat as 32-bit numpy by default
+        hfp3d::load_mesh_from_numpy_32
+                (in_dir_name, m_c_f_name, m_n_f_name, true, il::io, mesh);
+    }
 
-    std::string output_dir{src_dir + "/Test_Output/"};
-    std::string mf_name{"test_assembly_24_ele.csv"};
-    std::string of_name{"test_solution_24_ele.csv"};
-
-    hfp3d::load_mesh_from_numpy_32
-            (input_dir, mesh_conn_fname, nodes_crd_fname, true,
-             il::io, mesh);
+    //hfp3d::load_mesh_from_numpy_32
+    // (input_dir, mesh_conn_fname, nodes_crd_fname,
+    // true, il::io, mesh);
 
     // resetting the timer
     il::Timer timer{};
@@ -92,6 +176,7 @@ int main() {
     il::int_t num_elems = mesh.conn.size(1);
     hfp3d::Mesh_Data_T mesh_data;
     mesh_data.mesh = mesh;
+    //mesh_data.mat_id = hfp3d::make_mat_id_triv(mesh, 2);
     mesh_data.dof_h_dd = hfp3d::make_dof_h_crack(mesh, 2, 1);
     il::int_t num_dof = mesh_data.dof_h_dd.n_dof;
     mesh_data.dd = il::Array2D<double> {num_elems * 6, 3, 0.0};
@@ -175,7 +260,7 @@ int main() {
              il::io, mesh_data);
 
     // saving matrix to a .CSV file
-    hfp3d::save_data_to_csv(sae.matrix, output_dir, mf_name);
+    hfp3d::save_data_to_csv(sae.matrix, out_dir_name, mf_name);
 
     // the 2D array for nodal points' coordinates and DD - initialization
     il::Array2D<double> out_dd(6 * num_elems, 6);
@@ -210,7 +295,7 @@ int main() {
         }
     }
 
-    hfp3d::save_data_to_csv(out_dd, output_dir, of_name);
+    hfp3d::save_data_to_csv(out_dd, out_dir_name, of_name);
 
 /*
     std::string npy_of_name{"/test_solution_24_ele.npy"};
