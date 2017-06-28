@@ -22,41 +22,51 @@
 namespace hfp3d {
 
     // mesh geometry structure
+    // to be imported from .npy or .csv files
     struct Mesh_Geom_T {
         // nodes' coordinates
         il::Array2D<double> nods;
 
         // mesh connectivity
         il::Array2D<il::int_t> conn;
-
-        // material ID
-        il::Array<int> mat_id;
     };
 
     // physical model parameters
+    // to be read from a .toml file
     struct Properties_T {
+        // number of materials
+        il::int_t n_mat = 1;
+
         // shear moduli, for each mat ID
         il::Array<double> mu;
         // Poisson ratios, for each mat ID
         il::Array<double> nu;
+
+//        // shear moduli, for each mat ID (for "plus" and "minus" sides)
+//        // different moduli and Poisson ratios affect the assembly
+//        il::Array<double> mu_p;
+//        il::Array<double> mu_m;
+//        // Poisson ratios, for each mat ID (for "plus" and "minus" sides)
+//        il::Array<double> nu_p;
+//        il::Array<double> nu_m;
+
         // contact model ID, for each mat ID (see cohesion_friction.h)
         il::Array<int> c_model_id;
 
-/*
         // max friction coeff-s
         il::Array<double> fr_c;
-        // max cohesion (shear)
+        // max cohesion (for shear stress vs shear DD)
         il::Array<double> sc_f;
-        // max cohesive forces (opening)
+        // max cohesive forces (for opening mode)
         il::Array<double> oc_f;
-        // critical openings
+        // critical opening displacement (normal DD)
         il::Array<double> w_cr;
-        // critical slips
+        // critical slip displacement (in-plane DD)
         il::Array<double> s_cr;
-*/
     };
 
-    // load parameters
+    // "global" load parameters
+    // to be read from a .toml file
     struct Load_T {
         // stress at infinity
         il::StaticArray<double, 6> s_inf;
@@ -69,6 +79,7 @@ namespace hfp3d {
     };
 
     // numerical simulation parameters
+    // to be read from a .toml file
     struct Num_Param_T {
         // order (0, 1, or 2) of approximating (shape) functions for DD
         // int approx_order = 2;
@@ -82,9 +93,9 @@ namespace hfp3d {
         // 1 -> only at vertex points;
         // 2 -> at vertex and edge nodes
 
-        // defines in what coordinate system DD are sought
+        // in what coordinate system DD are sought
         bool is_dd_local = true;
-        // true -> local; false -> global (reference)
+        // true -> local (for each element); false -> global (reference)
 
         // how to partition edges
         // bool is_part_uniform = true;
@@ -110,6 +121,9 @@ namespace hfp3d {
     struct Mesh_Data_T {
         // link to the Mesh object
         Mesh_Geom_T mesh;
+
+        // material IDs, for each element / node
+        il::Array2D<int> mat_id;
 
         // current time
         double time = 0;
@@ -144,6 +158,11 @@ namespace hfp3d {
 
 /////// some utilities ///////
 
+    // Material ID initialization (trivial case, zeros)
+    il::Array2D<int> make_mat_id_triv
+            (const Mesh_Geom_T &mesh,
+             int ap_order);
+
     // DoF handle initialization for an isolated crack
     // (fixed DoF at crack tip nodes defined by tip_type)
     DoF_Handle_T make_dof_h_crack
@@ -158,7 +177,7 @@ namespace hfp3d {
              //int tip_type,
              il::Array2D<il::int_t> inj_loc);
 
-    // 2D to 1D array conversion for DD
+    // 2D (Nx3) to 1D array conversion for DD
     // according to DoF handles
     il::Array<double> get_dd_vector_from_md
             (const Mesh_Data_T &m_data,

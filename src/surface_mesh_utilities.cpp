@@ -9,9 +9,20 @@
 
 #include <il/Array2D.h>
 #include <il/StaticArray.h>
-#include "mesh_utilities.h"
+#include "surface_mesh_utilities.h"
 
 namespace hfp3d {
+
+    // Material ID initialization (trivial case, zeros)
+    il::Array2D<int> make_mat_id_triv
+            (const Mesh_Geom_T &mesh,
+             int ap_order) {
+        // number of nodes per element (triangular)
+        int nnpe = (ap_order + 1) * (ap_order + 2) / 2;
+        // filling the matrix with zeros
+        il::Array2D<int> mat_id{mesh.conn.size(1), nnpe, 0};
+        return mat_id;
+    }
 
     // DoF handle initialization for a crack (fixed DoF at crack tip nodes)
     DoF_Handle_T make_dof_h_crack
