@@ -2,7 +2,8 @@
 // This file is part of HFPx3D_VC.
 //
 // Created by nikolski on 2/27/2017.
-// Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland, Geo-Energy Laboratory, 2016-2017.  All rights reserved.
+// Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
+// Geo-Energy Laboratory, 2016-2017.  All rights reserved.
 // See the LICENSE.TXT file for more details. 
 //
 
@@ -17,7 +18,7 @@
 #include "element_utilities.h"
 #include "tensor_utilities.h"
 #include "cohesion_friction.h"
-#include "mesh_utilities.h"
+#include "surface_mesh_utilities.h"
 #include "c_f_iteration.h"
 
 namespace hfp3d {
@@ -56,6 +57,8 @@ namespace hfp3d {
         IL_EXPECT_FAST(orig_ndof > 0 && orig_ndof <= full_ndof);
         IL_EXPECT_FAST(orig_ndof == orig_vc_sys.matrix.size(0));
         IL_EXPECT_FAST(orig_vc_sys.matrix.size(0) == orig_vc_sys.matrix.size(1));
+        IL_EXPECT_FAST(m_data.mat_id.size(0) == num_of_ele);
+        IL_EXPECT_FAST(m_data.mat_id.size(1) == nnpe);
 
         il::Array<double> dd_v = get_dd_vector_from_md(m_data, true);
 
@@ -81,12 +84,6 @@ namespace hfp3d {
         // includes friction, shear cohesion & opening cohesion
         f_c_model.match_f_c
                 (m_data.dd, n_par.is_dd_local, il::io, m_data.frac_state);
-
-        // mat_id size
-        il::int_t m_i_s = m_data.mesh.mat_id.size();
-        int mat_id_case = (m_i_s == num_of_ele ? 0 :
-                           (m_i_s == num_of_nod ? 1 :
-                            (m_i_s == nnpe * num_of_ele ? 2 : -1)));
 
         il::Array<double> delta_trac{orig_ndof, 0.0};
 
@@ -137,26 +134,7 @@ namespace hfp3d {
                 il::int_t gnn = el * nnpe + lnn;
 
                 // mat ID of the node (CP)
-                int mat_id_cp = 0;
-
-                if (mat_id_case == 2) {
-                    mat_id_cp = m_data.mesh.mat_id[gnn];
-                } else if (mat_id_case == 0) {
-                    mat_id_cp = m_data.mesh.mat_id[el];
-                } else if (mat_id_case == 1) {
-                    if (lnn < 3) {
-                        il::int_t cnn = m_data.mesh.conn(lnn, el);
-                        mat_id_cp = m_data.mesh.mat_id[cnn];
-                    } else {
-                        int m = (lnn + 1) % 3;
-                        int n = (m + 1) % 3;
-                        il::int_t g_m = m_data.mesh.conn(m, el);
-                        il::int_t g_n = m_data.mesh.conn(n, el);
-                        int id_m = m_data.mesh.mat_id[g_m];
-                        int id_n = m_data.mesh.mat_id[g_n];
-                        mat_id_cp = il::min(id_m, id_n);
-                    }
-                }
+                int mat_id_cp = m_data.mat_id(el, lnn);
 
                 // status of CP (partial/total breakup)
                 //double prev_cp_st = m_data_p.frac_state.mr_open[gnn];
