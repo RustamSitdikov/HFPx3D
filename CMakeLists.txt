@@ -3,9 +3,9 @@ project(HFPx3D)
 set(CMAKE_CXX_STANDARD 11)
 
 # some options related to IL
-set(IL_OPENMP 0)
-set(IL_OPENBLAS 1)
-set(IL_MKL 0)
+set(IL_OPENMP 1)
+set(IL_OPENBLAS 0)
+set(IL_MKL 1)
 
 # treat warnings as errors
 if(CMAKE_BUILD_TYPE MATCHES DEBUG)
