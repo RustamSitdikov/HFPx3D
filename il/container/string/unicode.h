@@ -43,7 +43,7 @@ enum CodePoint : int {
   kNotAnElementOf = 0x2209,
   kRingOperator = 0x2218,
   kInfinity = 0x221E,
-  kDoublestruckCapitalR = 0x211D,
+  kDoublestruckCapital_r = 0x211D,
   kGreekSmallLetterAlpha = 0x03B1,
   kGreekSmallLetterBeta = 0x03B2,
   kGreekSmallLetterGamma = 0x03B3,
