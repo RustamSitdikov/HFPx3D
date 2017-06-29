@@ -1,4 +1,13 @@
-// main.cpp will be used for testing the code parts under development
+//
+// This file is part of HFPx3D.
+//
+// Created by D. Nikolski.
+// Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
+// Geo-Energy Laboratory, 2016-2017.  All rights reserved.
+// See the LICENSE.TXT file for more details.
+//
+
+//todo: main.cpp will be used for testing the code parts under development
 
 //#include <cstdio>
 #include <iostream>
@@ -23,9 +32,6 @@
 #include "src/surface_mesh_utilities.h"
 #include "src/element_utilities.h"
 #include "src/tensor_utilities.h"
-
-
-// todo: we need to be careful with the il::ii fix. (line added in il/math.h )
 
 
 int main() {
@@ -264,7 +270,13 @@ int main() {
              il::io, mesh_data);
 
     // saving matrix to a .CSV file
-    hfp3d::save_data_to_csv(sae.matrix, out_dir_name, mf_name);
+    bool ok = true;
+    hfp3d::save_data_to_csv(sae.matrix, out_dir_name, mf_name, il::io, ok);
+    if (ok) {
+        std::cout << "Matrix saved to "
+                  << out_dir_name.asCString() << "/"
+                  << mf_name.asCString() << std::endl;
+    }
 
     // the 2D array for nodal points' coordinates and DD - initialization
     il::Array2D<double> out_dd(6 * num_elems, 6);
@@ -299,7 +311,12 @@ int main() {
         }
     }
 
-    hfp3d::save_data_to_csv(out_dd, out_dir_name, of_name);
+    hfp3d::save_data_to_csv(out_dd, out_dir_name, of_name, il::io, ok);
+    if (ok) {
+        std::cout << "Solution (node coordinates + DD) saved to "
+                  << out_dir_name.asCString() << "/"
+                  << of_name.asCString() << std::endl;
+    }
 
 /*
     std::string npy_of_name{"/test_solution_24_ele.npy"};
