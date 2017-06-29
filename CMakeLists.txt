@@ -83,7 +83,6 @@ elseif (IL_OPENBLAS)
         set(CMAKE_OPENBLAS_LIBRARIES "openblas")
     elseif(WIN32)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_OPENBLAS -DIL_BLAS")
-        #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_MKL -DIL_BLAS")
 
 #        if (MINGW)
 #            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_OPENBLAS -DIL_BLAS")
