@@ -345,7 +345,7 @@ namespace hfp3d {
                                 }
                             }
 
-                            // Coordinate rotation (for the unknown)
+                            // Coordinate rotation (for the unknown DD)
                             trac_infl_n2p_glob = il::dot(trac_infl_n2p,
                                                          r_tensor_s);
 
@@ -360,9 +360,9 @@ namespace hfp3d {
                         }
                     } else {
                         // adding DD-to traction influence "as is" (local)
+                        // todo: may need revision
                         for (int dof_s = 0; dof_s < ndpe; ++dof_s) {
-                            for (int n_t = 0; n_t < 6; ++n_t) {
-                                for (int k = 0; k < 3; ++k)
+                            for (int k = 0; k < 3; ++k) {
                                 trac_infl_el2el(3 * n_t + k, dof_s) =
                                         trac_cp_glob(k, dof_s);
                             }
@@ -526,8 +526,8 @@ namespace hfp3d {
             }
         }
         // multiplying stress_infl_matrix by disp_vect
-        il::Array<double> stress_vect{6 * num_of_m_pts} =
-                il::dot(stress_infl_matrix, disp_vect);
+        il::Array<double> stress_vect{6 * num_of_m_pts};
+        stress_vect = il::dot(stress_infl_matrix, disp_vect);
         // re-arranging stress components into num_of_m_pts*6 matrix
         il::Array2D<double> stress_array{num_of_m_pts, 6};
         for (il::int_t k = 0; k < num_of_m_pts; ++k) {

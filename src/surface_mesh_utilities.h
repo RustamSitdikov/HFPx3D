@@ -94,7 +94,7 @@ namespace hfp3d {
         // 2 -> at vertex and edge nodes
 
         // in what coordinate system DD are sought
-        bool is_dd_local = true;
+        bool is_dd_local = false;
         // true -> local (for each element); false -> global (reference)
 
         // how to partition edges
