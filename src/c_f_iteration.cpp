@@ -1,5 +1,5 @@
 //
-// This file is part of HFPx3D_VC.
+// This file is part of HFPx3D.
 //
 // Created by nikolski on 2/27/2017.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,

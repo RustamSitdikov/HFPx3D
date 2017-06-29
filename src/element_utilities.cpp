@@ -16,6 +16,7 @@
 // #include <il/linear_algebra/dense/blas/dot.h>
 // #include <il/linear_algebra/dense/blas/cross.h>
 #include <il/linear_algebra/dense/norm.h>
+#include "constants.h"
 #include "element_utilities.h"
 
 namespace hfp3d {
@@ -488,7 +489,7 @@ namespace hfp3d {
         std::complex<double> ca = std::conj(a), cb = std::conj(b),
                 a2 = a * a, b2 = b * b, ab = a * b,
                 ca2 = std::conj(a2), cb2 = std::conj(b2), cab = std::conj(ab);
-        std::complex<double> c = 0.25 * il::ii * (a - b);
+        std::complex<double> c = 0.25 * ii * (a - b);
         il::StaticArray<std::complex<double>, 6> l_int;
 
         // const part
@@ -522,7 +523,7 @@ namespace hfp3d {
         ca2 = std::conj(a2), cb2 = std::conj(b2), cab = std::conj(ab),
         ca3 = std::conj(a3), cb3 = std::conj(b3),
         ca4 = std::conj(a4), cb4 = std::conj(b4), ca2b2 = std::conj(a2b2),
-        c = 0.25 * il::ii * (a - b);
+        c = 0.25 * ii * (a - b);
         il::StaticArray<std::complex<double>, 15> l_int;
 
         // const part

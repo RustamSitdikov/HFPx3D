@@ -8,7 +8,7 @@
 //#include <ittnotify.h>
 
 #include <il/Timer.h>
-#include <il/Toml.h>
+#include <il/toml.h>
 #include <il/String.h>
 #include <il/Array.h>
 #include <il/Array2D.h>
@@ -23,6 +23,10 @@
 #include "src/surface_mesh_utilities.h"
 #include "src/element_utilities.h"
 #include "src/tensor_utilities.h"
+
+
+// todo: we need to be careful with the il::ii fix. (line added in il/math.h )
+
 
 int main() {
 

@@ -1,5 +1,5 @@
 //
-// This file is part of HFPx3D_VC.
+// This file is part of HFPx3D.
 //
 // Created by nikolski on 4/21/2017.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland, Geo-Energy Laboratory, 2016-2017.  All rights reserved.

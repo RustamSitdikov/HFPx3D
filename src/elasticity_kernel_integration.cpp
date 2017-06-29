@@ -16,6 +16,7 @@
 #include <il/StaticArray.h>
 #include <il/StaticArray3D.h>
 #include <il/StaticArray4D.h>
+#include "constants.h"
 #include "elasticity_kernel_integration.h"
 #include "h_potential.h"
 //#include "t_potential.h"

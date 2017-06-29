@@ -1,5 +1,5 @@
 //
-// This file is part of HFPx3D_VC.
+// This file is part of HFPx3D.
 //
 // Created by nikolski on 2/27/2017.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
@@ -7,8 +7,8 @@
 // See the LICENSE.TXT file for more details. 
 //
 
-#ifndef HFPX3D_VC_CF_ITERATION_H
-#define HFPX3D_VC_CF_ITERATION_H
+#ifndef HFPX3D_CF_ITERATION_H
+#define HFPX3D_CF_ITERATION_H
 
 #include <il/Array.h>
 #include <il/Array2D.h>
@@ -35,4 +35,4 @@ namespace hfp3d {
 
 }
 
-#endif //HFPX3D_VC_CF_ITERATION_H
+#endif //HFPX3D_CF_ITERATION_H
