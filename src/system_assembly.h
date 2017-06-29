@@ -48,9 +48,8 @@ namespace hfp3d {
     // Stress at given points (m_pts_crd) vs DD at nodal points (nodes_crd)
     il::Array2D<double> make_3dbem_stress_f_s
             (double mu, double nu,
-             const Mesh_Geom_T &mesh,
+             const Mesh_Data_T &m_data,
              const Num_Param_T &n_par,
-             //const Mesh_Data_T &m_data,
              const il::Array2D<double> &m_pts_crd);
 
 /////// Volume Control scheme utilities ///////

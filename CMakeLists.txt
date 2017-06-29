@@ -3,9 +3,9 @@ project(HFPx3D)
 set(CMAKE_CXX_STANDARD 11)
 
 # some options related to IL
-set(IL_OPENMP 0)
-set(IL_OPENBLAS 1)
 set(IL_MKL 0)
+set(IL_OPENBLAS 1)
+set(IL_OPENMP 0)
 
 IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wall -Wextra -pedantic")
@@ -49,7 +49,8 @@ if (IL_MKL)
         endif()
     endif()
 
-    link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/lib)
+    link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/../compilers/lib)
+    # link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/../compilers/lib)
 
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_MKL -DIL_BLAS")
     target_compile_definitions(HFPx3D PRIVATE IL_MKL=1 IL_BLAS=1)

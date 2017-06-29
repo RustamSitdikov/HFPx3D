@@ -57,11 +57,6 @@ int main() {
 
     std::string default_output_dir{src_dir + "/Test_Output/"};
 
-    il::String mf_name = "test_assembly_24_ele.csv";
-    il::String of_name = "test_solution_24_ele.csv";
-    // std::string mf_name{"test_assembly_24_ele.csv"};
-    // std::string of_name{"test_solution_24_ele.csv"};
-
     //il::String src_f_name(src_dir.c_str());
     il::String in_dir_name((src_dir + "/").c_str());
     il::String out_dir_name((src_dir + "/").c_str());
@@ -106,13 +101,26 @@ int main() {
     } else {
         i_f_format = "npy32";
     }
+
+    // reading output target
     pos = config.search("output_directory");
     if (config.found(pos) && config.value(pos).isString()) {
         out_dir_name.append(config.value(pos).asString());
     } else {
         out_dir_name = il::String(default_output_dir.c_str());
     }
-
+    il::String mf_name = "test_assembly";
+    il::String of_name = "test_solution";
+    // il::String sf_name = "test_stresses";
+    pos = config.search("output_signature");
+    if (config.found(pos) && config.value(pos).isString()) {
+        mf_name.append(config.value(pos).asString());
+        of_name.append(config.value(pos).asString());
+    }
+    mf_name.append(".csv");
+    of_name.append(".csv");
+    // std::string mf_name{"test_assembly_24_ele.csv"};
+    // std::string of_name{"test_solution_24_ele.csv"};
 
     // material properties (default)
     //hfp3d::Properties_T properties_list;
@@ -198,6 +206,7 @@ int main() {
     sae.matrix = hfp3d::make_3dbem_matrix_s
             (mu, nu, mesh, n_par, il::io, mesh_data.dof_h_dd);
 
+    // todo: make it a function
     sae.rhs_v = il::Array<double> {num_dof, 0.0};
     for (il::int_t el = 0; el < num_elems; ++el) {
         // element vertices' coordinates
@@ -218,7 +227,8 @@ int main() {
         for (int j = 0; j < 3; ++j) {
             norm_v[j] = -r_tensor(2, j);
         }
-        // induced traction
+
+        // induced traction (from in-situ stress)
         il::StaticArray<double, 3> trac_inf =
                 hfp3d::nv_dot_sim(norm_v, load.s_inf);
 
@@ -231,11 +241,12 @@ int main() {
                 il::int_t dof = mesh_data.dof_h_dd.dof_h(el, ldof);
                 if (dof != -1) {
                     //rhs[dof] = (l != 1 ? 1.0 : 0.0);
-                    sae.rhs_v[dof] = -trac_inf[l];
+                    sae.rhs_v[dof] -= trac_inf[l];
                 }
             }
         }
     }
+
     il::Array<double> dd_v;
 
 //    __itt_pause();
@@ -269,6 +280,15 @@ int main() {
              false, mesh_data.dof_h_pp,
              il::io, mesh_data);
 
+// todo: calculation of stresses (post-processing)
+//    // define points to monitor stresses
+//    il::Array2D<double> m_pts_crd;
+//
+//    // calculate stresses at m_pts_crd
+//    il::Array2D<double> stress_m_pts(m_pts_crd.size(0), 6);
+//    stress_m_pts = hfp3d::make_3dbem_stress_f_s
+//            (mu, nu, mesh_data, n_par, m_pts_crd);
+
     // saving matrix to a .CSV file
     bool ok = true;
     hfp3d::save_data_to_csv(sae.matrix, out_dir_name, mf_name, il::io, ok);
@@ -279,7 +299,7 @@ int main() {
     }
 
     // the 2D array for nodal points' coordinates and DD - initialization
-    il::Array2D<double> out_dd(6 * num_elems, 6);
+    il::Array2D<double> out_dd(6 * num_elems, 7);
 
     // saving the solution (nodes + DD) to a .CSV file
     for (il::int_t j = 0; j < num_elems; ++j) {
@@ -290,6 +310,7 @@ int main() {
                 el_vert(l, k) = mesh.nods(l, n);
             }
         }
+        // nodal point coordinates
         il::StaticArray<il::StaticArray<double, 3>, 6> el_np;
         el_np = hfp3d::el_cp_uniform(el_vert, 0.0);
         // el_np = hfp3d::el_cp_nonuniform(el_vert, v_wts, 0.0);
@@ -300,20 +321,21 @@ int main() {
                 il::int_t l_dof = k * 3 + l;
                 il::int_t g_dof = mesh_data.dof_h_dd.dof_h(j, l_dof);
                 out_dd(n, l) = el_np[k][l];
-                if (g_dof != -1) {
-                    //out_dd(n, l) = dd_v[dof];
-                    out_dd(n, l + 3) = dd_v[g_dof];
-                } else {
-                    //out_dd(n, l) = 0.0;
-                    out_dd(n, l + 3) = 0.0;
-                }
+                out_dd(n, l + 4) = mesh_data.dd(n, l);
+//                if (g_dof != -1) {
+//                    //out_dd(n, l) = dd_v[dof];
+//                    out_dd(n, l + 4) = dd_v[g_dof];
+//                } else {
+//                    //out_dd(n, l) = 0.0;
+//                    out_dd(n, l + 4) = 0.0;
+//                }
             }
         }
     }
 
     hfp3d::save_data_to_csv(out_dd, out_dir_name, of_name, il::io, ok);
     if (ok) {
-        std::cout << "Solution (node coordinates + DD) saved to "
+        std::cout << "Solution (nodes + DD) saved to "
                   << out_dir_name.asCString() << "/"
                   << of_name.asCString() << std::endl;
     }

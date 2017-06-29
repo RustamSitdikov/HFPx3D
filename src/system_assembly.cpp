@@ -397,9 +397,8 @@ namespace hfp3d {
     // at nodal points (mesh.nods)
     il::Array2D<double> make_3dbem_stress_f_s
             (double mu, double nu,
-             const Mesh_Geom_T &mesh,
-             const Num_Param_T &n_par,
              const Mesh_Data_T &m_data,
+             const Num_Param_T &n_par,
              const il::Array2D<double> &m_pts_crd) {
     // This function calculates Stress at given points (m_pts_crd)
     // vs DD (m_data.DD) at nodal points (mesh.nods)
@@ -408,12 +407,12 @@ namespace hfp3d {
 
     // Naive way: no ACA. For parallel assembly, uncomment line 424
 
-        IL_EXPECT_FAST(mesh.conn.size(0) >= 3);
-        IL_EXPECT_FAST(mesh.conn.size(1) >= 1); // at least 1 element
-        IL_EXPECT_FAST(mesh.nods.size(0) >= 3);
-        IL_EXPECT_FAST(mesh.nods.size(1) >= 3); // at least 3 nodes
+        IL_EXPECT_FAST(m_data.mesh.conn.size(0) >= 3);
+        IL_EXPECT_FAST(m_data.mesh.conn.size(1) >= 1); // at least 1 element
+        IL_EXPECT_FAST(m_data.mesh.nods.size(0) >= 3);
+        IL_EXPECT_FAST(m_data.mesh.nods.size(1) >= 3); // at least 3 nodes
 
-        const il::int_t num_ele = mesh.conn.size(1);
+        const il::int_t num_ele = m_data.mesh.conn.size(1);
         const il::int_t num_dof = 18 * num_ele;
         const il::int_t num_of_m_pts = m_pts_crd.size(1);
 
@@ -428,9 +427,9 @@ namespace hfp3d {
             il::StaticArray2D<double, 3, 3> el_vert_s;
             //il::StaticArray<double, 3> vert_wts_t;
             for (il::int_t j = 0; j < 3; ++j) {
-                il::int_t n = mesh.conn(j, source_elem);
+                il::int_t n = m_data.mesh.conn(j, source_elem);
                 for (il::int_t k = 0; k < 3; ++k) {
-                    el_vert_s(k, j) = mesh.nods(k, n);
+                    el_vert_s(k, j) = m_data.mesh.nods(k, n);
                 }
                 // get vert_wts_s[j]
             }

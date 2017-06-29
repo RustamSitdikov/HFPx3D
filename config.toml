@@ -7,6 +7,7 @@ input_format = "npy32"
 # choose from "npy32", "npy64", "csv"
 
 output_directory = "Test_Output"
+output_signature = "_psc_24_ele"
 
 # In-situ stress (positive compression) + inital pore pressure
 S_xx = 0
