@@ -3,12 +3,12 @@ project(HFPx3D)
 set(CMAKE_CXX_STANDARD 11)
 
 # some options related to IL
-set(IL_MKL 0)
-set(IL_OPENBLAS 1)
 set(IL_OPENMP 0)
+set(IL_OPENBLAS 1)
+set(IL_MKL 0)
 
 # treat warnings as errors
-IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+if(CMAKE_BUILD_TYPE MATCHES DEBUG)
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wall -Wextra -pedantic")
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wall -pedantic")
     if (UNIX)
@@ -24,7 +24,30 @@ IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wall -Wextra -pedantic")
         endif()
     endif()
-ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+endif()
+
+# For OpenMP
+if (IL_OPENMP)
+    if (UNIX)
+        if (UNIX)
+            if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+                set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -xHost -ansi-alias -DNDEBUG")
+            endif()
+        endif()
+        if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+            #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+            #link_directories(/opt/clang-3.9.0/lib)
+        elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+        elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -qopenmp")
+        endif()
+    elseif (WIN32)
+        if (MINGW)
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+        endif()
+    endif()
+endif()
 
 set(SOURCE_FILES_DIR ${PROJECT_SOURCE_DIR}/src)
 
@@ -49,6 +72,11 @@ add_executable(HFPx3D ${SOURCE_FILES})
 ####### IL_MKL case
 ## ENV{MKLROOT} is smth. like /opt/intel/compilers_and_libraries_2017.0.102/mac/mkl
 if (IL_MKL)
+    #link_directories($ENV{MKLROOT}/lib)
+    link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/../compilers/lib)
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -DIL_MKL -DIL_BLAS")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_MKL -DIL_BLAS")
+
     if (UNIX)
         if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -DIL_MKL -DIL_BLAS")
@@ -63,61 +91,36 @@ if (IL_MKL)
         endif()
     endif()
 
-    link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/../compilers/lib)
-    # link_directories($ENV{MKLROOT}/lib)
-
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_MKL -DIL_BLAS")
     target_compile_definitions(HFPx3D PRIVATE IL_MKL=1 IL_BLAS=1)
     target_include_directories(HFPx3D PRIVATE ${CMAKE_SOURCE_DIR} $ENV{MKLROOT}/include)
-    target_link_libraries(HFPx3D mkl_intel_lp64 mkl_core mkl_intel_thread dl iomp5 pthread m)
-
-    add_custom_command(TARGET HFPx3D
-                POST_BUILD COMMAND
-                /usr/bin/install_name_tool -add_rpath $ENV{MKLROOT}/lib
-                $<TARGET_FILE:HFPx3D>)
 
 ####### IL_OPENBLAS case
 elseif (IL_OPENBLAS)
     if (UNIX)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_OPENBLAS -DIL_BLAS")
         set(CMAKE_OPENBLAS_LIBRARIES "openblas")
-    elseif(WIN32)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_OPENBLAS -DIL_BLAS")
-
-#        if (MINGW)
-#            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_OPENBLAS -DIL_BLAS")
-#            set(CMAKE_OPENBLAS_LIBRARIES "openblas")
-#        endif()
-
+    elseif (WIN32)
+        #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_OPENBLAS -DIL_BLAS")
+        #set(CMAKE_OPENBLAS_LIBRARIES "openblas")
+        if (MINGW)
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_OPENBLAS -DIL_BLAS")
+            set(CMAKE_OPENBLAS_LIBRARIES "openblas")
+        endif()
     elseif (APPLE)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_MKL -DIL_OPENBLAS -DIL_BLAS")
         set(CMAKE_OPENBLAS_LIBRARIES "openblas")
     endif()
 
     target_include_directories(HFPx3D PRIVATE ${CMAKE_SOURCE_DIR})
-    target_link_libraries(HFPx3D openblas)
 endif()
 
-# For OpenMP
-if (IL_OPENMP)
-    if (UNIX)
-        if (UNIX)
-            if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-                set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -xHost -ansi-alias -DNDEBUG")
-            endif()
-        endif()
-        if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-#            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-#            link_directories(/opt/clang-3.9.0/lib)
-        elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-        elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -qopenmp")
-        endif()
-    elseif (WIN32)
-        if (MINGW)
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-        endif()
+target_link_libraries(HFPx3D ${CMAKE_MKL_LIBRARIES} ${CMAKE_OPENBLAS_LIBRARIES})
+
+if (IL_MKL)
+    if (APPLE)
+        add_custom_command(TARGET HFPx3D
+                POST_BUILD COMMAND
+                /usr/bin/install_name_tool -add_rpath $ENV{MKLROOT}/lib
+                $<TARGET_FILE:HFPx3D>)
     endif()
 endif()
-
