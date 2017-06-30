@@ -14,8 +14,16 @@ or in more details on the **wiki** page
 (https://github.com/GeoEnergyLab-EPFL/HFPx3D/wiki).
 
 ## Important notes
+The code requires the configuration file **config.toml** containing the
+following data:
+- Input/output directories/files (including surface mesh data)
+- Material properties
+- Load parameters (in-situ stress, injection)
+- Numerical model parameters
+##
 **MeshFiles/** folder contains surface mesh (triangulation) data.
-There are two **numpy** binary files for each surface:
+##
+1st option: **numpy** binary files, there are two for the same surface mesh:
 - **Elems_... .npy** for connectivity matrix (node numbers of each element)
 - **Nodes_... .npy** for coordinates of the nodes
 
@@ -23,6 +31,12 @@ There are two **numpy** binary files for each surface:
 
 **Save_m_as_npy** sctipt can be used to save data from MATLAB .mat files in
 **numpy** format.
+
+##
+2nd option: **.csv** text files, also two for the same surface mesh:
+- **Elems_... .csv** for connectivity matrix (node numbers of each element)
+- **Nodes_... .csv** for coordinates of the nodes
+
 ##
 This code uses the **InsideLoop library** (https://github.com/insideloop/InsideLoop)
 
