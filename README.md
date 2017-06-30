@@ -31,7 +31,6 @@ following data:
 
 **Save_m_as_npy** sctipt can be used to save data from MATLAB .mat files in
 **numpy** format.
-
 ##
 2nd option: **.csv** text files, also two for the same surface mesh:
 - **Elems_... .csv** for connectivity matrix (node numbers of each element)
