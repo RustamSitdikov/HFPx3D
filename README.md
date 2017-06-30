@@ -37,7 +37,7 @@ and copy the **il/** folder to the project directory (not to **src/**!).
 **CMakeLists.txt** may require modifications depending on the math library used.
 If OpenBlas is used instead of MKL (typically, in Windows), set the
 corresponding variables as shown:
-```cpp
+```
 set(IL_OPENBLAS 1)
 set(IL_MKL 0)
 ```
