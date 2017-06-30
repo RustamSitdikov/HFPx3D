@@ -83,7 +83,7 @@ namespace hfp3d {
         std::complex<double> c_tcos_n1 = c_tcos_m1 * tcos_x;
         std::complex<double> w_c_tcos_n2 =
                 (13.0 + e2x - 10.0 * tcos_x) * tcos_x;
-        std::complex<double> c_8_3i_tan = 8.0 + 3.0 * ii * tan_x;
+        std::complex<double> c_8_3i_tan{8.0, 3.0 * tan_x};
 
         double h2 = h * h;
         double h3 = h2 * h;
