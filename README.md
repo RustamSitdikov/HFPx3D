@@ -33,7 +33,6 @@ to use the latest version of the library. Please clone/download the source
 files from https://github.com/insideloop/InsideLoop
 and copy the **il/** folder to the project directory (not to **src/**!).
 
-**Notice (temporary):** To resolve an issue with `il::I`, in **il/math.h** replace "I" with "ii"
 ##
 **CMakeLists.txt** may require modifications depending on the math library used.
 If OpenBlas is used instead of MKL (typically, in Windows), comment and
