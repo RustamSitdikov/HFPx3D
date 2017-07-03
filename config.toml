@@ -1,10 +1,14 @@
 # Configuration file for HFPx3D
 
 input_directory = "Mesh_Files"
-mesh_conn_fname = "Elems_pennymesh24el_32.npy"
-nodes_crd_fname = "Nodes_pennymesh24el_32.npy"
+#mesh_conn_fname = "Elems_pennymesh24el_32.npy"
+#nodes_crd_fname = "Nodes_pennymesh24el_32.npy"
+mesh_conn_fname = "Elems_elliptic_550_el_32.npy"
+nodes_crd_fname = "Nodes_elliptic_550_el_32.npy"
 input_format = "npy32"
 # choose from "npy32", "npy64", "csv"
+array_origin = 0
+# either 0 (C++) or 1 (MATLAB)
 
 output_directory = "Test_Output"
 output_signature = "_psc_24_ele"

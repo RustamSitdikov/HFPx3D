@@ -25,7 +25,8 @@ namespace hfp3d {
             (const std::string &src_dir,
              const std::string &conn_f_name,
              const std::string &node_f_name,
-             bool is_matlab,
+             // bool is_matlab,
+             int origin,
              il::io_t, Mesh_Geom_T &mesh) {
 // This function reads the mesh connectivity matrix (3*N_elements)
 // (32-bit integer)
@@ -48,13 +49,14 @@ namespace hfp3d {
                 (n_f_path, il::io, status);
         status.abortOnError();
 
-        if (is_matlab) {
+        if (origin !=0) {
+        // if (is_matlab) {
             // conversion from Matlab (array numbering starting with 1)
             // to C++ standard (array numbering starting with 0)
             il::int_t n_r = (mesh.conn.size(0) >= 3) ? 3 : mesh.conn.size(0);
             for (il::int_t k = 0; k < mesh.conn.size(1); ++k) {
                 for (il::int_t j = 0; j < n_r; ++j) {
-                    mesh.conn(j, k) -=1;
+                    mesh.conn(j, k) -= origin;
                 }
             }
         }
@@ -65,7 +67,8 @@ namespace hfp3d {
             (const il::String &src_dir,
              const il::String &conn_f_name,
              const il::String &node_f_name,
-             bool is_matlab,
+             int origin,
+             // bool is_matlab,
              il::io_t, Mesh_Geom_T &mesh) {
 // This function reads the mesh connectivity matrix (3*N_elements)
 // (32-bit integer)
@@ -90,13 +93,14 @@ namespace hfp3d {
                 (n_f_path, il::io, status);
         status.abortOnError();
 
-        if (is_matlab) {
+        if (origin !=0) {
+        // if (is_matlab) {
             // conversion from Matlab (array numbering starting with 1)
             // to C++ standard (array numbering starting with 0)
             il::int_t n_r = (mesh.conn.size(0) >= 3) ? 3 : mesh.conn.size(0);
             for (il::int_t k = 0; k < mesh.conn.size(1); ++k) {
                 for (il::int_t j = 0; j < n_r; ++j) {
-                    mesh.conn(j, k) -=1;
+                    mesh.conn(j, k) -= origin;
                 }
             }
         }
@@ -106,7 +110,8 @@ namespace hfp3d {
             (const std::string &src_dir,
              const std::string &conn_f_name,
              const std::string &node_f_name,
-             bool is_matlab,
+             // bool is_matlab,
+             int origin,
              il::io_t, Mesh_Geom_T &mesh) {
 // This function reads the mesh connectivity matrix (3*N_elements)
 // (64-bit integer)
@@ -123,13 +128,14 @@ namespace hfp3d {
                 (n_f_path, il::io, status);
         status.abortOnError();
 
-        if (is_matlab) {
+        if (origin !=0) {
+        // if (is_matlab) {
             // conversion from Matlab (array numbering starting with 1)
             // to C++ standard (array numbering starting with 0)
             il::int_t n_r = (mesh.conn.size(0) >= 3) ? 3 : mesh.conn.size(0);
             for (il::int_t k = 0; k < mesh.conn.size(1); ++k) {
                 for (il::int_t j = 0; j < n_r; ++j) {
-                    mesh.conn(j, k) -=1;
+                    mesh.conn(j, k) -= origin;
                 }
             }
         }
@@ -140,7 +146,8 @@ namespace hfp3d {
             (const il::String &src_dir,
              const il::String &conn_f_name,
              const il::String &node_f_name,
-             bool is_matlab,
+             // bool is_matlab,
+             int origin,
              il::io_t, Mesh_Geom_T &mesh) {
 // This function reads the mesh connectivity matrix (3*N_elements)
 // (64-bit integer)
@@ -157,13 +164,14 @@ namespace hfp3d {
                 (n_f_path, il::io, status);
         status.abortOnError();
 
-        if (is_matlab) {
+        if (origin !=0) {
+        // if (is_matlab) {
             // conversion from Matlab (array numbering starting with 1)
             // to C++ standard (array numbering starting with 0)
             il::int_t n_r = (mesh.conn.size(0) >= 3) ? 3 : mesh.conn.size(0);
             for (il::int_t k = 0; k < mesh.conn.size(1); ++k) {
                 for (il::int_t j = 0; j < n_r; ++j) {
-                    mesh.conn(j, k) -=1;
+                    mesh.conn(j, k) -= origin;
                 }
             }
         }
@@ -173,7 +181,8 @@ namespace hfp3d {
             (const std::string &src_dir,
              const std::string &conn_f_name,
              const std::string &node_f_name,
-             bool is_matlab,
+             // bool is_matlab,
+             int origin,
              il::io_t, Mesh_Geom_T &mesh) {
 // This function reads the mesh connectivity matrix (3*N_elements)
 // and node coordinates matrix (3*N_nodes) from CSV files.
@@ -227,13 +236,14 @@ namespace hfp3d {
                     }
                 }
             }
-            if (is_matlab) {
+            if (origin !=0) {
+            // if (is_matlab) {
                 // conversion from Matlab (array numbering starting with 1)
                 // to C++ standard (array numbering starting with 0)
                 il::int_t n_r = (mesh.conn.size(0) >= 3) ? 3 : mesh.conn.size(0);
                 for (il::int_t k = 0; k < mesh.conn.size(1); ++k) {
                     for (il::int_t j = 0; j < n_r; ++j) {
-                        mesh.conn(j, k) -= 1;
+                        mesh.conn(j, k) -= origin;
                     }
                 }
             }
@@ -298,7 +308,8 @@ namespace hfp3d {
             (const il::String &src_dir,
              const il::String &conn_f_name,
              const il::String &node_f_name,
-             bool is_matlab,
+             // bool is_matlab,
+             int origin,
              il::io_t, Mesh_Geom_T &mesh) {
 // This function reads the mesh connectivity matrix (3*N_elements)
 // and node coordinates matrix (3*N_nodes) from CSV files.
@@ -352,13 +363,14 @@ namespace hfp3d {
                     }
                 }
             }
-            if (is_matlab) {
+            if (origin !=0) {
+            // if (is_matlab) {
                 // conversion from Matlab (array numbering starting with 1)
                 // to C++ standard (array numbering starting with 0)
                 il::int_t n_r = (mesh.conn.size(0) >= 3) ? 3 : mesh.conn.size(0);
                 for (il::int_t k = 0; k < mesh.conn.size(1); ++k) {
                     for (il::int_t j = 0; j < n_r; ++j) {
-                        mesh.conn(j, k) -= 1;
+                        mesh.conn(j, k) -= origin;
                     }
                 }
             }

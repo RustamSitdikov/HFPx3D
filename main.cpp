@@ -63,6 +63,7 @@ int main() {
     il::String m_c_f_name;
     il::String m_n_f_name;
     il::String i_f_format;
+    int array_origin;
 
     il::Status status{};
 
@@ -100,6 +101,12 @@ int main() {
         i_f_format = config.value(pos).asString();
     } else {
         i_f_format = "npy32";
+    }
+    pos = config.search("array_origin");
+    if (config.found(pos) && config.value(pos).isInteger()) {
+        array_origin = config.value(pos).toInteger();
+    } else {
+        array_origin = 0;
     }
 
     // reading output target
@@ -166,13 +173,13 @@ int main() {
     // loading the mesh from files
     if (i_f_format == "csv") {
         hfp3d::load_mesh_from_csv
-                (in_dir_name, m_c_f_name, m_n_f_name, true, il::io, mesh);
+                (in_dir_name, m_c_f_name, m_n_f_name, array_origin, il::io, mesh);
     } else if (i_f_format == "npy64") {
         hfp3d::load_mesh_from_numpy_64
-                (in_dir_name, m_c_f_name, m_n_f_name, true, il::io, mesh);
+                (in_dir_name, m_c_f_name, m_n_f_name, array_origin, il::io, mesh);
     } else { // treat as 32-bit numpy by default
         hfp3d::load_mesh_from_numpy_32
-                (in_dir_name, m_c_f_name, m_n_f_name, true, il::io, mesh);
+                (in_dir_name, m_c_f_name, m_n_f_name, array_origin, il::io, mesh);
     }
 
     //hfp3d::load_mesh_from_numpy_32
@@ -291,12 +298,12 @@ int main() {
 
     // saving matrix to a .CSV file
     bool ok = true;
-    hfp3d::save_data_to_csv(sae.matrix, out_dir_name, mf_name, il::io, ok);
-    if (ok) {
-        std::cout << "Matrix saved to "
-                  << out_dir_name.asCString() << "/"
-                  << mf_name.asCString() << std::endl;
-    }
+//    hfp3d::save_data_to_csv(sae.matrix, out_dir_name, mf_name, il::io, ok);
+//    if (ok) {
+//        std::cout << "Matrix saved to "
+//                  << out_dir_name.asCString() << "/"
+//                  << mf_name.asCString() << std::endl;
+//    }
 
     // the 2D array for nodal points' coordinates and DD - initialization
     il::Array2D<double> out_dd(6 * num_elems, 7);
