@@ -291,8 +291,8 @@ int main() {
             il::int_t n = j * 6 + k;
             for (il::int_t l = 0; l < 3; ++l) {
                 //il::int_t dof = n * 3 + l;
-                il::int_t l_dof = k * 3 + l;
-                il::int_t g_dof = mesh_data.dof_h_dd.dof_h(j, l_dof);
+//                il::int_t l_dof = k * 3 + l;
+//                il::int_t g_dof = mesh_data.dof_h_dd.dof_h(j, l_dof);
                 out_dd(n, l) = el_np[k][l];
                 out_dd(n, l + 4) = mesh_data.dd(n, l);
 //                if (g_dof != -1) {
