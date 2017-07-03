@@ -25,7 +25,7 @@
 //#include <il/StaticArray2D.h>
 #include <il/linear_algebra/dense/factorization/LU.h>
 #include <il/linear_algebra.h>
-//#include <il/linear_algebra/dense/factorization/linear_solve.h>
+//#include <il/linear_algebra/dense/factorization/linearSolve.h>
 
 #include "src/mesh_file_io.h"
 #include "src/system_assembly.h"
@@ -266,18 +266,18 @@ int main() {
     timer.reset();
     timer.start();
 
-    // dd_v = il::linear_solve(bem_matrix, rhs, il::io, status);
-    //il::LU<il::Array2D<double>> lu_decomposition(bem_matrix, il::io, status);
     il::LU<il::Array2D<double>> lu_decomposition(sae.matrix, il::io, status);
     // if (!status.ok()) {
     //     // The matrix is singular to the machine precision. You should deal with
     //     // the error.
     // }
     status.abortOnError();
-    // double cnd = lu_decomposition.condition_number(il::Norm::L2, );
+     double cnd = lu_decomposition.conditionNumber(il::Norm::L2, );
     // std::cout << cnd << std::endl;
-    //dd_v = lu_decomposition.solve(rhs);
     dd_v = lu_decomposition.solve(sae.rhs_v);
+
+//    dd_v = il::linearSolve(sae.matrix, sae.rhs_v, il::io, status);
+//    status.abortOnError();
 
     timer.stop();
     std::cout << "Solution: " << timer.elapsed() << "s" << std::endl;
