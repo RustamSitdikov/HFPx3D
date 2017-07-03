@@ -296,8 +296,9 @@ int main() {
 //    stress_m_pts = hfp3d::make_3dbem_stress_f_s
 //            (mu, nu, mesh_data, n_par, m_pts_crd);
 
-    // saving matrix to a .CSV file
+// todo: move towards using il::Status type
     bool ok = true;
+    // saving matrix to a .CSV file
 //    hfp3d::save_data_to_csv(sae.matrix, out_dir_name, mf_name, il::io, ok);
 //    if (ok) {
 //        std::cout << "Matrix saved to "
