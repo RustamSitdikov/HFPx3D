@@ -1,21 +1,21 @@
 # Configuration file for HFPx3D
 
 input_directory = "Mesh_Files"
-#mesh_conn_fname = "Elems_pennymesh24el_32.npy"
-#nodes_crd_fname = "Nodes_pennymesh24el_32.npy"
+mesh_conn_fname = "Elems_pennymesh24el_32.npy"
+nodes_crd_fname = "Nodes_pennymesh24el_32.npy"
 #mesh_conn_fname = "Elems_pennymesh1025el_32.npy"
 #nodes_crd_fname = "Nodes_pennymesh1025el_32.npy"
-mesh_conn_fname = "Elems_elliptic_550_el_32.npy"
-nodes_crd_fname = "Nodes_elliptic_550_el_32.npy"
+#mesh_conn_fname = "Elems_elliptic_550_el_32.npy"
+#nodes_crd_fname = "Nodes_elliptic_550_el_32.npy"
 input_format = "npy32"
 # choose from "npy32", "npy64", "csv"
-array_origin = 0
+array_origin = 1
 # either 0 (C++) or 1 (MATLAB)
 
 output_directory = "Test_Output"
-#output_signature = "_psc_24_ele"
+output_signature = "_psc_24_ele"
 #output_signature = "_psc_1025_ele"
-output_signature = "_elc_550_ele"
+#output_signature = "_elc_550_ele"
 
 # In-situ stress (positive compression) + inital pore pressure
 S_xx = 0
