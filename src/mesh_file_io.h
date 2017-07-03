@@ -27,7 +27,7 @@ namespace hfp3d {
          const std::string &conn_f_name,
          const std::string &node_f_name,
          // bool is_matlab,
-         int origin,
+         il::int_t origin,
          il::io_t, Mesh_Geom_T &mesh);
 
     // overload for il::String
@@ -36,7 +36,7 @@ namespace hfp3d {
              const il::String &conn_f_name,
              const il::String &node_f_name,
              // bool is_matlab,
-             int origin,
+             il::int_t origin,
              il::io_t, Mesh_Geom_T &mesh);
 
     void load_mesh_from_numpy_64
@@ -44,7 +44,7 @@ namespace hfp3d {
          const std::string &conn_f_name,
          const std::string &node_f_name,
          // bool is_matlab,
-         int origin,
+         il::int_t origin,
          il::io_t, Mesh_Geom_T &mesh);
 
     // overload for il::String
@@ -53,7 +53,7 @@ namespace hfp3d {
              const il::String &conn_f_name,
              const il::String &node_f_name,
              // bool is_matlab,
-             int origin,
+             il::int_t origin,
              il::io_t, Mesh_Geom_T &mesh);
 
     void load_mesh_from_csv
@@ -61,7 +61,7 @@ namespace hfp3d {
          const std::string &conn_f_name,
          const std::string &node_f_name,
          // bool is_matlab,
-         int origin,
+         il::int_t origin,
          il::io_t, Mesh_Geom_T &mesh);
 
     // overload for il::String
@@ -70,7 +70,7 @@ namespace hfp3d {
              const il::String &conn_f_name,
              const il::String &node_f_name,
              // bool is_matlab,
-             int origin,
+             il::int_t origin,
              il::io_t, Mesh_Geom_T &mesh);
 
     template <typename T>

@@ -63,7 +63,7 @@ int main() {
     il::String m_c_f_name;
     il::String m_n_f_name;
     il::String i_f_format;
-    int array_origin;
+    il::int_t array_origin;
 
     il::Status status{};
 
