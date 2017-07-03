@@ -168,23 +168,29 @@ int main() {
     }
 
     // mesh
-    hfp3d::Mesh_Geom_T mesh;
+    hfp3d::Mesh_Data_T mesh_data;
 
     // loading the mesh from files
     if (i_f_format == "csv") {
         hfp3d::load_mesh_from_csv
-                (in_dir_name, m_c_f_name, m_n_f_name, array_origin, il::io, mesh);
+                (in_dir_name, m_c_f_name, m_n_f_name, array_origin,
+                 il::io, mesh_data.mesh);
     } else if (i_f_format == "npy64") {
         hfp3d::load_mesh_from_numpy_64
-                (in_dir_name, m_c_f_name, m_n_f_name, array_origin, il::io, mesh);
+                (in_dir_name, m_c_f_name, m_n_f_name, array_origin,
+                 il::io, mesh_data.mesh);
     } else { // treat as 32-bit numpy by default
         hfp3d::load_mesh_from_numpy_32
-                (in_dir_name, m_c_f_name, m_n_f_name, array_origin, il::io, mesh);
+                (in_dir_name, m_c_f_name, m_n_f_name, array_origin,
+                 il::io, mesh_data.mesh);
     }
 
     //hfp3d::load_mesh_from_numpy_32
     // (input_dir, mesh_conn_fname, nodes_crd_fname,
-    // true, il::io, mesh);
+    // true, il::io, mesh_data.mesh);
+
+    // number of elements
+    il::int_t num_elems = mesh_data.mesh.conn.size(1);
 
     // resetting the timer
     il::Timer timer{};
@@ -192,41 +198,41 @@ int main() {
 
 //    __itt_resume();
 
-    //hfp3d::DoF_Handle_T dof_handle;
-    //dof_handle = hfp3d::make_dof_h_crack(mesh ,2, 1);
-    //il::Array2D<double> bem_matrix;
-    //bem_matrix = hfp3d::make_3dbem_matrix_s(mu, nu, mesh, n_par, il::io, dof_handle);
-    //il::Array<double> rhs{num_dof, 0.0};
+    // initializing the material ID array
+    //mesh_data.mat_id = hfp3d::make_mat_id_triv(mesh_data.mesh, 2);
 
-    il::int_t num_elems = mesh.conn.size(1);
-    hfp3d::Mesh_Data_T mesh_data;
-    mesh_data.mesh = mesh;
-    //mesh_data.mat_id = hfp3d::make_mat_id_triv(mesh, 2);
-    mesh_data.dof_h_dd = hfp3d::make_dof_h_crack(mesh, 2, n_par.tip_type);
-    mesh_data.dd = il::Array2D<double> {num_elems * 6, 3, 0.0};
+    // initializing the DoF handle
+    mesh_data.dof_h_dd = hfp3d::make_dof_h_crack
+            (mesh_data.mesh, 2, n_par.tip_type);
 
-    il::Array2D<il::int_t> ip(0, 7, 0);
-    hfp3d::Mesh_Data_T mdf = hfp3d::init_mesh_data_p_fault(mesh, 2, ip);
+    // number of DoF
+    il::int_t num_dof = mesh_data.dof_h_dd.n_dof;
 
+    // initializing the DD array
+    //mesh_data.dd = il::Array2D<double> {num_elems * 6, 3, 0.0};
+
+//    il::Array2D<il::int_t> ip(0, 7, 0);
+//    hfp3d::Mesh_Data_T mdf = hfp3d::init_mesh_data_p_fault(mesh_data.mesh, 2, ip);
+
+    // assembly of the algebraic system (matyrix + RHS)
     hfp3d::SAE_T sae;
     sae.matrix = hfp3d::make_3dbem_matrix_s
-            (mu, nu, mesh, n_par, il::io, mesh_data.dof_h_dd);
-
+            (mu, nu, mesh_data.mesh, n_par, il::io, mesh_data.dof_h_dd);
     hfp3d::add_s_inf_to_3dbem_rhs
             (mesh_data, load, il::io, sae);
-
-    il::Array<double> dd_v;
 
 //    __itt_pause();
     timer.stop();
 
-    il::int_t num_dof = mesh_data.dof_h_dd.n_dof;
     std::cout << "Assembly: " << timer.elapsed() << "s" << std::endl;
     std::cout << 18 * num_elems << " DoF Total" << std::endl;
     std::cout << 18 * num_elems - num_dof << " Fixed DoF" << std::endl;
 
     timer.reset();
     timer.start();
+
+    // solving the system
+    il::Array<double> dd_v;
 
     il::LU<il::Array2D<double>> lu_decomposition(sae.matrix, il::io, status);
     // if (!status.ok()) {
@@ -275,9 +281,9 @@ int main() {
     for (il::int_t j = 0; j < num_elems; ++j) {
         il::StaticArray2D<double, 3, 3> el_vert;
         for (il::int_t k = 0; k < 3; ++k) {
-            il::int_t n = mesh.conn(k, j);
+            il::int_t n = mesh_data.mesh.conn(k, j);
             for (il::int_t l = 0; l < 3; ++l) {
-                el_vert(l, k) = mesh.nods(l, n);
+                el_vert(l, k) = mesh_data.mesh.nods(l, n);
             }
         }
         // nodal point coordinates
