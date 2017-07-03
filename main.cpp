@@ -202,7 +202,7 @@ int main() {
     hfp3d::Mesh_Data_T mesh_data;
     mesh_data.mesh = mesh;
     //mesh_data.mat_id = hfp3d::make_mat_id_triv(mesh, 2);
-    mesh_data.dof_h_dd = hfp3d::make_dof_h_crack(mesh, 2, 1);
+    mesh_data.dof_h_dd = hfp3d::make_dof_h_crack(mesh, 2, n_par.tip_type);
     il::int_t num_dof = mesh_data.dof_h_dd.n_dof;
     mesh_data.dd = il::Array2D<double> {num_elems * 6, 3, 0.0};
 
