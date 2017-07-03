@@ -137,6 +137,7 @@ int main() {
 
     // numerical simulation parameters
     hfp3d::Num_Param_T n_par; // default: beta = 0.125; tip_type = 1; DD in global
+    n_par.beta = 0.125; n_par.tip_type = 1; n_par.is_dd_local = false;
 
     hfp3d::Load_T load;
     // stress at infinity (in-situ stress)
