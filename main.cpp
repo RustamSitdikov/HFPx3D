@@ -168,7 +168,7 @@ int main() {
         load.s_inf[5] = (config.value(pos).toDouble());
     }
 
-    // mesh
+    // initializing the mesh
     hfp3d::Mesh_Data_T mesh_data;
 
     // loading the mesh from files
@@ -185,10 +185,6 @@ int main() {
                 (in_dir_name, m_c_f_name, m_n_f_name, array_origin,
                  il::io, mesh_data.mesh);
     }
-
-    //hfp3d::load_mesh_from_numpy_32
-    // (input_dir, mesh_conn_fname, nodes_crd_fname,
-    // true, il::io, mesh_data.mesh);
 
     // number of elements
     il::int_t num_elems = mesh_data.mesh.conn.size(1);
@@ -215,7 +211,7 @@ int main() {
 //    il::Array2D<il::int_t> ip(0, 7, 0);
 //    hfp3d::Mesh_Data_T mdf = hfp3d::init_mesh_data_p_fault(mesh_data.mesh, 2, ip);
 
-    // assembly of the algebraic system (matyrix + RHS)
+    // assembly of the algebraic system (matrix + RHS)
     hfp3d::SAE_T sae;
     sae.matrix = hfp3d::make_3dbem_matrix_s
             (mu, nu, mesh_data.mesh, n_par, il::io, mesh_data.dof_h_dd);
