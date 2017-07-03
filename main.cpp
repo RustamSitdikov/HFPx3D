@@ -272,7 +272,7 @@ int main() {
     //     // the error.
     // }
     status.abortOnError();
-     double cnd = lu_decomposition.conditionNumber(il::Norm::L2, );
+    // double cnd = lu_decomposition.conditionNumber(il::Norm::L2, );
     // std::cout << cnd << std::endl;
     dd_v = lu_decomposition.solve(sae.rhs_v);
 
