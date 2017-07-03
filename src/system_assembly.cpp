@@ -405,6 +405,9 @@ namespace hfp3d {
         if (sae.rhs_v.size() != num_dof) {
             sae.rhs_v = il::Array<double> {num_dof, 0.0};
         }
+
+#pragma omp parallel for
+
         for (il::int_t el = 0; el < num_elems; ++el) {
             // element vertices' coordinates
             il::StaticArray2D<double, 3, 3> el_vert;
