@@ -203,7 +203,6 @@ int main() {
     mesh_data.mesh = mesh;
     //mesh_data.mat_id = hfp3d::make_mat_id_triv(mesh, 2);
     mesh_data.dof_h_dd = hfp3d::make_dof_h_crack(mesh, 2, n_par.tip_type);
-    il::int_t num_dof = mesh_data.dof_h_dd.n_dof;
     mesh_data.dd = il::Array2D<double> {num_elems * 6, 3, 0.0};
 
     il::Array2D<il::int_t> ip(0, 7, 0);
@@ -213,52 +212,15 @@ int main() {
     sae.matrix = hfp3d::make_3dbem_matrix_s
             (mu, nu, mesh, n_par, il::io, mesh_data.dof_h_dd);
 
-    // todo: make it a function
-    sae.rhs_v = il::Array<double> {num_dof, 0.0};
-    for (il::int_t el = 0; el < num_elems; ++el) {
-        // element vertices' coordinates
-        il::StaticArray2D<double, 3, 3> el_vert;
-        for (il::int_t j = 0; j < 3; ++j) {
-            il::int_t n = mesh.conn(j, el);
-            for (il::int_t k = 0; k < 3; ++k) {
-                el_vert(k, j) = mesh.nods(k, n);
-            }
-        }
-
-        // Rotation tensor for the element
-        il::StaticArray2D<double, 3, 3> r_tensor =
-                hfp3d::make_el_r_tensor(el_vert);
-
-        // Normal vector at collocation point (x)
-        il::StaticArray<double, 3> norm_v;
-        for (int j = 0; j < 3; ++j) {
-            norm_v[j] = -r_tensor(2, j);
-        }
-
-        // induced traction (from in-situ stress)
-        il::StaticArray<double, 3> trac_inf =
-                hfp3d::nv_dot_sim(norm_v, load.s_inf);
-
-        // setting the RHS of the system (loads)
-        for (int ln = 0; ln < 6; ++ln) {
-            //il::int_t n = el * 6 + ln;
-            for (int l = 0; l < 3; ++l) {
-                il::int_t ldof = ln * 3 + l;
-                //il::int_t dof = dof_handle.dof_h(el, ldof);
-                il::int_t dof = mesh_data.dof_h_dd.dof_h(el, ldof);
-                if (dof != -1) {
-                    //rhs[dof] = (l != 1 ? 1.0 : 0.0);
-                    sae.rhs_v[dof] -= trac_inf[l];
-                }
-            }
-        }
-    }
+    hfp3d::add_s_inf_to_3dbem_rhs
+            (mesh_data, load, il::io, sae);
 
     il::Array<double> dd_v;
 
 //    __itt_pause();
     timer.stop();
 
+    il::int_t num_dof = mesh_data.dof_h_dd.n_dof;
     std::cout << "Assembly: " << timer.elapsed() << "s" << std::endl;
     std::cout << 18 * num_elems << " DoF Total" << std::endl;
     std::cout << 18 * num_elems - num_dof << " Fixed DoF" << std::endl;

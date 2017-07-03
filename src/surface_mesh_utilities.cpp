@@ -251,7 +251,7 @@ namespace hfp3d {
     // 1D (RHS) to 2D (n x 3) array conversion for DD
     // according to DoF handles
     void write_dd_vector_to_md
-            (const il::Array<double> &rhs_v,
+            (const il::Array<double> &sol_v,
              const DoF_Handle_T &dof_h_dd,
              bool include_p,
              const DoF_Handle_T &dof_h_pp,
@@ -268,13 +268,17 @@ namespace hfp3d {
 
         // make sure that dimensions match
         IL_EXPECT_FAST(dof_h_dd.dof_h.size(0) == n_el);
-        IL_EXPECT_FAST(m_data.dd.size(0) == n_el * 6);
-        IL_EXPECT_FAST(m_data.dd.size(1) == 3);
+        if (m_data.dd.size(0) == 0 || m_data.dd.size(1) == 0) {
+            m_data.dd = il::Array2D<double>{n_el * 6, 3, 0.0};
+        } else {
+            IL_EXPECT_FAST(m_data.dd.size(0) == n_el * 6);
+            IL_EXPECT_FAST(m_data.dd.size(1) == 3);
+        }
         if (include_p) {
             IL_EXPECT_FAST(dof_h_pp.dof_h.size(0) == n_el);
             IL_EXPECT_FAST(m_data.pp.size() == n_el);
         }
-        IL_EXPECT_FAST(rhs_v.size() == n_dd_dof + n_pp_dof);
+        IL_EXPECT_FAST(sol_v.size() == n_dd_dof + n_pp_dof);
 
 /*
         m_data.dof_h_dd = dof_h_dd;
@@ -298,14 +302,14 @@ namespace hfp3d {
                     il::int_t j = 3 * en + i;
                     // copying the DD value if listed in dof_h_dd
                     if (dof_h_dd.dof_h(el, j) != -1) {
-                        m_data.dd(n, i) = rhs_v[dof_h_dd.dof_h(el, j)];
+                        m_data.dd(n, i) = sol_v[dof_h_dd.dof_h(el, j)];
                         is_a = true;
                     }
                 }
                 // copying the pressure value if requested
                 if (include_p) {
                     if (dof_h_pp.dof_h(el, en) != -1) {
-                        m_data.pp[n] = rhs_v[n_dd_dof + dof_h_pp.dof_h(el, en)];
+                        m_data.pp[n] = sol_v[n_dd_dof + dof_h_pp.dof_h(el, en)];
                         is_f = true;
                     }
                 }

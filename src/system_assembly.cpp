@@ -393,6 +393,59 @@ namespace hfp3d {
         return global_matrix;
     }
 
+    // Add S_inf (induced tractions) to the RHS
+    void add_s_inf_to_3dbem_rhs
+            (const Mesh_Data_T &mesh_data,
+             const Load_T &load,
+             il::io_t, SAE_T &sae) {
+        // This function adds the tractions induced by in-situ stress
+        // defined in "load" to the RHS of the system "sae"
+        il::int_t num_elems = mesh_data.mesh.conn.size(1);
+        il::int_t num_dof = mesh_data.dof_h_dd.n_dof;
+        if (sae.rhs_v.size() != num_dof) {
+            sae.rhs_v = il::Array<double> {num_dof, 0.0};
+        }
+        for (il::int_t el = 0; el < num_elems; ++el) {
+            // element vertices' coordinates
+            il::StaticArray2D<double, 3, 3> el_vert;
+            for (il::int_t j = 0; j < 3; ++j) {
+                il::int_t n = mesh_data.mesh.conn(j, el);
+                for (il::int_t k = 0; k < 3; ++k) {
+                    el_vert(k, j) = mesh_data.mesh.nods(k, n);
+                }
+            }
+
+            // Rotation tensor for the element
+            il::StaticArray2D<double, 3, 3> r_tensor =
+                    hfp3d::make_el_r_tensor(el_vert);
+
+            // Normal vector at collocation point (x)
+            il::StaticArray<double, 3> norm_v;
+            for (int j = 0; j < 3; ++j) {
+                norm_v[j] = -r_tensor(2, j);
+            }
+
+            // induced traction (from in-situ stress)
+            il::StaticArray<double, 3> trac_inf =
+                    hfp3d::nv_dot_sim(norm_v, load.s_inf);
+
+            // setting the RHS of the system (loads)
+            for (int ln = 0; ln < 6; ++ln) {
+                //il::int_t n = el * 6 + ln;
+                for (int l = 0; l < 3; ++l) {
+                    il::int_t ldof = ln * 3 + l;
+                    //il::int_t dof = dof_handle.dof_h(el, ldof);
+                    il::int_t dof = mesh_data.dof_h_dd.dof_h(el, ldof);
+                    if (dof != -1) {
+                        //rhs[dof] = (l != 1 ? 1.0 : 0.0);
+                        sae.rhs_v[dof] -= trac_inf[l];
+                    }
+                }
+            }
+        }
+    }
+
+
     // Stress at given points (m_pts_crd) vs DD (m_data.dd)
     // at nodal points (mesh.nods)
     il::Array2D<double> make_3dbem_stress_f_s

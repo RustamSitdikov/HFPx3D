@@ -45,6 +45,12 @@ namespace hfp3d {
              const Num_Param_T &n_par,
              il::io_t, DoF_Handle_T &dof_hndl);
 
+    // Add S_inf to the RHS
+    void add_s_inf_to_3dbem_rhs
+            (const Mesh_Data_T &mesh_data,
+             const Load_T &load,
+             il::io_t, SAE_T &sae);
+
     // Stress at given points (m_pts_crd) vs DD at nodal points (nodes_crd)
     il::Array2D<double> make_3dbem_stress_f_s
             (double mu, double nu,

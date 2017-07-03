@@ -186,7 +186,7 @@ namespace hfp3d {
     // 1D to 2D array conversion for DD
     // according to DoF handles
     void write_dd_vector_to_md
-            (const il::Array<double> &dd_v,
+            (const il::Array<double> &sol_v,
              const DoF_Handle_T &dof_h_dd,
              bool include_p,
              const DoF_Handle_T &dof_h_pp,
