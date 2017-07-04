@@ -18,6 +18,7 @@
 #include <il/Array2D.h>
 #include <il/StaticArray.h>
 #include <il/StaticArray2D.h>
+#include "model_utilities.h"
 #include "surface_mesh_utilities.h"
 
 namespace hfp3d {

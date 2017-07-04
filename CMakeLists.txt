@@ -62,10 +62,9 @@ set(SOURCE_FILES
         ${SOURCE_FILES_DIR}/tensor_utilities.cpp
         ${SOURCE_FILES_DIR}/element_utilities.cpp
         ${SOURCE_FILES_DIR}/elasticity_kernel_integration.cpp
-        ${SOURCE_FILES_DIR}/h_potential.cpp
-        )
+        ${SOURCE_FILES_DIR}/h_potential.cpp)
 
-add_executable(HFPx3D ${SOURCE_FILES})
+add_executable(HFPx3D ${SOURCE_FILES} src/model_utilities.h)
 
 ####### IL_MKL case
 ## ENV{MKLROOT} is smth. like /opt/intel/compilers_and_libraries_2017.0.102/mac/mkl

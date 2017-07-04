@@ -17,7 +17,7 @@
 //#include <ittnotify.h>
 
 #include <il/Timer.h>
-#include <il/toml.h>
+#include <il/io/toml/toml.h>
 #include <il/String.h>
 #include <il/Array.h>
 #include <il/Array2D.h>
@@ -29,6 +29,7 @@
 
 #include "src/mesh_file_io.h"
 #include "src/system_assembly.h"
+#include "src/model_utilities.h"
 #include "src/surface_mesh_utilities.h"
 #include "src/element_utilities.h"
 #include "src/tensor_utilities.h"
@@ -129,31 +130,96 @@ int main() {
     // std::string mf_name{"test_assembly_24_ele.csv"};
     // std::string of_name{"test_solution_24_ele.csv"};
 
-    // material properties (default)
-    //hfp3d::Properties_T properties_list;
-    //properties_list.mu = il::Array<double>{1, 1.0};
-    //properties_list.nu = il::Array<double>{1, 0.35};
-    double mu = 1.0, nu = 0.35;
+    // reading material properties (default)
+    hfp3d::Properties_T solid_properties;
+    solid_properties.n_solid = 1; // default
+    pos = config.search("number_solids");
+    if (config.found(pos) && config.value(pos).isInteger()) {
+        solid_properties.n_solid = config.value(pos).toInteger();
+        if (solid_properties.n_solid == 0) solid_properties.n_solid = 1;
+    }
+    solid_properties.mu = il::Array<double>{solid_properties.n_solid};
+    solid_properties.nu = il::Array<double>{solid_properties.n_solid};
+    solid_properties.mu[0] = 1.0; // default
+    solid_properties.nu[0] = 0.35; // default
+    pos = config.search("solid");
+    if (config.found(pos) && config.value(pos).isMapArray()) {
+        const il::MapArray<il::String, il::Dynamic> &solid =
+                config.value(pos).asMapArray();
 
-    // numerical simulation parameters
+        il::int_t j = solid.search("Poisson_ratio");
+        if (solid.found(j) && solid.value(j).isDouble()) {
+            solid_properties.nu[0] = solid.value(j).toDouble();
+        }
+
+        j = solid.search("Shear_modulus");
+        if (solid.found(j) && solid.value(j).isDouble()) {
+            solid_properties.mu[0] = solid.value(j).toDouble();
+        } else {
+            j = solid.search("Young_modulus");
+            if (solid.found(j) && solid.value(j).isDouble()) {
+                double ym = (solid.value(j).toDouble());
+                solid_properties.mu[0] = ym / 2.0 /
+                                         (1.0 + solid_properties.nu[0]);
+            }
+        }
+    } else {
+        pos = config.search("Poisson_ratio");
+        if (config.found(pos) && config.value(pos).isDouble()) {
+            solid_properties.nu[0] = (config.value(pos).toDouble());
+        }
+        pos = config.search("Shear_modulus");
+        if (config.found(pos)) {
+            if(config.value(pos).isDouble()) {
+                solid_properties.mu[0] = (config.value(pos).toDouble());
+            }
+        } else {
+            pos = config.search("Young_modulus");
+            if(config.found(pos) && config.value(pos).isDouble()) {
+                double ym = (config.value(pos).toDouble());
+                solid_properties.mu[0] = ym / 2.0 /
+                                         (1.0 + solid_properties.nu[0]);
+            }
+        }
+    }
+    if (solid_properties.n_solid > 1) {
+//    for (il::int_t k = 1; k < solid_properties.n_solid; ++k) {
+//
+//    }
+    }
+
+    // reading numerical simulation parameters
     hfp3d::Num_Param_T n_par; // default: beta = 0.125; tip_type = 1; DD in global
     n_par.beta = 0.125; n_par.tip_type = 1; n_par.is_dd_local = false;
+    pos = config.search("cp_offset");
+    if (config.found(pos) && config.value(pos).isDouble()) {
+        n_par.beta = (config.value(pos).toDouble());
+    }
+    pos = config.search("fix_tip");
+    if (config.found(pos) && config.value(pos).isInteger()) {
+        n_par.tip_type = (int)(config.value(pos).toInteger());
+    }
+    pos = config.search("is_dd_local");
+    if (config.found(pos) && config.value(pos).isBool()) {
+        n_par.is_dd_local = (config.value(pos).toBool());
+    }
 
+    // reading load parameters
     hfp3d::Load_T load;
     // stress at infinity (in-situ stress)
     load.s_inf = il::StaticArray<double, 6> {0.0};
     // load.s_inf[2] = 1.0; load.s_inf[4] = 1.0;
     pos = config.search("S_xx");
     if (config.found(pos) && config.value(pos).isDouble()) {
-        load.s_inf[0] = (config.value(pos).toDouble());
+        load.s_inf[0] = -(config.value(pos).toDouble());
     }
     pos = config.search("S_yy");
     if (config.found(pos) && config.value(pos).isDouble()) {
-        load.s_inf[1] = (config.value(pos).toDouble());
+        load.s_inf[1] = -(config.value(pos).toDouble());
     }
     pos = config.search("S_zz");
     if (config.found(pos) && config.value(pos).isDouble()) {
-        load.s_inf[2] = (config.value(pos).toDouble());
+        load.s_inf[2] = -(config.value(pos).toDouble());
     }
     pos = config.search("S_xy");
     if (config.found(pos) && config.value(pos).isDouble()) {
@@ -202,9 +268,6 @@ int main() {
     mesh_data.dof_h_dd = hfp3d::make_dof_h_crack
             (mesh_data.mesh, 2, n_par.tip_type);
 
-    // number of DoF
-    il::int_t num_dof = mesh_data.dof_h_dd.n_dof;
-
     // initializing the DD array
     //mesh_data.dd = il::Array2D<double> {num_elems * 6, 3, 0.0};
 
@@ -213,8 +276,14 @@ int main() {
 
     // assembly of the algebraic system (matrix + RHS)
     hfp3d::SAE_T sae;
+    // matrix
     sae.matrix = hfp3d::make_3dbem_matrix_s
-            (mu, nu, mesh_data.mesh, n_par, il::io, mesh_data.dof_h_dd);
+            (solid_properties.mu[0], solid_properties.nu[0],
+             mesh_data.mesh,
+             n_par, il::io, mesh_data.dof_h_dd);
+    // number of DoF
+    sae.n_dof = mesh_data.dof_h_dd.n_dof;
+    // right-hand side
     hfp3d::add_s_inf_to_3dbem_rhs
             (mesh_data, load, il::io, sae);
 
@@ -223,7 +292,17 @@ int main() {
 
     std::cout << "Assembly: " << timer.elapsed() << "s" << std::endl;
     std::cout << 18 * num_elems << " DoF Total" << std::endl;
-    std::cout << 18 * num_elems - num_dof << " Fixed DoF" << std::endl;
+    std::cout << 18 * num_elems - sae.n_dof << " Fixed DoF" << std::endl;
+
+// todo: move towards using il::Status type
+    bool ok = true;
+//    // saving matrix to a .CSV file
+//    hfp3d::save_data_to_csv(sae.matrix, out_dir_name, mf_name, il::io, ok);
+//    if (ok) {
+//        std::cout << "Matrix saved to "
+//                  << out_dir_name.asCString() << "/"
+//                  << mf_name.asCString() << std::endl;
+//    }
 
     timer.reset();
     timer.start();
@@ -259,17 +338,8 @@ int main() {
 //    // calculate stresses at m_pts_crd
 //    il::Array2D<double> stress_m_pts(m_pts_crd.size(0), 6);
 //    stress_m_pts = hfp3d::make_3dbem_stress_f_s
-//            (mu, nu, mesh_data, n_par, m_pts_crd);
-
-// todo: move towards using il::Status type
-    bool ok = true;
-    // saving matrix to a .CSV file
-//    hfp3d::save_data_to_csv(sae.matrix, out_dir_name, mf_name, il::io, ok);
-//    if (ok) {
-//        std::cout << "Matrix saved to "
-//                  << out_dir_name.asCString() << "/"
-//                  << mf_name.asCString() << std::endl;
-//    }
+//            (solid_properties.mu[0], solid_properties.nu[0],
+//             mesh_data, n_par, m_pts_crd);
 
     // the 2D array for nodal points' coordinates and DD - initialization
     il::Array2D<double> out_dd(6 * num_elems, 7);

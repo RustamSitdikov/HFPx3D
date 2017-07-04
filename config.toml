@@ -1,26 +1,33 @@
 # Configuration file for HFPx3D
 
 input_directory = "Mesh_Files"
-mesh_conn_fname = "Elems_pennymesh24el_32.npy"
-nodes_crd_fname = "Nodes_pennymesh24el_32.npy"
+#mesh_conn_fname = "Elems_pennymesh24el_32.npy"
+#nodes_crd_fname = "Nodes_pennymesh24el_32.npy"
 #mesh_conn_fname = "Elems_pennymesh1025el_32.npy"
 #nodes_crd_fname = "Nodes_pennymesh1025el_32.npy"
-#mesh_conn_fname = "Elems_elliptic_550_el_32.npy"
-#nodes_crd_fname = "Nodes_elliptic_550_el_32.npy"
+mesh_conn_fname = "Elems_elliptic_550_el_32.npy"
+nodes_crd_fname = "Nodes_elliptic_550_el_32.npy"
 input_format = "npy32"
 # choose from "npy32", "npy64", "csv"
 array_origin = 1
 # either 0 (C++) or 1 (MATLAB)
 
 output_directory = "Test_Output"
-output_signature = "_psc_24_ele"
+#output_signature = "_psc_24_ele"
 #output_signature = "_psc_1025_ele"
-#output_signature = "_elc_550_ele"
+output_signature = "_elc_550_ele"
 
-# In-situ stress (positive compression) + inital pore pressure
+# Numerical simulation parameters
+cp_offset = 0.125
+fix_tip = 1
+is_dd_local = false
+#is_tr_local = false
+
+# Load parameters
+# In-situ stress (positive compression) + initial pore pressure
 S_xx = 0
 S_yy = 0
-S_zz = 1.0
+S_zz = -1.0
 S_xy = 0
 S_xz = 1.0
 S_yz = 0
@@ -34,16 +41,20 @@ Constant_overpressure = 3.0e-1
 # Material properties
 
 # Solids
-#[rock_1]
+number_solids = 1
+
+#[[solid]]
 #id = 0
-Young_modulus = 1.0
+#title = "default rock"
+#Young_modulus = 1.0
+Shear_modulus = 1.0
 Poisson_ratio = 3.5e-1
 
 # Fluids
 #[water]
 #id = 0
 density = 1.0               # density is in g*cm^(-3)
-compressibility = 5.1e-10   # ompressibility is in Pa^(-1)
+compressibility = 5.1e-10   # compressibility is in Pa^(-1)
 viscosity = 3.0e-3          # viscosity is in Pa*s
 
 # Surfaces
