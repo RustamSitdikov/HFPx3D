@@ -1,6 +1,6 @@
 # Configuration file for HFPx3D
 
-# Triangulation data
+### Triangulation data
 
 input_directory = "Mesh_Files"
 #mesh_conn_fname = "Elems_pennymesh24el_32.npy"
@@ -16,7 +16,7 @@ nodes_crd_fname = "Nodes_elliptical_124_el_32.npy"
 input_format = "npy32"
 # choose from "npy32", "npy64", "csv"
 
-# Output
+### Output
 
 output_directory = "Test_Output"
 #output_signature = "_psc_24_ele"
@@ -25,7 +25,7 @@ output_directory = "Test_Output"
 output_signature = "_elc_440ele"
 #output_signature = "_elc_550_ele"
 
-# Numerical simulation parameters
+### Numerical simulation parameters
 
 # index of 1st element in array (input files)
 array_origin = 1
@@ -46,7 +46,7 @@ is_dd_local = false
 # true -> local (for each element)
 # false -> global (reference)
 
-# Load
+### Load
 
 # In-situ stress (positive compression) + initial pore pressure
 S_xx = 0
@@ -62,7 +62,7 @@ Source = 0
 Constant_injection_rate = 1.0
 Constant_overpressure = 3.0e-1
 
-# Material properties
+### Material properties
 
 # Solids
 number_solids = 1
