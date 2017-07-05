@@ -76,7 +76,7 @@ int main() {
     status.abortOnError();
 
     // reading input (triangulation) files
-    il::int_t pos = config.search("input_directory");
+    il::int_t pos = config.search("mesh_input_directory");
     if (config.found(pos) && config.value(pos).isString()) {
         in_dir_name.append(config.value(pos).asString());
     } else {
@@ -97,7 +97,7 @@ int main() {
         std::cout << "Can't find the input file" << std::endl;
         abort();
     }
-    pos = config.search("input_format");
+    pos = config.search("mesh_input_format");
     if (config.found(pos) && config.value(pos).isString()) {
         i_f_format = config.value(pos).asString();
     } else {

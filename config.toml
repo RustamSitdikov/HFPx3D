@@ -2,7 +2,7 @@
 
 ### Triangulation data
 
-input_directory = "Mesh_Files"
+mesh_input_directory = "Mesh_Files"
 #mesh_conn_fname = "Elems_pennymesh24el_32.npy"
 #nodes_crd_fname = "Nodes_pennymesh24el_32.npy"
 #mesh_conn_fname = "Elems_pennymesh1025el_32.npy"
@@ -13,17 +13,28 @@ input_directory = "Mesh_Files"
 #nodes_crd_fname = "Nodes_elliptical_440_el_32.npy"
 mesh_conn_fname = "Elems_elliptical_550_el_32.npy"
 nodes_crd_fname = "Nodes_elliptical_550_el_32.npy"
-input_format = "npy32"
+mesh_input_format = "npy32"
+# choose from "npy32", "npy64", "csv"
+
+# observation points (to calculate stresses)
+observ_crd_directory = ""
+observ_crd_fname = "_32.npy"
+observ_input_format = "npy32"
 # choose from "npy32", "npy64", "csv"
 
 ### Output
 
+save_matrix = false
+save_solution = true
+save_stress = false
 output_directory = "Test_Output"
 #output_signature = "_psc_24_ele"
 #output_signature = "_psc_1025_ele"
 #output_signature = "_elc_124_ele"
 #output_signature = "_elc_440ele"
 output_signature = "_elc_550_ele"
+output_format = "csv"
+# choose from "npy32", "npy64", "csv"
 
 ### Numerical simulation parameters
 
@@ -34,7 +45,7 @@ array_origin = 1
 # offset of collocation points
 cp_offset = 0.125
 
-# enforce zero DD at the tip:
+# enforce zero DD at the tip
 fix_tip = 1
 # 0 -> no enforcement
 # 1 -> only at vertex points
@@ -42,7 +53,7 @@ fix_tip = 1
 
 # coordinate system for DD and tractions
 is_dd_local = false
-#is_tr_local = false
+is_tr_local = false
 # true -> local (for each element)
 # false -> global (reference)
 
