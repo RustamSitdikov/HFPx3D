@@ -1,5 +1,6 @@
 # Created by .ignore support plugin (hsz.mobi)
 .idea/
+.gitignore
 Mesh_Files/
 Test_Output/
 cmake-build-debug/
