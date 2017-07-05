@@ -1,8 +1,9 @@
 # Created by .ignore support plugin (hsz.mobi)
 .idea/
+/.gitignore
 cmake-build-debug/
 cmake-build-release/
 Mesh_Files/
 Test_Output/
-CMakeLists.txt
-config.toml
+/CMakeLists.txt
+/config.toml
