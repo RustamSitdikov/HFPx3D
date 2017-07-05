@@ -87,13 +87,12 @@ namespace hfp3d {
                 else if (chi(k, j) > pi)
                     while (chi(k, j) > pi)
                         chi(k, j) -= 2.0 * pi;
-                //double cos_chi = std::cos(chi(k, j));
-                double sin_m1 = 1.0 - std::fabs(std::sin(chi(k, j)));
+                //double sin_mon = 1.0 - std::fabs(std::sin(chi(k, j)));
                 double com_chi = 0.5 * pi - std::fabs(chi(k, j));
                 // reprooving for "degenerate" edges
                 // (chi angles too close to 90 degrees)
-                if (std::fabs(0.5 * pi - std::fabs(chi(k, j))) < a_tol) {
-                //if (std::fabs(1.0 - std::fabs(sin_chi)) < h_tol) {
+                if (std::fabs(com_chi) < a_tol) {
+                //if (std::fabs(sin_mon) < h_tol) {
                         is_90_ang(k, j) = true;
                     IsDegen = true;
                 }
@@ -109,9 +108,7 @@ namespace hfp3d {
         for (int m = 0; m < 3; ++m) {
             int n = (m + 1) % 3;
             std::complex<double> dm = d[m];
-            if (std::abs(dm) >= h_tol
-                && !is_90_ang(0, m) && !is_90_ang(1, m)
-                    ) {
+            if (std::abs(dm) >= h_tol && !is_90_ang(0, m) && !is_90_ang(1, m)) {
                 std::complex<double>
                 // exp(I * chi(0, m))
                         eixm = std::exp(std::complex<double>(0.0, chi(0, m))),
