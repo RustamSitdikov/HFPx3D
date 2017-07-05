@@ -79,10 +79,10 @@ int main() {
     il::int_t pos = config.search("mesh_input_directory");
     if (config.found(pos) && config.value(pos).isString()) {
         in_dir_name.append(config.value(pos).asString());
+        in_dir_name.append("/");
     } else {
         in_dir_name = il::String(default_input_dir.c_str());
     }
-    in_dir_name.append("/");
     pos = config.search("mesh_conn_fname");
     if (config.found(pos) && config.value(pos).isString()) {
         m_c_f_name.append(config.value(pos).asString());
@@ -114,6 +114,7 @@ int main() {
     pos = config.search("output_directory");
     if (config.found(pos) && config.value(pos).isString()) {
         out_dir_name.append(config.value(pos).asString());
+        out_dir_name.append("/");
     } else {
         out_dir_name = il::String(default_output_dir.c_str());
     }
@@ -300,7 +301,7 @@ int main() {
 //    hfp3d::save_data_to_csv(sae.matrix, out_dir_name, mf_name, il::io, ok);
 //    if (ok) {
 //        std::cout << "Matrix saved to "
-//                  << out_dir_name.asCString() << "/"
+//                  << out_dir_name.asCString()
 //                  << mf_name.asCString() << std::endl;
 //    }
 
@@ -379,7 +380,7 @@ int main() {
     hfp3d::save_data_to_csv(out_dd, out_dir_name, of_name, il::io, ok);
     if (ok) {
         std::cout << "Solution (nodes + DD) saved to "
-                  << out_dir_name.asCString() << "/"
+                  << out_dir_name.asCString()
                   << of_name.asCString() << std::endl;
     }
 

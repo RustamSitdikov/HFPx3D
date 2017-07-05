@@ -168,7 +168,6 @@ namespace hfp3d {
              il::io_t, bool &ok) {
     //todo: it will use bool output instead of il::Status for now
         il::String f_path = trg_dir;
-        f_path.append("/");
         f_path.append(of_name);
         const char *f_p_c = f_path.asCString();
 //        const char *format;
