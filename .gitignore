@@ -1,7 +1,0 @@
-.idea
-cmake-build-debug
-cmake-build-release
-CMakeLists.txt
-config.toml
-Mesh_Files
-Test_Output
