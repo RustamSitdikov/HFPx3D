@@ -12,7 +12,14 @@
 
 #include <complex>
 
-const double pi = 3.1415926535897932385;
-const std::complex<double> ii = std::complex<double>{0.0, 1.0};
+namespace hfp3d {
+
+    const double pi = 3.1415926535897932385;
+    const std::complex<double> ii = std::complex<double>{0.0, 1.0};
+    // tolerance parameters
+    const double h_tol = 2.221e-016;
+    const double a_tol = 1.825e-008;
+
+}
 
 #endif //HFPX3D_CONSTANTS_H

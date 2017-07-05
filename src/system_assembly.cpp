@@ -45,12 +45,8 @@ namespace hfp3d {
 
         il::StaticArray2D<double, 6, 18> stress_el_2_el_infl{0.0};
 
-        // const std::complex<double> I(0.0, 1.0);
-
         // scaling ("-" sign comes from traction Somigliana ID, H-term)
         double scale = -mu / (4.0 * pi * (1.0 - nu));
-        // tolerance parameters
-        const double h_tol = 1.0E-16, a_tol = 1.0E-8;
 
         // tz[m] and d[m] can be calculated here
         il::StaticArray<std::complex<double>, 3> tz, d, dtau;
@@ -91,10 +87,14 @@ namespace hfp3d {
                 else if (chi(k, j) > pi)
                     while (chi(k, j) > pi)
                         chi(k, j) -= 2.0 * pi;
+                //double cos_chi = std::cos(chi(k, j));
+                double sin_m1 = 1.0 - std::fabs(std::sin(chi(k, j)));
+                double com_chi = 0.5 * pi - std::fabs(chi(k, j));
                 // reprooving for "degenerate" edges
                 // (chi angles too close to 90 degrees)
-                if (fabs(0.5 * pi - std::fabs(chi(k, j))) < a_tol) {
-                    is_90_ang(k, j) = true;
+                if (std::fabs(0.5 * pi - std::fabs(chi(k, j))) < a_tol) {
+                //if (std::fabs(1.0 - std::fabs(sin_chi)) < h_tol) {
+                        is_90_ang(k, j) = true;
                     IsDegen = true;
                 }
             }
@@ -109,7 +109,9 @@ namespace hfp3d {
         for (int m = 0; m < 3; ++m) {
             int n = (m + 1) % 3;
             std::complex<double> dm = d[m];
-            if (std::abs(dm) >= h_tol && ~is_90_ang(0, m) && ~is_90_ang(1, m)) {
+            if (std::abs(dm) >= h_tol
+                && !is_90_ang(0, m) && !is_90_ang(1, m)
+                    ) {
                 std::complex<double>
                 // exp(I * chi(0, m))
                         eixm = std::exp(std::complex<double>(0.0, chi(0, m))),

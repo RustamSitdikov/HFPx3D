@@ -310,7 +310,7 @@ int main() {
     // solving the system
     il::Array<double> dd_v;
 
-    il::LU<il::Array2D<double>> lu_decomposition(sae.matrix, il::io, status);
+     il::LU<il::Array2D<double>> lu_decomposition(sae.matrix, il::io, status);
     // if (!status.ok()) {
     //     // The matrix is singular to the machine precision. You should deal with
     //     // the error.
