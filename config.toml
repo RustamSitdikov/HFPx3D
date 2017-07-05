@@ -1,0 +1,115 @@
+# Configuration file for HFPx3D
+
+### Triangulation data
+
+mesh_input_directory = "Mesh_Files"
+#mesh_conn_fname = "Elems_pennymesh24el_32.npy"
+#nodes_crd_fname = "Nodes_pennymesh24el_32.npy"
+#mesh_conn_fname = "Elems_pennymesh1025el_32.npy"
+#nodes_crd_fname = "Nodes_pennymesh1025el_32.npy"
+#mesh_conn_fname = "Elems_elliptical_124_el_32.npy"
+#nodes_crd_fname = "Nodes_elliptical_124_el_32.npy"
+#mesh_conn_fname = "Elems_elliptical_440_el_32.npy"
+#nodes_crd_fname = "Nodes_elliptical_440_el_32.npy"
+mesh_conn_fname = "Elems_elliptical_550_el_32.npy"
+nodes_crd_fname = "Nodes_elliptical_550_el_32.npy"
+mesh_input_format = "npy32"
+# choose from "npy32", "npy64", "csv"
+
+# observation points (to calculate stresses)
+observ_crd_directory = ""
+observ_crd_fname = "_32.npy"
+observ_input_format = "npy32"
+# choose from "npy32", "npy64", "csv"
+
+### Output
+
+save_matrix = false
+save_solution = true
+save_stress = false
+output_directory = "Test_Output"
+#output_signature = "_psc_24_ele"
+#output_signature = "_psc_1025_ele"
+#output_signature = "_elc_124_ele"
+#output_signature = "_elc_440ele"
+output_signature = "_elc_550_ele"
+output_format = "csv"
+# choose from "npy32", "npy64", "csv"
+
+### Numerical simulation parameters
+
+# index of 1st element in array (input files)
+array_origin = 1
+# either 0 (C++) or 1 (MATLAB)
+
+# offset of collocation points
+cp_offset = 0.125
+
+# enforce zero DD at the tip
+fix_tip = 1
+# 0 -> no enforcement
+# 1 -> only at vertex points
+# 2 -> at vertex and edge nodes
+
+# coordinate system for DD and tractions
+is_dd_local = false
+is_tr_local = false
+# true -> local (for each element)
+# false -> global (reference)
+
+### Load
+
+# In-situ stress (positive compression) + initial pore pressure
+S_xx = 0
+S_yy = 0
+S_zz = -1.0
+S_xy = 0
+S_xz = 0
+S_yz = 0
+Ambient_pore_pressure = 0
+
+# Fluid injection parameters
+Source = 0
+Constant_injection_rate = 1.0
+Constant_overpressure = 3.0e-1
+
+### Material properties
+
+# Solids
+number_solids = 1
+
+#[[solid]]
+#id = 0
+#title = "default rock"
+#Young_modulus = 1.0
+Shear_modulus = 1.0
+Poisson_ratio = 3.5e-1
+
+# Fluids
+#[water]
+#id = 0
+density = 1.0               # density is in g*cm^(-3)
+compressibility = 5.1e-10   # compressibility is in Pa^(-1)
+viscosity = 3.0e-3          # viscosity is in Pa*s
+
+# Surfaces
+#[fault_1]
+#id = 0
+Contact_model_id = 0
+#Contact_model_type = "F_C_BFW"
+# "Cohesive crack" parameters
+Max_tensile_stress = 1.0
+Opening_dd_for_cohesion = 2.5e-2
+# Friction parameters
+Initial_friction = 1.0
+Residual_friction = 6.0e-1
+Shear_cohesion = 0.0
+Slip_dd_for_friction = 2.5e-2
+# Dilatancy parameters
+Initial_hydraulic_width = 6.0e-1
+Dilatant_hardening = 5.4e-1
+Slip_dd_for_dilatancy = 1.0
+# Permeability parameters
+Initial_permeability = 3.6e-1 # [L^2] -> 0.6*0.6
+Permeability_increment = 0.0
+Slip_dd_for_permeability = 1.0
