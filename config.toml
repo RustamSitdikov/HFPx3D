@@ -23,7 +23,7 @@ mesh_input_format = "npy32"
 # choose from "npy32", "npy64", "csv"
 
 # observation points (to calculate stresses)
-observ_crd_directory = ""
+observ_crd_directory = "Test_Output"
 observ_crd_fname = "observation_points.csv"
 observ_input_format = "csv"
 # choose from "npy32", "npy64", "csv"
