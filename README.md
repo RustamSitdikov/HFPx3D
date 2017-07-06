@@ -50,7 +50,8 @@ at these points
 - stresses (with positive tension convention) at given observation points
 (provided in an input file, either **.npy** or **.csv**,
 in a way similar to nodes of the mesh)
-  - mark ```do_postprocess = true``` in **config.toml**
+  - mark ```do_postprocess = true``` and specify
+  the observation points file (+ directory and file format) in **config.toml**
 - the elastisity "influence" matrix
   - mark ```do_save_matrix = true``` in **config.toml**
 
