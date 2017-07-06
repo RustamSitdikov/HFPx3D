@@ -42,7 +42,7 @@ but parsed as 3-row arrays.
 ##
 Output options:
 - nodal points (fill set for 2nd order approximation)
-+ surface displacements
+& surface displacements at these points
 - stresses (with positive tension convention) at given observation points
 (provided in an input file, either **.npy** or **.csv**,
 in a way similar to nodes of the mesh)
