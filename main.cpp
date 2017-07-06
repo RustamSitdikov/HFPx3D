@@ -374,7 +374,7 @@ int main() {
         }
         else {
             std::cout << "Cannot save the matrix" << std::endl;
-            status.abortOnError();
+            //status.abortOnError();
         }
     }
 
@@ -385,7 +385,7 @@ int main() {
     // solving the system
     il::Array<double> dd_v{sae.n_dof};
 
-     il::LU<il::Array2D<double>> lu_decomposition(sae.matrix, il::io, status);
+    il::LU<il::Array2D<double>> lu_decomposition(sae.matrix, il::io, status);
     // if (!status.ok()) {
     //     // The matrix is singular to the machine precision. You should deal with
     //     // the error.
@@ -458,7 +458,7 @@ int main() {
         }
         else {
             std::cout << "Cannot save the solution" << std::endl;
-            status.abortOnError();
+            //status.abortOnError();
         }
     }
 
@@ -477,7 +477,7 @@ int main() {
                     (obs_dir_name, o_p_f_name,
                      il::io, status);
         }
-        status.abortOnError();
+        //status.abortOnError();
 
         std::cout << "Postprocessing";
         timer.reset();
@@ -509,7 +509,7 @@ int main() {
         }
         else {
             std::cout << "Cannot save the stresses" << std::endl;
-            status.abortOnError();
+            //status.abortOnError();
         }
     }
 

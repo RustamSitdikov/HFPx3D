@@ -88,6 +88,8 @@ namespace hfp3d {
                     else n_col = n_col_t;
                 }
             }
+            nf.clear();
+            nf.seekg(0);
             // resizing the output array (node coordinates)
             p_crd.resize(n_col, n_row);
             // importing the array
@@ -152,6 +154,8 @@ namespace hfp3d {
                     else n_col = n_col_t;
                 }
             }
+            nf.clear();
+            nf.seekg(0);
             // resizing the output array (node coordinates)
             p_crd.resize(n_col, n_row);
             // importing the array
@@ -377,6 +381,8 @@ namespace hfp3d {
                     else n_col = n_col_t;
                 }
             }
+            cf.clear();
+            cf.seekg(0);
             // resizing the output array (mesh connectivity)
             mesh.conn.resize(n_col, n_row);
             // importing the array
@@ -437,6 +443,8 @@ namespace hfp3d {
                     else n_col = n_col_t;
                 }
             }
+            nf.clear();
+            nf.seekg(0);
             // resizing the output array (node coordinates)
             mesh.nods.resize(n_col, n_row);
             // importing the array
@@ -504,6 +512,8 @@ namespace hfp3d {
                     else n_col = n_col_t;
                 }
             }
+            cf.clear();
+            cf.seekg(0);
             // resizing the output array (mesh connectivity)
             mesh.conn.resize(n_col, n_row);
             // importing the array
@@ -564,6 +574,8 @@ namespace hfp3d {
                     else n_col = n_col_t;
                 }
             }
+            nf.clear();
+            nf.seekg(0);
             // resizing the output array (node coordinates)
             mesh.nods.resize(n_col, n_row);
             // importing the array

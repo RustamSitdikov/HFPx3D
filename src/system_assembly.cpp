@@ -46,7 +46,7 @@ namespace hfp3d {
         il::StaticArray2D<double, 6, 18> stress_el_2_el_infl{0.0};
 
         // scaling ("-" sign comes from traction Somigliana ID, H-term)
-        double scale = -mu / (4.0 * pi * (1.0 - nu));
+        double scale = - mu / (4.0 * pi * (1.0 - nu));
 
         // tz[m] and d[m] can be calculated here
         il::StaticArray<std::complex<double>, 3> tz, d, dtau;
@@ -472,7 +472,8 @@ namespace hfp3d {
         const il::int_t num_dof = ndpe * num_ele;
         const il::int_t num_of_m_pts = m_pts_crd.size(1);
 
-        il::Array2D<double> stress_infl_matrix(6 * num_of_m_pts, num_dof);
+        il::Array2D<double> stress_infl_matrix{6 * num_of_m_pts, num_dof, 0.0};
+        il::Array2D<double> stress_array{num_of_m_pts, 6};
 
         // Loop over elements
 
@@ -531,20 +532,20 @@ namespace hfp3d {
                 if (!n_par.is_dd_local) {
                     // Re-relating DD-to stress influence to DD
                     // w.r. to the reference coordinate system
-                    il::StaticArray2D<double, 3, 3> stress_infl_n2p,
+                    il::StaticArray2D<double, 6, 3> stress_infl_n2p_loc,
                             stress_infl_n2p_glob;
                     for (int n_s = 0; n_s < 6; ++n_s) {
                         // taking a block (one node of the "source" element)
                         for (int j = 0; j < 3; ++j) {
                             for (int k = 0; k < 6; ++k) {
-                                stress_infl_n2p(k, j) =
+                                stress_infl_n2p_loc(k, j) =
                                         stress_infl_el2p_glob(k, 3 * n_s + j);
                             }
                         }
 
-                        // Coordinate rotation (inverse)
+                        // Coordinate rotation (inverse) for DD
                         stress_infl_n2p_glob =
-                                il::dot(stress_infl_n2p, r_tensor_s);
+                                il::dot(stress_infl_n2p_loc, r_tensor_s);
 
                         // Adding the block to the element-to-point
                         // influence sub-matrix
@@ -557,42 +558,60 @@ namespace hfp3d {
                     }
                 }
 
-                // Adding the element-to-point influence sub-matrix
-                // to the global stress matrix
-                IL_EXPECT_FAST(6 * (m_pt + 1) <= stress_infl_matrix.size(0));
-                IL_EXPECT_FAST(ndpe * (source_elem + 1) <=
-                               stress_infl_matrix.size(1));
-                for (il::int_t j1 = 0; j1 < ndpe; ++j1) {
-                    for (il::int_t j0 = 0; j0 < 6; ++j0) {
-                        stress_infl_matrix
-                                (6 * m_pt + j0, ndpe * source_elem + j1) =
-                                stress_infl_el2p_glob(j0, j1);
+//                // Adding the element-to-point influence sub-matrix
+//                // to the global stress matrix
+//                IL_EXPECT_FAST(6 * (m_pt + 1) <= stress_infl_matrix.size(0));
+//                IL_EXPECT_FAST(18 * (source_elem + 1) <=
+//                               stress_infl_matrix.size(1));
+//                for (il::int_t j1 = 0; j1 < 18; ++j1) {
+//                    for (il::int_t j0 = 0; j0 < 6; ++j0) {
+//                        stress_infl_matrix
+//                                (6 * m_pt + j0, ndpe * source_elem + j1) +=
+//                                stress_infl_el2p_glob(j0, j1);
+//                    }
+//                }
+
+                // re-arranging local DDs into a vector
+                il::StaticArray<double, 18> ele_disp_vect;
+                for (il::int_t k = 0; k < 6; ++k) {
+                    for (il::int_t j = 0; j < 3; ++j) {
+                        il::int_t l = 3 * k + j;
+                        ele_disp_vect[l] = m_data.dd(k, j);
                     }
+                }
+                // Multiplying by element DD and adding the result to stresses
+                il::StaticArray<double, 6> part_stress_vect;
+                part_stress_vect = il::dot
+                        (stress_infl_el2p_glob, ele_disp_vect);
+                for (il::int_t j = 0; j < 6; ++j) {
+                    stress_array(m_pt, j) += part_stress_vect[j];
                 }
             }
         }
 
-        // re-arranging DDs into a vector
-        il::Array<double> disp_vect{num_dof};
-        for (il::int_t k = 0; k < 6 * num_ele; ++k) {
-            for (il::int_t j = 0; j < 3; ++j) {
-                il::int_t l = 3 * k + j;
-                disp_vect[l] = m_data.dd(k, j);
-            }
-        }
-        // multiplying stress_infl_matrix by disp_vect
-        il::Array<double> stress_vect{6 * num_of_m_pts};
-        stress_vect = il::dot(stress_infl_matrix, disp_vect);
-        // re-arranging stress components into num_of_m_pts*6 matrix
-        il::Array2D<double> stress_array{num_of_m_pts, 6};
-        for (il::int_t k = 0; k < num_of_m_pts; ++k) {
-            for (il::int_t j = 0; j < 6; ++j) {
-                il::int_t l = 6 * k + j;
-                stress_array(k, j) = stress_vect[l];
-            }
-        }
-        return stress_array;
+//        // re-arranging DDs into a vector
+//        il::Array<double> disp_vect{num_dof};
+//        for (il::int_t k = 0; k < 6 * num_ele; ++k) {
+//            for (il::int_t j = 0; j < 3; ++j) {
+//                il::int_t l = 3 * k + j;
+//                disp_vect[l] = m_data.dd(k, j);
+//            }
+//        }
+//        // multiplying stress_infl_matrix by disp_vect
+//        il::Array<double> stress_vect{6 * num_of_m_pts};
+//        IL_EXPECT_FAST(stress_vect.size() == stress_infl_matrix.size(0));
+//        IL_EXPECT_FAST(disp_vect.size() == stress_infl_matrix.size(1));
+//        stress_vect = il::dot(stress_infl_matrix, disp_vect);
+//        // re-arranging stress components into num_of_m_pts*6 matrix
+//        for (il::int_t k = 0; k < num_of_m_pts; ++k) {
+//            for (il::int_t j = 0; j < 6; ++j) {
+//                il::int_t l = 6 * k + j;
+//                stress_array(k, j) = stress_vect[l];
+//            }
+//        }
+
         // return stress_infl_matrix;
+        return stress_array;
     }
 
     // Volume Control matrix assembly (additional row $ column)
