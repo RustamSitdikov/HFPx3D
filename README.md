@@ -44,13 +44,13 @@ Output options:
 - nodal points (fill set for 2nd order approximation)
 & solution (surface displacements/displacement discontinuities)
 at these points
- - mark ```do_save_solution = true``` in **config.toml**
+  - mark ```do_save_solution = true``` in **config.toml**
 - stresses (with positive tension convention) at given observation points
 (provided in an input file, either **.npy** or **.csv**,
 in a way similar to nodes of the mesh)
- - mark ```do_postprocess = true``` in **config.toml**
+  - mark ```do_postprocess = true``` in **config.toml**
 - the elastisity "influence" matrix
- - mark ```do_save_matrix = true``` in **config.toml**
+  - mark ```do_save_matrix = true``` in **config.toml**
 
 ##
 This code uses the **InsideLoop library** (https://github.com/insideloop/InsideLoop)
