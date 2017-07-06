@@ -6,7 +6,7 @@ Volume Control version
 developed by Geo-Energy Laboratory, École Polytechnique Fédérale de Lausanne
 (EPFL), Switzerland.
 
-![GEL-EPFL logo](http://gel.epfl.ch/files/content/sites/gel/files/Pictures/LOGOGEL-final-right-01.png?v=2&s=50)
+![GEL-EPFL logo](https://documents.epfl.ch/users/n/ni/nikolski/www/LOGOGEL-final-right-40.png)
 
 Please note that the project is a work in progress.
 Updates will be followed up with a short description here
