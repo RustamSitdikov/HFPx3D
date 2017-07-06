@@ -21,11 +21,10 @@ following data:
 - Load parameters (in-situ stress, injection)
 - Numerical model parameters
 ##
-**MeshFiles/** folder contains surface mesh (triangulation) data.
-##
-1st option: **numpy** binary files, there are two for the same surface mesh:
-- **Elems_... .npy** for connectivity matrix (node numbers of each element)
-- **Nodes_... .npy** for coordinates of the nodes
+Mesh (triangulation) input options:
+- **numpy** binary files, there are two for the same surface mesh:
+  - **Elems_... .npy** for connectivity matrix (node numbers of each element)
+  - **Nodes_... .npy** for coordinates of the nodes
 
 Both are stored and parsed as 3-row arrays (or >3 if additional data,
 e.g. on crack tip nodes, are provided)
@@ -34,10 +33,10 @@ e.g. on crack tip nodes, are provided)
 
 **Save_m_as_npy** sctipt can be used to save data from MATLAB .mat files in
 **numpy** format.
-##
-2nd option: **.csv** text files, also two for the same surface mesh:
-- **Elems_... .csv** for connectivity matrix (node numbers of each element)
-- **Nodes_... .csv** for coordinates of the nodes
+
+- **.csv** text files, also two for the same surface mesh:
+  - **Elems_... .csv** for connectivity matrix (node numbers of each element)
+  - **Nodes_... .csv** for coordinates of the nodes
 
 Note: In **.csv** files, both are stored as 3-column arrays,
 but parsed as 3-row arrays.
@@ -54,6 +53,10 @@ in a way similar to nodes of the mesh)
   the observation points file (+ directory and file format) in **config.toml**
 - the elastisity "influence" matrix
   - mark ```do_save_matrix = true``` in **config.toml**
+##
+**Mesh_Files/** folder contains some surface mesh (triangulation) examples.
+**Test_Output/** folder contains solution and postprocessing examples +
+observation points files.
 
 ##
 This code uses the **InsideLoop library** (https://github.com/insideloop/InsideLoop)
