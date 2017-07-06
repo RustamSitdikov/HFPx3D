@@ -23,8 +23,8 @@ following data:
 ##
 Mesh (triangulation) input options:
 1. **numpy** binary files, there are two for the same surface mesh:
-  * **Elems_... .npy** for connectivity matrix (node numbers of each element)
-  * **Nodes_... .npy** for coordinates of the nodes
+   * **Elems_... .npy** for connectivity matrix (node numbers of each element)
+   * **Nodes_... .npy** for coordinates of the nodes
 
   Both are stored and parsed as 3-row arrays (or >3 if additional data,
 e.g. on crack tip nodes, are provided)
@@ -35,8 +35,8 @@ e.g. on crack tip nodes, are provided)
 **numpy** format.
 
 2. **.csv** text files, also two for the same surface mesh:
-  * **Elems_... .csv** for connectivity matrix (node numbers of each element)
-  * **Nodes_... .csv** for coordinates of the nodes
+   * **Elems_... .csv** for connectivity matrix (node numbers of each element)
+   * **Nodes_... .csv** for coordinates of the nodes
 
   Note: In **.csv** files, both are stored as 3-column arrays,
 but parsed as 3-row arrays.
