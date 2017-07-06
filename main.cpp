@@ -356,11 +356,23 @@ int main() {
 
     // saving matrix to a .CSV file
     if (save_matrix) {
-        hfp3d::save_data_to_csv(sae.matrix, out_dir_name, mf_name, il::io, ok);
+        // todo: add binary output
+        if (out_f_format == "npy32") {
+            //
+        } else if (in_f_format == "npy64") {
+            //
+        } else { // treat as csv by default
+            hfp3d::save_data_to_csv
+                    (sae.matrix, out_dir_name, mf_name, il::io, ok);
+        }
         if (ok) {
             std::cout << "Matrix saved to "
                       << out_dir_name.asCString()
                       << mf_name.asCString() << std::endl;
+        }
+        else {
+            std::cout << "Cannot save the matrix" << std::endl;
+            //status.abortOnError();
         }
     }
 
@@ -368,7 +380,7 @@ int main() {
     timer.start();
 
     // solving the system
-    il::Array<double> dd_v;
+    il::Array<double> dd_v{sae.n_dof};
 
      il::LU<il::Array2D<double>> lu_decomposition(sae.matrix, il::io, status);
     // if (!status.ok()) {
@@ -392,7 +404,6 @@ int main() {
              il::io, mesh_data);
 
     // saving the solution (nodes + DD) to a .CSV file
-    // todo: add binary output
     if (save_solution) {
         // the 2D array for nodal points' coordinates and DD - initialization
         il::Array2D<double> out_dd(6 * num_elems, 7);
@@ -426,25 +437,31 @@ int main() {
                 }
             }
         }
-        if (out_f_format == "csv") {
-            hfp3d::save_data_to_csv(out_dd, out_dir_name, of_name, il::io, ok);
+        // todo: add binary output
+        if (out_f_format == "npy32") {
+//            il::save(out_dd, out_dir_name + of_name, il::io, status);
+        } else if (in_f_format == "npy64") {
+            //
+        } else { // treat as csv by default
+            hfp3d::save_data_to_csv
+                    (out_dd, out_dir_name, of_name, il::io, ok);
         }
         if (ok) {
             std::cout << "Solution (nodes + DD) saved to "
                       << out_dir_name.asCString()
                       << of_name.asCString() << std::endl;
         }
-//        else if (out_f_format == "npy32") {
-//            il::save(out_dd, out_dir_name + of_name, il::io, status);
-//            status.abortOnError();
-//        }
+        else {
+            std::cout << "Cannot save the solution" << std::endl;
+            //status.abortOnError();
+        }
     }
 
 // todo: add calculation of stresses (post-processing)
-//    if (save_stress) {
-//        // define points to monitor stresses
-//        il::Array2D<double> m_pts_crd;
-//
+    if (save_stress) {
+        // define points to monitor stresses
+        il::Array2D<double> m_pts_crd;
+
 //        // loading the mesh from files
 //        if (out_f_format == "csv") {
 //            m_pts_crd = hfp3d::load_crd_from_csv
@@ -459,22 +476,33 @@ int main() {
 //                    (obs_dir_name, o_p_f_name,
 //                     il::io, status);
 //        }
-//
-//        // calculate stresses at m_pts_crd
-//        il::Array2D<double> stress_m_pts(m_pts_crd.size(0), 6);
-//        stress_m_pts = hfp3d::make_3dbem_stress_f_s
-//            (solid_properties.mu[0], solid_properties.nu[0],
-//             mesh_data, n_par, m_pts_crd);
-//
-//        // saving stresses to the file
-//        //todo: add binary output
-//        if (out_f_format == "npy32") {
-//        } else if (in_f_format == "npy64") {
-//        } else { // treat as csv by default
-//            hfp3d::save_data_to_csv
-//                    (stress_m_pts, out_dir_name, of_name, il::io, ok);
-//        }
-//    }
+
+        // calculate stresses at m_pts_crd
+        il::Array2D<double> stress_m_pts(m_pts_crd.size(0), 6);
+        stress_m_pts = hfp3d::make_3dbem_stress_f_s
+            (solid_properties.mu[0], solid_properties.nu[0],
+             mesh_data, n_par, m_pts_crd);
+
+        // saving stresses to the file
+        // todo: add binary output
+        if (out_f_format == "npy32") {
+            //
+        } else if (in_f_format == "npy64") {
+            //
+        } else { // treat as csv by default
+            hfp3d::save_data_to_csv
+                    (stress_m_pts, out_dir_name, sf_name, il::io, ok);
+        }
+        if (ok) {
+            std::cout << "Solution (nodes + DD) saved to "
+                      << out_dir_name.asCString()
+                      << of_name.asCString() << std::endl;
+        }
+        else {
+            std::cout << "Cannot save the stresses" << std::endl;
+            //status.abortOnError();
+        }
+    }
 
     return 0;
 }
