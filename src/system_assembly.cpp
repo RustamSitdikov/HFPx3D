@@ -453,6 +453,7 @@ namespace hfp3d {
     il::Array2D<double> make_3dbem_stress_f_s
             (double mu, double nu,
              const Mesh_Data_T &m_data,
+             const Load_T &load,
              const Num_Param_T &n_par,
              const il::Array2D<double> &m_pts_crd) {
     // This function calculates Stress at given points (m_pts_crd)
@@ -468,12 +469,12 @@ namespace hfp3d {
         IL_EXPECT_FAST(m_data.mesh.nods.size(1) >= 3); // at least 3 nodes
 
         const il::int_t num_ele = m_data.mesh.conn.size(1);
-        const il::int_t ndpe = 18;
-        const il::int_t num_dof = ndpe * num_ele;
+//        const il::int_t ndpe = 18;
+        const il::int_t num_dof = 18 * num_ele;
         const il::int_t num_of_m_pts = m_pts_crd.size(1);
 
-        il::Array2D<double> stress_infl_matrix{6 * num_of_m_pts, num_dof, 0.0};
-        il::Array2D<double> stress_array{num_of_m_pts, 6};
+//        il::Array2D<double> stress_infl_matrix{6 * num_of_m_pts, num_dof, 0.0};
+        il::Array2D<double> stress_array{num_of_m_pts, 6, 0.0};
 
         // Loop over elements
 
@@ -503,7 +504,7 @@ namespace hfp3d {
             il::StaticArray<std::complex<double>, 3> tau =
                     make_el_tau_crd(el_vert_s, r_tensor_s);
 
-            // Loop over monitoring points
+            // Loop over observation points
             for (il::int_t m_pt = 0; m_pt < num_of_m_pts; ++m_pt) {
                 // Monitoring points' coordinates
                 il::StaticArray<double, 3> m_p_crd;
@@ -580,9 +581,9 @@ namespace hfp3d {
                     }
                 }
                 // Multiplying by element DD and adding the result to stresses
-                il::StaticArray<double, 6> part_stress_vect;
-                part_stress_vect = il::dot
-                        (stress_infl_el2p_glob, ele_disp_vect);
+                il::StaticArray<double, 6> part_stress_vect{0.0};
+                il::blas(1.0, stress_infl_el2p_glob, ele_disp_vect,
+                         1.0, il::io, part_stress_vect);
                 for (il::int_t j = 0; j < 6; ++j) {
                     stress_array(m_pt, j) += part_stress_vect[j];
                 }
@@ -609,6 +610,17 @@ namespace hfp3d {
 //                stress_array(k, j) = stress_vect[l];
 //            }
 //        }
+
+        // Adding in-situ stress
+
+#pragma omp parallel for
+
+        // Loop over observation points
+        for (il::int_t m_pt = 0; m_pt < num_of_m_pts; ++m_pt) {
+            for (il::int_t j = 0; j < 6; ++j) {
+                stress_array(m_pt, j) += load.s_inf[j];
+            }
+        }
 
         // return stress_infl_matrix;
         return stress_array;

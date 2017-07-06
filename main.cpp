@@ -487,7 +487,7 @@ int main() {
         il::Array2D<double> stress_m_pts(m_pts_crd.size(0), 6);
         stress_m_pts = hfp3d::make_3dbem_stress_f_s
             (solid_properties.mu[0], solid_properties.nu[0],
-             mesh_data, n_par, m_pts_crd);
+             mesh_data, load, n_par, m_pts_crd);
 
         timer.stop();
         std::cout << ": " << timer.elapsed() << "s" << std::endl;

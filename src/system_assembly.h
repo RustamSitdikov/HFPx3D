@@ -56,6 +56,7 @@ namespace hfp3d {
     il::Array2D<double> make_3dbem_stress_f_s
             (double mu, double nu,
              const Mesh_Data_T &m_data,
+             const Load_T &load,
              const Num_Param_T &n_par,
              const il::Array2D<double> &m_pts_crd);
 
