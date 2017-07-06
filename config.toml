@@ -18,15 +18,15 @@ mesh_input_format = "npy32"
 
 # observation points (to calculate stresses)
 observ_crd_directory = ""
-observ_crd_fname = "_32.npy"
-observ_input_format = "npy32"
+observ_crd_fname = "observation_points.csv"
+observ_input_format = "csv"
 # choose from "npy32", "npy64", "csv"
 
 ### Output
 
 do_save_matrix = false
 do_save_solution = true
-do_postprocess = false
+do_postprocess = true
 output_directory = "Test_Output"
 #output_signature = "_psc_24_ele"
 #output_signature = "_psc_1025_ele"

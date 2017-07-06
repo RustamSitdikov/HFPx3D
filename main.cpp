@@ -317,6 +317,7 @@ int main() {
 
     // resetting the timer
     il::Timer timer{};
+    std::cout << "Assembly";
     timer.start();
 
 //    __itt_resume();
@@ -347,12 +348,13 @@ int main() {
     hfp3d::add_s_inf_to_3dbem_rhs
             (mesh_data, load, il::io, sae);
 
-//    __itt_pause();
     timer.stop();
 
-    std::cout << "Assembly: " << timer.elapsed() << "s" << std::endl;
+    std::cout << ": " << timer.elapsed() << "s" << std::endl;
     std::cout << 18 * num_elems << " DoF Total" << std::endl;
     std::cout << 18 * num_elems - sae.n_dof << " Fixed DoF" << std::endl;
+
+//    __itt_pause();
 
     // saving matrix to a .CSV file
     if (do_save_matrix) {
@@ -376,6 +378,7 @@ int main() {
         }
     }
 
+    std::cout << "Solution";
     timer.reset();
     timer.start();
 
@@ -396,7 +399,9 @@ int main() {
 //    status.abortOnError();
 
     timer.stop();
-    std::cout << "Solution: " << timer.elapsed() << "s" << std::endl;
+    std::cout << ": " << timer.elapsed() << "s" << std::endl;
+
+//    __itt_pause();
 
     hfp3d::write_dd_vector_to_md
             (dd_v, mesh_data.dof_h_dd,
@@ -474,11 +479,18 @@ int main() {
         }
         status.abortOnError();
 
+        std::cout << "Postprocessing";
+        timer.reset();
+        timer.start();
+
         // calculate stresses at m_pts_crd
         il::Array2D<double> stress_m_pts(m_pts_crd.size(0), 6);
         stress_m_pts = hfp3d::make_3dbem_stress_f_s
             (solid_properties.mu[0], solid_properties.nu[0],
              mesh_data, n_par, m_pts_crd);
+
+        timer.stop();
+        std::cout << ": " << timer.elapsed() << "s" << std::endl;
 
         // saving stresses to the file
         // todo: add binary output
@@ -491,9 +503,9 @@ int main() {
                     (stress_m_pts, out_dir_name, sf_name, il::io, ok);
         }
         if (ok) {
-            std::cout << "Solution (nodes + DD) saved to "
+            std::cout << "Stresses at given points saved to "
                       << out_dir_name.asCString()
-                      << of_name.asCString() << std::endl;
+                      << sf_name.asCString() << std::endl;
         }
         else {
             std::cout << "Cannot save the stresses" << std::endl;
