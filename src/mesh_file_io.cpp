@@ -16,10 +16,168 @@
 #include <il/Array2D.h>
 #include <il/StaticArray.h>
 #include <il/StaticArray2D.h>
+#include <il/Status.h>
+#include <il/String.h>
 #include <il/io/numpy/numpy.h>
 #include "mesh_file_io.h"
 
 namespace hfp3d {
+
+// loading data (point coordinates, il::Array2D<double>)
+
+    il::Array2D<double> load_crd_from_numpy
+            (const std::string &src_dir,
+             const std::string &crd_f_name,
+             il::io_t, il::Status &status) {
+        //
+        std::string f_path = src_dir + crd_f_name;
+        il::Array2D<double> p_crd = il::load<il::Array2D<double>>
+                (f_path, il::io, status);
+        status.abortOnError();
+        return p_crd;
+    }
+
+    // overload for il::String
+    il::Array2D<double> load_crd_from_numpy
+            (const il::String &src_dir,
+             const il::String &crd_f_name,
+             il::io_t, il::Status &status) {
+        //
+        il::String f_path(src_dir);
+        if (!f_path.hasSuffix("/"))
+            f_path.append("/");
+        f_path.append(crd_f_name);
+        il::Array2D<double> p_crd = il::load<il::Array2D<double>>
+                (f_path, il::io, status);
+        status.abortOnError();
+        return p_crd;
+    }
+
+    il::Array2D<double> load_crd_from_csv
+            (const std::string &src_dir,
+             const std::string &crd_f_name,
+             il::io_t, il::Status &status) {
+        //
+        std::string f_path = src_dir + crd_f_name;
+        std::string line = "", subline = "";
+        char delim = ',';
+        il::Array2D<double> p_crd;
+        std::ifstream nf; // file stream
+        nf.open(f_path.c_str());
+        if(nf.is_open()) {
+            // counting the array size
+            il::int_t n_row = 0, n_col = 0;
+            while(!nf.eof()) {
+                std::getline(nf, line);
+                if (line.length() == 0) {
+                    std::cout << "Empty row" << std::endl;
+                } else {
+                    std::stringstream linestream(line);
+                    ++n_row;
+                    il::int_t n_col_t = 0;
+                    do {
+                        subline = "";
+                        std::getline(linestream, subline, delim);
+                        if (subline.length() > 0){
+                            ++n_col_t;
+                        }
+                    } while(subline.length() > 0);
+                    if (n_col_t != n_col && n_col > 0) {
+                        std::cout << "Row size is not constant" << std::endl;
+                    }
+                    else n_col = n_col_t;
+                }
+            }
+            // resizing the output array (node coordinates)
+            p_crd.resize(n_col, n_row);
+            // importing the array
+            for (il::int_t k = 0; k < p_crd.size(1); ++k) {
+                std::getline(nf, line);
+                std::stringstream linestream(line);
+                for (il::int_t j = 0; j < p_crd.size(0); ++j) {
+                    subline = "";
+                    std::getline(linestream, subline, delim);
+                    if (subline.length() > 0){
+                        double value = -1.0;
+                        std::stringstream sublinestream(subline);
+                        sublinestream >> value;
+                        p_crd(j, k) = value;
+                    }
+                }
+            }
+            nf.close();
+        }
+        else {
+            std::cout << "Can't open the file" << std::endl;
+        }
+        return p_crd;
+    }
+
+    // overload for il::String
+    il::Array2D<double> load_crd_from_csv
+            (const il::String &src_dir,
+             const il::String &crd_f_name,
+             il::io_t, il::Status &status) {
+        //
+        il::String f_path(src_dir);
+        if (!f_path.hasSuffix("/"))
+            f_path.append("/");
+        f_path.append(crd_f_name);
+        std::string line = "", subline = "";
+        char delim = ',';
+        il::Array2D<double> p_crd;
+        std::ifstream nf; // file stream
+        nf.open(f_path.asCString());
+        if(nf.is_open()) {
+            // counting the array size
+            il::int_t n_row = 0, n_col = 0;
+            while(!nf.eof()) {
+                std::getline(nf, line);
+                if (line.length() == 0) {
+                    std::cout << "Empty row" << std::endl;
+                } else {
+                    std::stringstream linestream(line);
+                    ++n_row;
+                    il::int_t n_col_t = 0;
+                    do {
+                        subline = "";
+                        std::getline(linestream, subline, delim);
+                        if (subline.length() > 0){
+                            ++n_col_t;
+                        }
+                    } while(subline.length() > 0);
+                    if (n_col_t != n_col && n_col > 0) {
+                        std::cout << "Row size is not constant" << std::endl;
+                    }
+                    else n_col = n_col_t;
+                }
+            }
+            // resizing the output array (node coordinates)
+            p_crd.resize(n_col, n_row);
+            // importing the array
+            for (il::int_t k = 0; k < p_crd.size(1); ++k) {
+                std::getline(nf, line);
+                std::stringstream linestream(line);
+                for (il::int_t j = 0; j < p_crd.size(0); ++j) {
+                    subline = "";
+                    std::getline(linestream, subline, delim);
+                    if (subline.length() > 0){
+                        double value = -1.0;
+                        std::stringstream sublinestream(subline);
+                        sublinestream >> value;
+                        p_crd(j, k) = value;
+                    }
+                }
+            }
+            nf.close();
+        }
+        else {
+            std::cout << "Can't open the file" << std::endl;
+        }
+        return p_crd;
+    }
+
+// loading data (mesh, two of il::Array2D<double>)
 
     void load_mesh_from_numpy_32
             (const std::string &src_dir,

@@ -24,9 +24,9 @@ observ_input_format = "npy32"
 
 ### Output
 
-save_matrix = false
-save_solution = true
-save_stress = false
+do_save_matrix = false
+do_save_solution = true
+do_postprocess = false
 output_directory = "Test_Output"
 #output_signature = "_psc_24_ele"
 #output_signature = "_psc_1025_ele"

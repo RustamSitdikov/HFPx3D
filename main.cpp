@@ -70,9 +70,9 @@ int main() {
     il::String out_dir_name((src_dir + "/").c_str());
     il::String out_f_format;
     il::int_t array_origin;
-    bool save_matrix = false;
-    bool save_solution = false;
-    bool save_stress = false;
+    bool do_save_matrix = false;
+    bool do_save_solution = false;
+    bool do_postprocess = false;
 // todo: move towards using il::Status type in output functions
     bool ok = true;
     il::Status status{};
@@ -146,17 +146,17 @@ int main() {
     }
 
     // reading output permissions
-    pos = config.search("save_matrix");
+    pos = config.search("do_save_matrix");
     if (config.found(pos) && config.value(pos).isBool()) {
-        save_matrix = config.value(pos).toBool();
+        do_save_matrix = config.value(pos).toBool();
     }
-    pos = config.search("save_solution");
+    pos = config.search("do_save_solution");
     if (config.found(pos) && config.value(pos).isBool()) {
-        save_solution = config.value(pos).toBool();
+        do_save_solution = config.value(pos).toBool();
     }
-    pos = config.search("save_stress");
+    pos = config.search("do_postprocess");
     if (config.found(pos) && config.value(pos).isBool()) {
-        save_stress = config.value(pos).toBool();
+        do_postprocess = config.value(pos).toBool();
     }
 
     // reading output target
@@ -355,7 +355,7 @@ int main() {
     std::cout << 18 * num_elems - sae.n_dof << " Fixed DoF" << std::endl;
 
     // saving matrix to a .CSV file
-    if (save_matrix) {
+    if (do_save_matrix) {
         // todo: add binary output
         if (out_f_format == "npy32") {
             //
@@ -372,7 +372,7 @@ int main() {
         }
         else {
             std::cout << "Cannot save the matrix" << std::endl;
-            //status.abortOnError();
+            status.abortOnError();
         }
     }
 
@@ -404,7 +404,7 @@ int main() {
              il::io, mesh_data);
 
     // saving the solution (nodes + DD) to a .CSV file
-    if (save_solution) {
+    if (do_save_solution) {
         // the 2D array for nodal points' coordinates and DD - initialization
         il::Array2D<double> out_dd(6 * num_elems, 7);
         for (il::int_t j = 0; j < num_elems; ++j) {
@@ -453,29 +453,26 @@ int main() {
         }
         else {
             std::cout << "Cannot save the solution" << std::endl;
-            //status.abortOnError();
+            status.abortOnError();
         }
     }
 
 // todo: add calculation of stresses (post-processing)
-    if (save_stress) {
+    if (do_postprocess) {
         // define points to monitor stresses
         il::Array2D<double> m_pts_crd;
 
-//        // loading the mesh from files
-//        if (out_f_format == "csv") {
-//            m_pts_crd = hfp3d::load_crd_from_csv
-//                    (obs_dir_name, o_p_f_name,
-//                     il::io, status);
-//        } else if (in_f_format == "npy64") {
-//            m_pts_crd = hfp3d::load_crd_from_numpy_64
-//                    (obs_dir_name, o_p_f_name,
-//                     il::io, status);
-//        } else { // treat as 32-bit numpy by default
-//            m_pts_crd = hfp3d::load_crd_from_numpy_32
-//                    (obs_dir_name, o_p_f_name,
-//                     il::io, status);
-//        }
+        // loading the mesh from files
+        if (out_f_format == "csv") {
+            m_pts_crd = hfp3d::load_crd_from_csv
+                    (obs_dir_name, o_p_f_name,
+                     il::io, status);
+        } else { // treat as numpy by default
+            m_pts_crd = hfp3d::load_crd_from_numpy
+                    (obs_dir_name, o_p_f_name,
+                     il::io, status);
+        }
+        status.abortOnError();
 
         // calculate stresses at m_pts_crd
         il::Array2D<double> stress_m_pts(m_pts_crd.size(0), 6);
@@ -500,7 +497,7 @@ int main() {
         }
         else {
             std::cout << "Cannot save the stresses" << std::endl;
-            //status.abortOnError();
+            status.abortOnError();
         }
     }
 

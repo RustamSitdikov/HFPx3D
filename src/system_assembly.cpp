@@ -468,7 +468,8 @@ namespace hfp3d {
         IL_EXPECT_FAST(m_data.mesh.nods.size(1) >= 3); // at least 3 nodes
 
         const il::int_t num_ele = m_data.mesh.conn.size(1);
-        const il::int_t num_dof = 18 * num_ele;
+        const il::int_t ndpe = 18;
+        const il::int_t num_dof = ndpe * num_ele;
         const il::int_t num_of_m_pts = m_pts_crd.size(1);
 
         il::Array2D<double> stress_infl_matrix(6 * num_of_m_pts, num_dof);
@@ -559,12 +560,12 @@ namespace hfp3d {
                 // Adding the element-to-point influence sub-matrix
                 // to the global stress matrix
                 IL_EXPECT_FAST(6 * (m_pt + 1) <= stress_infl_matrix.size(0));
-                IL_EXPECT_FAST(18 * (source_elem + 1) <=
+                IL_EXPECT_FAST(ndpe * (source_elem + 1) <=
                                stress_infl_matrix.size(1));
-                for (il::int_t j1 = 0; j1 < 18; ++j1) {
+                for (il::int_t j1 = 0; j1 < ndpe; ++j1) {
                     for (il::int_t j0 = 0; j0 < 6; ++j0) {
                         stress_infl_matrix
-                                (6 * m_pt + j0, 18 * source_elem + j1) =
+                                (6 * m_pt + j0, ndpe * source_elem + j1) =
                                 stress_infl_el2p_glob(j0, j1);
                     }
                 }
@@ -617,8 +618,8 @@ namespace hfp3d {
 
         const il::int_t num_ele = mesh.conn.size(1);
         const il::int_t num_dof = dof_hndl.n_dof;
-        const il::int_t ndpe = dof_hndl.dof_h.size(1);
-        IL_EXPECT_FAST(ndpe == 18);
+        //const il::int_t ndpe = dof_hndl.dof_h.size(1);
+        //IL_EXPECT_FAST(ndpe == 18);
 
         il::Array2D<double> global_matrix;
         global_matrix.reserve(num_dof + 1, num_dof + 1);
