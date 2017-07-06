@@ -22,7 +22,7 @@ following data:
 - Numerical model parameters
 ##
 Mesh (triangulation) input options:
-1: **numpy** binary files, there are two for the same surface mesh:
+1. **numpy** binary files, there are two for the same surface mesh:
   - **Elems_... .npy** for connectivity matrix (node numbers of each element)
   - **Nodes_... .npy** for coordinates of the nodes
 
@@ -34,7 +34,7 @@ e.g. on crack tip nodes, are provided)
 **Save_m_as_npy** sctipt can be used to save data from MATLAB .mat files in
 **numpy** format.
 
-2: **.csv** text files, also two for the same surface mesh:
+2. **.csv** text files, also two for the same surface mesh:
   - **Elems_... .csv** for connectivity matrix (node numbers of each element)
   - **Nodes_... .csv** for coordinates of the nodes
 
