@@ -23,8 +23,8 @@ following data:
 ##
 Mesh (triangulation) input options:
 1. **numpy** binary files, there are two for the same surface mesh:
-   * **Elems_... .npy** for connectivity matrix (node numbers of each element)
-   * **Nodes_... .npy** for coordinates of the nodes
+    - **Elems_... .npy** for connectivity matrix (node numbers of each element)
+    - **Nodes_... .npy** for coordinates of the nodes
 
   Both are stored and parsed as 3-row arrays (or >3 if additional data,
 e.g. on crack tip nodes, are provided)
@@ -35,8 +35,8 @@ e.g. on crack tip nodes, are provided)
 **numpy** format.
 
 2. **.csv** text files, also two for the same surface mesh:
-   * **Elems_... .csv** for connectivity matrix (node numbers of each element)
-   * **Nodes_... .csv** for coordinates of the nodes
+    - **Elems_... .csv** for connectivity matrix (node numbers of each element)
+    - **Nodes_... .csv** for coordinates of the nodes
 
   Note: In **.csv** files, both are stored as 3-column arrays,
 but parsed as 3-row arrays.
@@ -45,14 +45,14 @@ Output options:
 - nodal points (fill set for 2nd order approximation)
 & solution (surface displacements/displacement discontinuities)
 at these points
-  - mark ```do_save_solution = true``` in **config.toml**
+    - mark ```do_save_solution = true``` in **config.toml**
 - stresses (with positive tension convention) at given observation points
 (provided in an input file, either **.npy** or **.csv**,
 in a way similar to nodes of the mesh)
-  - mark ```do_postprocess = true``` and specify
+    - mark ```do_postprocess = true``` and specify
   the observation points file (+ directory and file format) in **config.toml**
 - the elastisity "influence" matrix
-  - mark ```do_save_matrix = true``` in **config.toml**
+    - mark ```do_save_matrix = true``` in **config.toml**
 ##
 **Mesh_Files/** folder contains some surface mesh (triangulation) examples.
 
