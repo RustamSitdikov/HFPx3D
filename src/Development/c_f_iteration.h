@@ -13,7 +13,7 @@
 #include <il/Array.h>
 #include <il/Array2D.h>
 #include <il/StaticArray.h>
-#include "system_assembly.h"
+#include "src/Solvers/system_assembly.h"
 #include "cohesion_friction.h"
 
 namespace hfp3d {

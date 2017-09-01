@@ -14,11 +14,11 @@
 #include <il/StaticArray.h>
 #include <il/linear_algebra.h>
 #include <il/linear_algebra/dense/factorization/LU.h>
-#include "system_assembly.h"
-#include "element_utilities.h"
-#include "tensor_utilities.h"
+#include "src/Solvers/system_assembly.h"
+#include "src/Core/element_utilities.h"
+#include "src/Core/tensor_utilities.h"
 #include "cohesion_friction.h"
-#include "surface_mesh_utilities.h"
+#include "src/Core/surface_mesh_utilities.h"
 #include "c_f_iteration.h"
 
 namespace hfp3d {

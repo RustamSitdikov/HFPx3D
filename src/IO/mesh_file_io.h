@@ -20,7 +20,7 @@
 #include <cstdio>
 #include <fstream>
 #include <iostream>
-#include "surface_mesh_utilities.h"
+#include "src/Core/surface_mesh_utilities.h"
 
 namespace hfp3d {
 

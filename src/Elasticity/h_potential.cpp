@@ -24,7 +24,7 @@
 #include <il/StaticArray.h>
 #include <il/StaticArray3D.h>
 #include <il/StaticArray4D.h>
-#include "constants.h"
+#include "src/Core/constants.h"
 #include "h_potential.h"
 
 namespace hfp3d {

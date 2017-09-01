@@ -10,6 +10,8 @@
 #ifndef HFPX3D_MATERIALS_H
 #define HFPX3D_MATERIALS_H
 
+#include "src/Development/cohesion_friction.h"
+
 namespace hfp3d {
 
     // physical model parameters
@@ -36,16 +38,20 @@ namespace hfp3d {
         // contact model ID, for each surface ID (see cohesion_friction.h)
         il::Array<int> c_model_id;
 
-        // max friction coeff-s
-        il::Array<double> fr_c;
-        // max cohesion (for shear stress vs shear DD)
-        il::Array<double> sc_f;
-        // max cohesive forces (for opening mode)
-        il::Array<double> oc_f;
-        // critical opening displacement (normal DD)
-        il::Array<double> w_cr;
-        // critical slip displacement (in-plane DD)
-        il::Array<double> s_cr;
+        // contact model parameters, for each contact model ID
+        // (see cohesion_friction.h)
+        il::Array<F_C_Param_T> f_c_param;
+
+//        // max friction coeff-s
+//        il::Array<double> fr_c;
+//        // max cohesion (for shear stress vs shear DD)
+//        il::Array<double> sc_f;
+//        // max cohesive forces (for opening mode)
+//        il::Array<double> oc_f;
+//        // critical opening displacement (normal DD)
+//        il::Array<double> w_cr;
+//        // critical slip displacement (in-plane DD)
+//        il::Array<double> s_cr;
     };
 
     // "global" load parameters

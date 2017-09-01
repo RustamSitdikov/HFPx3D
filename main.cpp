@@ -27,12 +27,12 @@
 #include <il/linear_algebra.h>
 //#include <il/linear_algebra/dense/factorization/linearSolve.h>
 
-#include "src/mesh_file_io.h"
-#include "src/system_assembly.h"
-#include "src/model_utilities.h"
-#include "src/surface_mesh_utilities.h"
-#include "src/element_utilities.h"
-#include "src/tensor_utilities.h"
+#include "src/IO/mesh_file_io.h"
+#include "src/Solvers/system_assembly.h"
+#include "src/Core/model_utilities.h"
+#include "src/Core/surface_mesh_utilities.h"
+#include "src/Core/element_utilities.h"
+#include "src/Core/tensor_utilities.h"
 
 
 int main() {

@@ -17,7 +17,7 @@
 #include <il/Array2D.h>
 #include <il/StaticArray.h>
 #include <il/StaticArray2D.h>
-#include "cohesion_friction.h"
+#include "src/Development/cohesion_friction.h"
 
 namespace hfp3d {
 
@@ -52,7 +52,7 @@ namespace hfp3d {
         // link to the Mesh object
         Mesh_Geom_T mesh;
 
-        // material IDs, for each element / node
+        // material IDs, for each element / local node
         il::Array2D<int> mat_id;
 
         // current time

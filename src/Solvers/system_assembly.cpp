@@ -18,11 +18,11 @@
 #include <il/linear_algebra.h>
 // #include <il/linear_algebra/dense/blas/dot.h>
 // #include <il/linear_algebra/dense/blas/blas.h>
-#include "constants.h"
+#include "src/Core/constants.h"
 #include "system_assembly.h"
-#include "tensor_utilities.h"
-#include "element_utilities.h"
-#include "elasticity_kernel_integration.h"
+#include "src/Core/tensor_utilities.h"
+#include "src/Core/element_utilities.h"
+#include "src/Elasticity/elasticity_kernel_integration.h"
 
 namespace hfp3d {
 
