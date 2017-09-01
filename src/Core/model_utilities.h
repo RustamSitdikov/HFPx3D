@@ -7,8 +7,8 @@
 // See the LICENSE.TXT file for more details. 
 //
 
-#ifndef HFPX3D_MATERIALS_H
-#define HFPX3D_MATERIALS_H
+#ifndef HFPX3D_MODEL_UTILS_H
+#define HFPX3D_MODEL_UTILS_H
 
 #include "src/Development/cohesion_friction.h"
 
@@ -91,4 +91,4 @@ namespace hfp3d {
     };
 
 }
-#endif //HFPX3D_MATERIALS_H
+#endif //HFPX3D_MODEL_UTILS_H

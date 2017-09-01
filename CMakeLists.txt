@@ -3,7 +3,7 @@ project(HFPx3D)
 set(CMAKE_CXX_STANDARD 11)
 
 # some options related to IL
-set(IL_OPENMP 0)
+set(IL_OPENMP 1)
 set(IL_OPENBLAS 1)
 set(IL_MKL 0)
 
@@ -53,18 +53,18 @@ set(SOURCE_FILES
         main.cpp
         il/io/numpy/numpy.cpp
         il/io/toml/toml.cpp
-        ${SOURCE_FILES_DIR}/mesh_file_io.cpp
-        ${SOURCE_FILES_DIR}/mesh_file_io.h
-        #${SOURCE_FILES_DIR}/c_f_iteration.cpp
-        ${SOURCE_FILES_DIR}/cohesion_friction.h
-        ${SOURCE_FILES_DIR}/system_assembly.cpp
-        ${SOURCE_FILES_DIR}/surface_mesh_utilities.cpp
-        ${SOURCE_FILES_DIR}/tensor_utilities.cpp
-        ${SOURCE_FILES_DIR}/element_utilities.cpp
-        ${SOURCE_FILES_DIR}/elasticity_kernel_integration.cpp
-        ${SOURCE_FILES_DIR}/h_potential.cpp)
+        ${SOURCE_FILES_DIR}/IO/mesh_file_io.cpp
+        ${SOURCE_FILES_DIR}/IO/mesh_file_io.h
+        #${SOURCE_FILES_DIR}/Development/c_f_iteration.cpp
+        ${SOURCE_FILES_DIR}/Development/cohesion_friction.cpp
+        ${SOURCE_FILES_DIR}/Solvers/system_assembly.cpp
+        ${SOURCE_FILES_DIR}/Core/surface_mesh_utilities.cpp
+        ${SOURCE_FILES_DIR}/Core/tensor_utilities.cpp
+        ${SOURCE_FILES_DIR}/Core/element_utilities.cpp
+        ${SOURCE_FILES_DIR}/Elasticity/elasticity_kernel_integration.cpp
+        ${SOURCE_FILES_DIR}/Elasticity/h_potential.cpp)
 
-add_executable(HFPx3D ${SOURCE_FILES} src/model_utilities.h)
+add_executable(HFPx3D ${SOURCE_FILES} main.cpp)
 
 ####### IL_MKL case
 ## ENV{MKLROOT} is smth. like /opt/intel/compilers_and_libraries_2017.0.102/mac/mkl
