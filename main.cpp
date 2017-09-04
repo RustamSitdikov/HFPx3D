@@ -29,7 +29,7 @@
 
 #include "src/IO/mesh_file_io.h"
 #include "src/Solvers/system_assembly.h"
-#include "src/Core/model_utilities.h"
+#include "src/Core/model_parameters.h"
 #include "src/Core/surface_mesh_utilities.h"
 #include "src/Core/element_utilities.h"
 #include "src/Core/tensor_utilities.h"

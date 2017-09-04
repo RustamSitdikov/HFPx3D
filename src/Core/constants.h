@@ -7,8 +7,8 @@
 // See the LICENSE.TXT file for more details. 
 //
 
-#ifndef HFPX3D_CONSTANTS_H
-#define HFPX3D_CONSTANTS_H
+#ifndef INC_HFPX3D_CONSTANTS_H
+#define INC_HFPX3D_CONSTANTS_H
 
 #include <complex>
 
@@ -22,4 +22,4 @@ namespace hfp3d {
 
 }
 
-#endif //HFPX3D_CONSTANTS_H
+#endif //INC_HFPX3D_CONSTANTS_H

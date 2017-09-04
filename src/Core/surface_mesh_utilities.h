@@ -17,7 +17,6 @@
 #include <il/Array2D.h>
 #include <il/StaticArray.h>
 #include <il/StaticArray2D.h>
-#include "src/Development/cohesion_friction.h"
 
 namespace hfp3d {
 
@@ -45,6 +44,22 @@ namespace hfp3d {
         // mixed boundary conditions parameters
         // il::Array2D<double> bc_c;
         // bc_c(k, 0)*t + bc_c(k, 1)*DD = bc_c(k, 2)
+    };
+
+    // fault (crack) state, node-wise
+    //todo: think about making these 2D arrays, element/local node-wise
+    struct Frac_State_T {
+        // "damage state", node-wise
+        il::Array<double> mr_open; // max. reached relative opening (w/cr_open)
+        il::Array<double> mr_slip; // max. reached relative slip (s/cr_slip)
+
+        // instant friction & cohesion forces, node-wise
+        il::Array<double> friction_coef; // slip (shear) friction coefficient
+        // (tan of friction angle)
+        il::Array<double> slip_cohesion; // slip (shear) cohesion
+        il::Array<double> open_cohesion; // opening cohesion
+
+        // dilatancy etc.
     };
 
     // solution state

@@ -7,51 +7,50 @@
 // See the LICENSE.TXT file for more details. 
 //
 
-#ifndef HFPX3D_MODEL_UTILS_H
-#define HFPX3D_MODEL_UTILS_H
+#ifndef INC_HFPX3D_MODEL_PARAMETERS_H
+#define INC_HFPX3D_MODEL_PARAMETERS_H
 
-#include "src/Development/cohesion_friction.h"
+#include <il/Array.h>
+#include <il/Array2D.h>
+#include <il/StaticArray.h>
 
 namespace hfp3d {
+
+    // contact model (friction / cohesion / dilatancy) parameters
+    //todo: think about components as arrays of size = number of mat_id's
+    struct F_C_Param_T {
+        double cr_open; // critical opening
+        double peak_ts; // peak tensile stress
+        double cr_slip; // critical slip
+        double peak_sc; // peak shear cohesion
+        double peak_sf; // peak shear friction (tangent of friction angle)
+        double res_sf;  // residual friction (after critical slip)
+        // dilatancy etc.
+    };
 
     // physical model parameters
     // to be read from a .toml file
     struct Properties_T {
         // number of materials (solids, liquids, surfaces)
-        il::int_t n_solid = 1;
-        il::int_t n_liquid = 1;
-        il::int_t n_surface = 1;
+        int n_solid = 1;
+        int n_liquid = 1;
+        int n_surface = 1;
 
         // shear moduli, for each solid ID
         il::Array<double> mu;
         // Poisson ratios, for each solid ID
         il::Array<double> nu;
 
-//        // shear moduli, for each surface ID (for "plus" and "minus" sides)
-//        // different moduli and Poisson ratios affect the assembly
-//        il::Array<double> mu_p;
-//        il::Array<double> mu_m;
-//        // Poisson ratios, for each surface ID (for "plus" and "minus" sides)
-//        il::Array<double> nu_p;
-//        il::Array<double> nu_m;
+//        // solid IDs, for each surface ID (for "plus" and "minus" sides)
+//        // note: different moduli and Poisson ratios will affect the assembly!
+//        il::Array<int> s_id_p;
+//        il::Array<int> s_id_n;
 
-        // contact model ID, for each surface ID (see cohesion_friction.h)
-        il::Array<int> c_model_id;
+        // contact model IDs, for each surface ID
+        il::Array2D<int> c_model_id; // size = n_surface x 2
 
         // contact model parameters, for each contact model ID
-        // (see cohesion_friction.h)
         il::Array<F_C_Param_T> f_c_param;
-
-//        // max friction coeff-s
-//        il::Array<double> fr_c;
-//        // max cohesion (for shear stress vs shear DD)
-//        il::Array<double> sc_f;
-//        // max cohesive forces (for opening mode)
-//        il::Array<double> oc_f;
-//        // critical opening displacement (normal DD)
-//        il::Array<double> w_cr;
-//        // critical slip displacement (in-plane DD)
-//        il::Array<double> s_cr;
     };
 
     // "global" load parameters
@@ -63,8 +62,11 @@ namespace hfp3d {
         // injection locations (elements, nodes)
         il::Array2D<il::int_t> inj_loc;
 
-        // injection rate(s)
+        // injection rate(s), for each location
         il::Array<double> inj_rate;
+
+//        // liquid ID, for each location
+//        il::Array<int> liq_id;
     };
 
     // numerical simulation parameters
@@ -91,4 +93,4 @@ namespace hfp3d {
     };
 
 }
-#endif //HFPX3D_MODEL_UTILS_H
+#endif //INC_HFPX3D_MODEL_PARAMETERS_H
