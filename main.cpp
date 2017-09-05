@@ -17,16 +17,18 @@
 //#include <ittnotify.h>
 
 #include <il/Timer.h>
+#include <il/Status.h>
 #include <il/io/toml/toml.h>
 #include <il/String.h>
 #include <il/Array.h>
 #include <il/Array2D.h>
 //#include <il/StaticArray.h>
 //#include <il/StaticArray2D.h>
-#include <il/linear_algebra/dense/factorization/LU.h>
 #include <il/linear_algebra.h>
+#include <il/linear_algebra/dense/factorization/LU.h>
 //#include <il/linear_algebra/dense/factorization/linearSolve.h>
 
+#include "src/IO/config_file_io.h"
 #include "src/IO/mesh_file_io.h"
 #include "src/Solvers/system_assembly.h"
 #include "src/Core/model_parameters.h"
@@ -35,8 +37,9 @@
 #include "src/Core/tensor_utilities.h"
 
 
-int main() {
+int main(int argc, char* argv[]) {
 
+//todo: input config file (path) via argv
     // source files directory (containing main.cpp)
     std::string src_f = __FILE__;
     while (src_f.find("\\")!=std::string::npos) {
@@ -46,271 +49,34 @@ int main() {
     // std::string src_dir{"C:/Users/nikolski/ClionProjects/HFPx3D_VC"};
     // std::string src_dir{"/home/nikolski/Documents/HFPx3D"};
     // std::string src_dir{"/home/lecampio/Documents/HFPx3D"};
-
-    std::string default_f_name = src_dir + "/config.toml";
-    il::String config_f_name(default_f_name.c_str());
-    // il::String config_f_name =
-    // "C:/Users/nikolski/ClionProjects/HFPx3D_VC/config.toml";
-
-    std::string default_input_dir{src_dir + "/Mesh_Files/"};
+    // std::string c_f_name{src_dir + "/config.toml"};
     // std::string mesh_conn_fname{"Elems_pennymesh24el_32.npy"};
     // std::string nodes_crd_fname{"Nodes_pennymesh24el_32.npy"};
 
-    std::string default_output_dir{src_dir + "/Test_Output/"};
+    std::string c_f_name = src_dir + "/config.toml";
 
-    //il::String src_f_name(src_dir.c_str());
-    il::String d_name;
-    il::String in_dir_name((src_dir + "/").c_str());
-    il::String m_c_f_name;
-    il::String m_n_f_name;
-    il::String in_f_format;
-    il::String obs_dir_name((src_dir + "/").c_str());
-    il::String o_p_f_name;
-    il::String obs_f_format;
-    il::String out_dir_name((src_dir + "/").c_str());
-    il::String out_f_format;
-    il::int_t array_origin;
-    bool do_save_matrix = false;
-    bool do_save_solution = false;
-    bool do_postprocess = false;
+    // initializing the mesh etc.
+    hfp3d::Mesh_Data_T mesh_data;
+    hfp3d::Properties_T mat_props;
+    hfp3d::Load_T load_data;
+    hfp3d::Num_Param_T num_param;
+    hfp3d::Sim_Param_T sim_param;
+    hfp3d::IO_param_T io_param;
+
 // todo: move towards using il::Status type in output functions
     bool ok = true;
+
     il::Status status{};
 
-    // reading configuration & parameters
-    auto config =
-            il::load<il::MapArray<il::String, il::Dynamic>>
-                    (config_f_name, il::io, status);
+    hfp3d::read_config(c_f_name,
+                       il::io,
+                       mesh_data, mat_props, load_data,
+                       num_param, sim_param, io_param, status);
 
-    status.abortOnError();
-
-    // reading input (triangulation) files
-    il::int_t pos = config.search("mesh_input_directory");
-    if (config.found(pos) && config.value(pos).isString()) {
-        d_name = config.value(pos).asString();
-        in_dir_name.append(d_name);
-        if (!d_name.hasSuffix("/"))
-            in_dir_name.append("/");
-    } else {
-        in_dir_name = il::String(default_input_dir.c_str());
-    }
-    pos = config.search("mesh_conn_fname");
-    if (config.found(pos) && config.value(pos).isString()) {
-        m_c_f_name.append(config.value(pos).asString());
-    } else {
-        std::cout << "Can't find the input file" << std::endl;
-        abort();
-    }
-    pos = config.search("nodes_crd_fname");
-    if (config.found(pos) && config.value(pos).isString()) {
-        m_n_f_name.append(config.value(pos).asString());
-    } else {
-        std::cout << "Can't find the input file" << std::endl;
-        abort();
-    }
-    pos = config.search("mesh_input_format");
-    if (config.found(pos) && config.value(pos).isString()) {
-        in_f_format = config.value(pos).asString();
-    } else {
-        in_f_format = "npy32";
-    }
-    pos = config.search("array_origin");
-    if (config.found(pos) && config.value(pos).isInteger()) {
-        array_origin = config.value(pos).toInteger();
-    } else {
-        array_origin = 0;
-    }
-
-    // reading observation points
-    pos = config.search("observ_crd_directory");
-    if (config.found(pos) && config.value(pos).isString()) {
-        d_name = config.value(pos).asString();
-        obs_dir_name.append(d_name);
-        if (!d_name.hasSuffix("/"))
-            obs_dir_name.append("/");
-    } else {
-        obs_dir_name = il::String(default_input_dir.c_str());
-    }
-    pos = config.search("observ_crd_fname");
-    if (config.found(pos) && config.value(pos).isString()) {
-        o_p_f_name.append(config.value(pos).asString());
-    } else {
-        std::cout << "Can't find the input file" << std::endl;
-        abort();
-    }
-    pos = config.search("observ_input_format");
-    if (config.found(pos) && config.value(pos).isString()) {
-        obs_f_format = config.value(pos).asString();
-    } else {
-        obs_f_format = "npy32";
-    }
-
-    // reading output permissions
-    pos = config.search("do_save_matrix");
-    if (config.found(pos) && config.value(pos).isBool()) {
-        do_save_matrix = config.value(pos).toBool();
-    }
-    pos = config.search("do_save_solution");
-    if (config.found(pos) && config.value(pos).isBool()) {
-        do_save_solution = config.value(pos).toBool();
-    }
-    pos = config.search("do_postprocess");
-    if (config.found(pos) && config.value(pos).isBool()) {
-        do_postprocess = config.value(pos).toBool();
-    }
-
-    // reading output target
-    pos = config.search("output_directory");
-    if (config.found(pos) && config.value(pos).isString()) {
-        d_name = config.value(pos).asString();
-        out_dir_name.append(d_name);
-        if (!d_name.hasSuffix("/"))
-            out_dir_name.append("/");
-    } else {
-        out_dir_name = il::String(default_output_dir.c_str());
-    }
-    il::String mf_name = "test_assembly";
-    il::String of_name = "test_solution";
-    il::String sf_name = "test_stresses";
-    pos = config.search("output_signature");
-    if (config.found(pos) && config.value(pos).isString()) {
-        mf_name.append(config.value(pos).asString());
-        of_name.append(config.value(pos).asString());
-        sf_name.append(config.value(pos).asString());
-    }
-    pos = config.search("output_format");
-    if (config.found(pos) && config.value(pos).isString()) {
-        out_f_format = config.value(pos).asString();
-    } else {
-        out_f_format = "csv";
-    }
-//todo: add binary output
-    mf_name.append(".csv");
-    of_name.append(".csv");
-    sf_name.append(".csv");
-
-    // reading material properties (default)
-    hfp3d::Properties_T solid_properties;
-    solid_properties.n_solid = 1; // default
-    pos = config.search("number_solids");
-    if (config.found(pos) && config.value(pos).isInteger()) {
-        solid_properties.n_solid = config.value(pos).toInteger();
-        if (solid_properties.n_solid == 0) solid_properties.n_solid = 1;
-    }
-    solid_properties.mu = il::Array<double>{solid_properties.n_solid};
-    solid_properties.nu = il::Array<double>{solid_properties.n_solid};
-    solid_properties.mu[0] = 1.0; // default
-    solid_properties.nu[0] = 0.35; // default
-    pos = config.search("solid");
-    if (config.found(pos) && config.value(pos).isMapArray()) {
-        const il::MapArray<il::String, il::Dynamic> &solid =
-                config.value(pos).asMapArray();
-
-        il::int_t j = solid.search("Poisson_ratio");
-        if (solid.found(j) && solid.value(j).isDouble()) {
-            solid_properties.nu[0] = solid.value(j).toDouble();
-        }
-
-        j = solid.search("Shear_modulus");
-        if (solid.found(j) && solid.value(j).isDouble()) {
-            solid_properties.mu[0] = solid.value(j).toDouble();
-        } else {
-            j = solid.search("Young_modulus");
-            if (solid.found(j) && solid.value(j).isDouble()) {
-                double ym = (solid.value(j).toDouble());
-                solid_properties.mu[0] = ym / 2.0 /
-                                         (1.0 + solid_properties.nu[0]);
-            }
-        }
-    } else {
-//todo: read moduli as Array<double>
-        pos = config.search("Poisson_ratio");
-        if (config.found(pos) && config.value(pos).isDouble()) {
-            solid_properties.nu[0] = (config.value(pos).toDouble());
-        }
-        pos = config.search("Shear_modulus");
-        if (config.found(pos)) {
-            if(config.value(pos).isDouble()) {
-                solid_properties.mu[0] = (config.value(pos).toDouble());
-            }
-        } else {
-            pos = config.search("Young_modulus");
-            if(config.found(pos) && config.value(pos).isDouble()) {
-                double ym = (config.value(pos).toDouble());
-                solid_properties.mu[0] = ym / 2.0 /
-                                         (1.0 + solid_properties.nu[0]);
-            }
-        }
-    }
-    if (solid_properties.n_solid > 1) {
-//    for (il::int_t k = 1; k < solid_properties.n_solid; ++k) {
-//
-//    }
-    }
-
-    // reading numerical simulation parameters
-    hfp3d::Num_Param_T n_par; // default: beta = 0.125; tip_type = 1; DD in global
-    n_par.beta = 0.125; n_par.tip_type = 1; n_par.is_dd_local = false;
-    pos = config.search("cp_offset");
-    if (config.found(pos) && config.value(pos).isDouble()) {
-        n_par.beta = (config.value(pos).toDouble());
-    }
-    pos = config.search("fix_tip");
-    if (config.found(pos) && config.value(pos).isInteger()) {
-        n_par.tip_type = (int)(config.value(pos).toInteger());
-    }
-    pos = config.search("is_dd_local");
-    if (config.found(pos) && config.value(pos).isBool()) {
-        n_par.is_dd_local = (config.value(pos).toBool());
-    }
-
-    // reading load parameters
-    hfp3d::Load_T load;
-    // stress at infinity (in-situ stress)
-    load.s_inf = il::StaticArray<double, 6> {0.0};
-    // load.s_inf[2] = 1.0; load.s_inf[4] = 1.0;
-    pos = config.search("S_xx");
-    if (config.found(pos) && config.value(pos).isDouble()) {
-        load.s_inf[0] = -(config.value(pos).toDouble());
-    }
-    pos = config.search("S_yy");
-    if (config.found(pos) && config.value(pos).isDouble()) {
-        load.s_inf[1] = -(config.value(pos).toDouble());
-    }
-    pos = config.search("S_zz");
-    if (config.found(pos) && config.value(pos).isDouble()) {
-        load.s_inf[2] = -(config.value(pos).toDouble());
-    }
-    pos = config.search("S_xy");
-    if (config.found(pos) && config.value(pos).isDouble()) {
-        load.s_inf[3] = (config.value(pos).toDouble());
-    }
-    pos = config.search("S_xz");
-    if (config.found(pos) && config.value(pos).isDouble()) {
-        load.s_inf[4] = (config.value(pos).toDouble());
-    }
-    pos = config.search("S_yz");
-    if (config.found(pos) && config.value(pos).isDouble()) {
-        load.s_inf[5] = (config.value(pos).toDouble());
-    }
-
-    // initializing the mesh
-    hfp3d::Mesh_Data_T mesh_data;
-
-    // loading the mesh from files
-    if (in_f_format == "csv") {
-        hfp3d::load_mesh_from_csv
-                (in_dir_name, m_c_f_name, m_n_f_name, array_origin,
-                 il::io, mesh_data.mesh);
-    } else if (in_f_format == "npy64") {
-        hfp3d::load_mesh_from_numpy_64
-                (in_dir_name, m_c_f_name, m_n_f_name, array_origin,
-                 il::io, mesh_data.mesh);
-    } else { // treat as 32-bit numpy by default
-        hfp3d::load_mesh_from_numpy_32
-                (in_dir_name, m_c_f_name, m_n_f_name, array_origin,
-                 il::io, mesh_data.mesh);
-    }
+    il::String out_dir(io_param.output_dir.c_str());
+    il::String mf_name(io_param.matr_f_name.c_str());
+    il::String of_name(io_param.out_f_name.c_str());
+    il::String sf_name(io_param.strs_f_name.c_str());
 
     // number of elements
     il::int_t num_elems = mesh_data.mesh.conn.size(1);
@@ -327,7 +93,7 @@ int main() {
 
     // initializing the DoF handle
     mesh_data.dof_h_dd = hfp3d::make_dof_h_crack
-            (mesh_data.mesh, 2, n_par.tip_type);
+            (mesh_data.mesh, 2, num_param.tip_type);
 
     // initializing the DD array
     //mesh_data.dd = il::Array2D<double> {num_elems * 6, 3, 0.0};
@@ -339,14 +105,15 @@ int main() {
     hfp3d::SAE_T sae;
     // matrix
     sae.matrix = hfp3d::make_3dbem_matrix_s
-            (solid_properties.mu[0], solid_properties.nu[0],
+            (mat_props.mu[0], mat_props.nu[0],
              mesh_data.mesh,
-             n_par, il::io, mesh_data.dof_h_dd);
+             num_param,
+             il::io, mesh_data.dof_h_dd);
     // number of DoF
     sae.n_dof = mesh_data.dof_h_dd.n_dof;
     // right-hand side
     hfp3d::add_s_inf_to_3dbem_rhs
-            (mesh_data, load, il::io, sae);
+            (mesh_data, load_data, il::io, sae);
 
     timer.stop();
 
@@ -357,20 +124,22 @@ int main() {
 //    __itt_pause();
 
     // saving matrix to a .CSV file
-    if (do_save_matrix) {
-        // todo: add binary output
-        if (out_f_format == "npy32") {
+// todo: add binary output
+    if (sim_param.do_save_matrix) {
+        if (io_param.out_f_format == "npy32") {
             //
-        } else if (in_f_format == "npy64") {
+        } else if (io_param.in_f_format == "npy64") {
             //
         } else { // treat as csv by default
             hfp3d::save_data_to_csv
-                    (sae.matrix, out_dir_name, mf_name, il::io, ok);
+                    (sae.matrix,
+                     out_dir, mf_name,
+                     il::io, ok);
         }
         if (ok) {
             std::cout << "Matrix saved to "
-                      << out_dir_name.asCString()
-                      << mf_name.asCString() << std::endl;
+                      << io_param.output_dir << "/"
+                      << io_param.matr_f_name << std::endl;
         }
         else {
             std::cout << "Cannot save the matrix" << std::endl;
@@ -387,8 +156,8 @@ int main() {
 
     il::LU<il::Array2D<double>> lu_decomposition(sae.matrix, il::io, status);
     // if (!status.ok()) {
-    //     // The matrix is singular to the machine precision. You should deal with
-    //     // the error.
+    //     // The matrix is singular to the machine precision.
+    //     // You should deal with the error.
     // }
     status.abortOnError();
     // double cnd = lu_decomposition.conditionNumber(il::Norm::L2, );
@@ -409,7 +178,7 @@ int main() {
              il::io, mesh_data);
 
     // saving the solution (nodes + DD) to a .CSV file
-    if (do_save_solution) {
+    if (sim_param.do_save_solution) {
         // the 2D array for nodal points' coordinates and DD - initialization
         il::Array2D<double> out_dd(6 * num_elems, 7);
         for (il::int_t j = 0; j < num_elems; ++j) {
@@ -442,19 +211,21 @@ int main() {
                 }
             }
         }
-        // todo: add binary output
-        if (out_f_format == "npy32") {
+// todo: add binary output
+        if (io_param.out_f_format == "npy32") {
 //            il::save(out_dd, out_dir_name + of_name, il::io, status);
-        } else if (in_f_format == "npy64") {
+        } else if (io_param.in_f_format == "npy64") {
             //
         } else { // treat as csv by default
             hfp3d::save_data_to_csv
-                    (out_dd, out_dir_name, of_name, il::io, ok);
+                    (out_dd,
+                     out_dir, of_name,
+                     il::io, ok);
         }
         if (ok) {
             std::cout << "Solution (nodes + DD) saved to "
-                      << out_dir_name.asCString()
-                      << of_name.asCString() << std::endl;
+                      << io_param.output_dir << "/" // .asCString()
+                      << io_param.out_f_name << std::endl;
         }
         else {
             std::cout << "Cannot save the solution" << std::endl;
@@ -463,18 +234,18 @@ int main() {
     }
 
 // todo: add calculation of stresses (post-processing)
-    if (do_postprocess) {
+    if (sim_param.do_postprocess) {
         // define points to monitor stresses
         il::Array2D<double> m_pts_crd;
 
         // loading the mesh from files
-        if (out_f_format == "csv") {
+        if (io_param.out_f_format == "csv") {
             m_pts_crd = hfp3d::load_crd_from_csv
-                    (obs_dir_name, o_p_f_name,
+                    (io_param.obs_p_dir, io_param.obs_p_f_name,
                      il::io, status);
         } else { // treat as numpy by default
             m_pts_crd = hfp3d::load_crd_from_numpy
-                    (obs_dir_name, o_p_f_name,
+                    (io_param.obs_p_dir, io_param.obs_p_f_name,
                      il::io, status);
         }
         //status.abortOnError();
@@ -486,26 +257,28 @@ int main() {
         // calculate stresses at m_pts_crd
         il::Array2D<double> stress_m_pts(m_pts_crd.size(0), 6);
         stress_m_pts = hfp3d::make_3dbem_stress_f_s
-            (solid_properties.mu[0], solid_properties.nu[0],
-             mesh_data, load, n_par, m_pts_crd);
+            (mat_props.mu[0], mat_props.nu[0],
+             mesh_data, load_data, num_param, m_pts_crd);
 
         timer.stop();
         std::cout << ": " << timer.elapsed() << "s" << std::endl;
 
         // saving stresses to the file
-        // todo: add binary output
-        if (out_f_format == "npy32") {
+// todo: add binary output
+        if (io_param.out_f_format == "npy32") {
             //
-        } else if (in_f_format == "npy64") {
+        } else if (io_param.in_f_format == "npy64") {
             //
         } else { // treat as csv by default
             hfp3d::save_data_to_csv
-                    (stress_m_pts, out_dir_name, sf_name, il::io, ok);
+                    (stress_m_pts,
+                     out_dir, sf_name,
+                     il::io, ok);
         }
         if (ok) {
             std::cout << "Stresses at given points saved to "
-                      << out_dir_name.asCString()
-                      << sf_name.asCString() << std::endl;
+                      << io_param.output_dir << "/"
+                      << io_param.strs_f_name << std::endl;
         }
         else {
             std::cout << "Cannot save the stresses" << std::endl;

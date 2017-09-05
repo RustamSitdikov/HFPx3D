@@ -53,9 +53,10 @@ set(SOURCE_FILES
         main.cpp
         il/io/numpy/numpy.cpp
         il/io/toml/toml.cpp
+        ${SOURCE_FILES_DIR}/IO/config_file_io.cpp
         ${SOURCE_FILES_DIR}/IO/mesh_file_io.cpp
         ${SOURCE_FILES_DIR}/IO/mesh_file_io.h
-        ${SOURCE_FILES_DIR}/Development/c_f_iteration.cpp
+        #${SOURCE_FILES_DIR}/Development/c_f_iteration.cpp
         ${SOURCE_FILES_DIR}/Development/cohesion_friction.cpp
         ${SOURCE_FILES_DIR}/Solvers/system_assembly.cpp
         ${SOURCE_FILES_DIR}/Core/surface_mesh_utilities.cpp
