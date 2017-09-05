@@ -17,6 +17,7 @@
 namespace hfp3d {
 
     // contact model (friction / cohesion / dilatancy) parameters
+    // to be read from a .toml file
     //todo: think about components as arrays of size = number of mat_id's
     struct F_C_Param_T {
         double cr_open; // critical opening
@@ -69,7 +70,7 @@ namespace hfp3d {
 //        il::Array<int> liq_id;
     };
 
-    // numerical simulation parameters
+    // numerical scheme parameters
     // to be read from a .toml file
     struct Num_Param_T {
         // order (0, 1, or 2) of approximating (shape) functions for DD
@@ -90,6 +91,14 @@ namespace hfp3d {
 
         // how to partition edges
         // bool is_part_uniform = true;
+    };
+
+    // simulation parameters
+    // to be read from a .toml file
+    struct Sim_Param_T {
+        bool do_save_matrix = false;
+        bool do_save_solution = false;
+        bool do_postprocess = false;
     };
 
 }
