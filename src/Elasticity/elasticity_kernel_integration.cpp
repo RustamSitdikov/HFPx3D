@@ -11,17 +11,199 @@
 // over a part of a polygonal element (a sector associated with one edge)
 // with 2nd order polynomial approximating (shape) functions.
 
+#include <iostream>
 #include <complex>
-#include <il/math.h>
+//#include <il/math.h>
+#include <il/Array2D.h>
 #include <il/StaticArray.h>
+#include <il/StaticArray2D.h>
 #include <il/StaticArray3D.h>
 #include <il/StaticArray4D.h>
+#include <il/linear_algebra.h>
 #include "src/Core/constants.h"
+#include "src/Core/element_utilities.h"
 #include "elasticity_kernel_integration.h"
 #include "h_potential.h"
 //#include "t_potential.h"
 
 namespace hfp3d {
+
+// Element-to-point influence matrix (submatrix of the global one)
+// (Integration of a kernel of the elasticity equation over a triangular element
+// with 2nd order polynomial approximating (shape) functions)
+    il::StaticArray2D<double, 6, 18>
+    make_local_3dbem_submatrix
+            (const int kernel_id,
+             double mu, double nu, double h, std::complex<double> z,
+             const il::StaticArray<std::complex<double>, 3> &tau,
+             const il::StaticArray2D<std::complex<double>, 6, 6> &sfm) {
+        // This function assembles a local "stiffness" sub-matrix
+        // (influence of DD at the element nodes to stresses at the point z)
+        // in terms of a triangular element's local coordinates
+        //
+        // tau (3) are coordinates of element's vertices and
+        // the rows of sfm (6*6) are coefficients of shape functions
+        // in terms of the element's own local coordinate system (tau-coordinates);
+        // h and z define the position of the (collocation) point x
+        // in the same coordinates
+
+        il::StaticArray2D<double, 6, 18> stress_el_2_el_infl{0.0};
+
+        // scaling ("-" sign comes from traction Somigliana ID, H-term)
+        double scale = - mu / (4.0 * hfp3d::pi * (1.0 - nu));
+
+        // tz[m] and d[m] can be calculated here
+        il::StaticArray<std::complex<double>, 3> tz, d, dtau;
+        std::complex<double> ntau2;
+        for (int j = 0; j < 3; ++j) {
+            int q = (j + 1) % 3;
+            tz[j] = tau[j] - z;
+            dtau[j] = tau[q] - tau[j];
+            ntau2 = dtau[j] / conj(dtau[j]);
+            d[j] = 0.5 * (tz[j] - ntau2 * conj(tz[j]));
+        }
+        // also, "shifted" sfm from z, tau[m], and local sfm
+        il::StaticArray2D<std::complex<double>, 6, 6> shft_z = shift_el_sfm(z);
+        il::StaticArray2D<std::complex<double>, 6, 6> sfm_z =
+                dot(sfm, shft_z);
+
+        // searching for "degenerate" edges:
+        // point x (collocation pt) projects onto an edge line or a vertex
+        bool IsDegen = abs(d[0]) < hfp3d::h_tol || abs(d[1]) < hfp3d::h_tol ||
+                       abs(d[2]) < hfp3d::h_tol; // (d[0]*d[1]*d[2]==0);
+        il::StaticArray2D<bool, 2, 3> is_90_ang{false};
+
+        // calculating angles (phi, psi, chi)
+        il::StaticArray<double, 3> phi{0.0}, psi{0.0};
+        il::StaticArray2D<double, 2, 3> chi{0.0};
+        for (int j = 0; j < 3; ++j) {
+            phi[j] = arg(tz[j]);
+            psi[j] = arg(d[j]);
+        }
+        for (int j = 0; j < 3; ++j) {
+            for (int k = 0; k < 2; ++k) {
+                int q = (j + k) % 3;
+                chi(k, j) = phi[q] - psi[j];
+                // make sure it's between -pi and pi (add or subtract 2*pi)
+                if (chi(k, j) <= -hfp3d::pi)
+                    while (chi(k, j) <= -hfp3d::pi)
+                        chi(k, j) += 2.0 * hfp3d::pi;
+                else if (chi(k, j) > hfp3d::pi)
+                    while (chi(k, j) > hfp3d::pi)
+                        chi(k, j) -= 2.0 * hfp3d::pi;
+                //double sin_mon = 1.0 - std::fabs(std::sin(chi(k, j)));
+                double com_chi = 0.5 * hfp3d::pi - fabs(chi(k, j));
+                // reprooving for "degenerate" edges
+                // (chi angles too close to 90 degrees)
+                if (fabs(com_chi) < hfp3d::a_tol) {
+                    //if (std::fabs(sin_mon) < h_tol) {
+                    is_90_ang(k, j) = true;
+                    IsDegen = true;
+                }
+            }
+        }
+
+        // DD-to-stress influence
+        // [(S11+S22)/2; (S11-S22)/2+i*S12; (S13+i*S23)/2; S33]
+        // vs SF monomials (s_ij_infl_mon) and nodal values (s_ij_infl_nod)
+        il::StaticArray3D<std::complex<double>, 6, 4, 3> s_ij_infl_mon{0.0};
+
+        // summation over edges
+        for (int m = 0; m < 3; ++m) {
+            int n = (m + 1) % 3;
+            std::complex<double> dm = d[m];
+            if (abs(dm) >= hfp3d::h_tol && !is_90_ang(0, m) && !is_90_ang(1, m)) {
+                std::complex<double>
+                // exp(I * chi(0, m))
+                        eixm = exp(std::complex<double>(0.0, chi(0, m))),
+                // exp(I * chi(1, m))
+                        eixn = exp(std::complex<double>(0.0, chi(1, m)));
+                // limit case (point x on the element's plane)
+                if (fabs(h) < hfp3d::h_tol) {
+                    il::StaticArray3D<std::complex<double>, 6, 4, 3>
+                            s_incr_n =
+                            hfp3d::s_integral_lim(kernel_id, nu, eixn, dm),
+                            s_incr_m =
+                            hfp3d::s_integral_lim(kernel_id, nu, eixm, dm);
+                    for (int j = 0; j < 6; ++j) {
+                        for (int k = 0; k < 4; ++k) {
+                            for (int l = 0; l < 3; ++l) {
+                                s_ij_infl_mon(j, k, l) += s_incr_n(j, k, l) -
+                                                          s_incr_m(j, k, l);
+                            }
+                        }
+                    }
+                    // il::blas(1.0, s_incr_n, 1.0, il::io, s_ij_infl_mon);
+                    // il::blas(-1.0, s_incr_m, 1.0, il::io, s_ij_infl_mon);
+                } else { // out-of-plane case
+                    double an = abs(tz[n] - dm),
+                            am = abs(tz[m] - dm);
+                    an = (chi(1, m) < 0) ? -an : an;
+                    am = (chi(0, m) < 0) ? -am : am;
+                    // constituing functions of the integrals
+                    il::StaticArray<std::complex<double>, 9>
+                            f_n = hfp3d::integral_cst_fun(h, dm, an, chi(1, m), eixn),
+                            f_m = hfp3d::integral_cst_fun(h, dm, am, chi(0, m), eixm);
+                    // coefficients, by 2nd index:
+                    // 0: S11+S22; 1: S11-S22+2*I*S12; 2: S13+S23; 3: S33
+                    il::StaticArray4D<std::complex<double>, 6, 4, 3, 9>
+                            c_n = hfp3d::s_integral_gen(kernel_id, nu, eixn, h, dm),
+                            c_m = hfp3d::s_integral_gen(kernel_id, nu, eixm, h, dm);
+                    // combining constituing functions & coefficients
+                    blas(1.0, c_n, f_n, 1.0, il::io, s_ij_infl_mon);
+                    blas(-1.0, c_m, f_m, 1.0, il::io, s_ij_infl_mon);
+                    // additional terms for "degenerate" case
+                    if (IsDegen) {
+                        std::complex<double>
+                        // exp(I * phi[n])
+                                eipn = exp
+                                (std::complex<double>(0.0, phi[n])),
+                        // exp(I * phi[m])
+                                eipm = exp
+                                (std::complex<double>(0.0, phi[m]));
+                        il::StaticArray<std::complex<double>, 5>
+                                f_n_red = hfp3d::integral_cst_fun_red(h, dm, an),
+                                f_m_red = hfp3d::integral_cst_fun_red(h, dm, am);
+                        il::StaticArray4D<std::complex<double>, 6, 4, 3, 5>
+                                c_n_red = hfp3d::s_integral_red(kernel_id, nu, eipn, h),
+                                c_m_red = hfp3d::s_integral_red(kernel_id, nu, eipm, h);
+                        blas(1.0, c_n_red, f_n_red, 1.0,
+                             il::io, s_ij_infl_mon);
+                        blas(-1.0, c_m_red, f_m_red, 1.0,
+                             il::io, s_ij_infl_mon);
+                    }
+                }
+            }
+        }
+
+        // contraction with "shifted" sfm (left)
+        il::StaticArray3D<std::complex<double>, 6, 4, 3>
+                s_ij_infl_nod = dot(sfm_z, s_ij_infl_mon);
+
+        // re-shaping and scaling of the resulting matrix
+        for (int j = 0; j < 6; ++j) {
+            int q = j * 3;
+            for (int k = 0; k < 3; ++k) {
+                // [S11; S22; S33; S12; S13; S23] vs \delta{u}_k at j-th node
+                stress_el_2_el_infl(0, q + k) =
+                        scale * (real(s_ij_infl_nod(j, 0, k)) +
+                                 real(s_ij_infl_nod(j, 1, k)));
+                stress_el_2_el_infl(1, q + k) =
+                        scale * (real(s_ij_infl_nod(j, 0, k)) -
+                                 real(s_ij_infl_nod(j, 1, k)));
+                stress_el_2_el_infl(2, q + k) =
+                        scale * real(s_ij_infl_nod(j, 3, k));
+                stress_el_2_el_infl(3, q + k) =
+                        scale * imag(s_ij_infl_nod(j, 1, k));
+                stress_el_2_el_infl(4, q + k) =
+                        scale * 2.0 * real(s_ij_infl_nod(j, 2, k));
+                stress_el_2_el_infl(5, q + k) =
+                        scale * 2.0 * imag(s_ij_infl_nod(j, 2, k));
+            }
+        }
+        return stress_el_2_el_infl;
+    }
+
 
 // Coefficient matrices (rank 3) to be contracted with the vector of
 // constituing functions defined below (via right multiplication)

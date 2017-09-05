@@ -67,8 +67,10 @@ namespace hfp3d {
         // link to the Mesh object
         Mesh_Geom_T mesh;
 
-        // material IDs, for each element / local node
-        il::Array2D<int> mat_id;
+        // material IDs, for each node
+        il::Array<int> mat_id;
+//        // material IDs (2x), for each element / local node
+//        il::Array2D<int> mat_id;
 
         // current time
         double time = 0;

@@ -14,7 +14,6 @@
 #ifndef INC_HFPX3D_MATRIX_ASM_H
 #define INC_HFPX3D_MATRIX_ASM_H
 
-#include <complex>
 #include <il/Array2D.h>
 #include <il/StaticArray.h>
 #include <il/StaticArray2D.h>
@@ -31,13 +30,6 @@ namespace hfp3d {
     };
 
 /////// Elastostatics utilities ///////
-
-    // Element-to-point influence matrix (submatrix of the global one)
-    il::StaticArray2D<double, 6, 18> make_local_3dbem_submatrix
-            (const int kernel_id,
-             double mu, double nu, double h, std::complex<double> z,
-             const il::StaticArray<std::complex<double>, 3> &tau,
-             const il::StaticArray2D<std::complex<double>, 6, 6> &sfm);
 
     // Static matrix assembly
     il::Array2D<double> make_3dbem_matrix_s

@@ -14,12 +14,24 @@
 #include <il/StaticArray.h>
 #include <il/StaticArray3D.h>
 #include <il/StaticArray4D.h>
+#include <il/Array2D.h>
+#include <il/StaticArray2D.h>
+
+namespace hfp3d {
+
+// Element-to-point influence matrix (submatrix of the global one)
+// (Integration of a kernel of the elasticity equation over a triangular element
+// with 2nd order polynomial approximating (shape) functions)
+    il::StaticArray2D<double, 6, 18> make_local_3dbem_submatrix
+            (const int kernel_id,
+             double mu, double nu, double h, std::complex<double> z,
+             const il::StaticArray<std::complex<double>, 3> &tau,
+             const il::StaticArray2D<std::complex<double>, 6, 6> &sfm);
+
 
 // Integration of a kernel of the elasticity equation
 // over a part of a polygonal element (a sector associated with one edge)
 // with 2nd order polynomial approximating (shape) functions.
-
-namespace hfp3d {
 
 // Coefficient matrices (rank 3) to be contracted with the vector of
 // constituing functions defined below (via right multiplication)

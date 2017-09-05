@@ -7,7 +7,7 @@
 // See the LICENSE.TXT file for more details. 
 //
 
-#include <il/math.h>
+//#include <il/math.h>
 #include <il/Array.h>
 #include <il/Array2D.h>
 #include "src/Core/model_parameters.h"
@@ -36,6 +36,7 @@ namespace hfp3d {
         IL_EXPECT_FAST(n_nod == f_state.open_cohesion.size());
         il::StaticArray<double, 3> nodal_dd{};
         //todo: loop over elements / local nodes
+#pragma omp parallel for
         for (il::int_t n = 0; n < n_nod; ++n) {
             // contact model for local mat_ID (surface type)
             int c_m_id = prop.c_model_id(mat_id[n],0);
@@ -49,13 +50,31 @@ namespace hfp3d {
             if (!is_dd_local) {
                 // todo: add rotation of the DD vector to local coordinates
                 // use /Core/element_utilities
+//                // Vertices' coordinates
+//                il::StaticArray2D<double, 3, 3> el_vert;
+//                for (il::int_t j = 0; j < 3; ++j) {
+//                    il::int_t n = m_data.mesh.conn(j, el);
+//                    for (il::int_t k = 0; k < 3; ++k) {
+//                        el_vert(k, j) = m_data.mesh.nods(k, n);
+//                    }
+//                }
+//                Element_Struct_T ele_s = set_ele_struct(el_vert, n_par.beta);
+//                //il::blas(1.0, ele_s.r_tensor, nodal_dd, 0.0, il::io, nodal_dd);
+//                nodal_dd = il::dot(ele_s.r_tensor, nodal_dd);
             }
             // relative opening DD
             double dl_open = nodal_dd[2] / f_c_p.cr_open;
             // make sure dd(2, n) is positive
             // prev. opening (damage %)
             double pr_open = f_state.mr_open[n];
-            // calculating correction for partial damage (unloading case)
+            // current sliding DD
+            double dl_slip = nodal_dd[0] * nodal_dd[0] +
+                             nodal_dd[1] * nodal_dd[1];
+            // the same relative to cr_slip
+            dl_slip = std::sqrt(dl_slip) / f_c_p.cr_slip;
+            // prev. relative sliding DD (damage %)
+            double pr_slip = f_state.mr_slip[n];
+            // calculating correction for partial damage
             double r_s = 0.0;
             if (dl_open > 0.0 && dl_open < 1.0) {
                 switch (c_m_id) {
@@ -70,6 +89,7 @@ namespace hfp3d {
                     default:break;
                 }
             }
+            // calculating correction for partial damage (unloading case)
             if (dl_open > 0.0 && dl_open < pr_open) {
                 r_s *= dl_open / pr_open; // linear unloading
             }
@@ -84,13 +104,6 @@ namespace hfp3d {
                 double r_f = 0.0; // zero if fully opened (normal DD > cr_open)
                 if (dl_open < 1.0) {
                     r_f = f_c_p.res_sf;
-                    // current sliding DD
-                    double dl_slip = nodal_dd[0] * nodal_dd[0] +
-                            nodal_dd[1] * nodal_dd[1];
-                    // the same relative to cr_slip
-                    dl_slip = std::sqrt(dl_slip) / f_c_p.cr_slip;
-                    // prev. relative sliding DD (damage %)
-                    double pr_slip = f_state.mr_slip[n];
                     // comparing and calculating friction
                     switch (f_m_id) {
                         case 2: // exponential weakening
@@ -134,6 +147,7 @@ namespace hfp3d {
         IL_EXPECT_FAST(n_nod == f_state.slip_cohesion.size());
         IL_EXPECT_FAST(n_nod == f_state.open_cohesion.size());
         il::StaticArray<double, 3> nodal_dd{};
+#pragma omp parallel for
         for (il::int_t n = 0; n < n_nod; ++n) {
             for (int i = 0; i < 3; ++i) {
                 nodal_dd[i] = dd(n, i);
@@ -141,6 +155,8 @@ namespace hfp3d {
             if (!is_dd_local) {
                 // todo: add rotation of the DD vector to local coordinates
                 // use /Core/element_utilities
+//                //il::blas(1.0, ele_s.r_tensor, nodal_dd, 0.0, il::io, nodal_dd);
+//                nodal_dd = il::dot(ele_s.r_tensor, nodal_dd);
             }
             // local friction-cohesion parameters
             F_C_Param_T f_c_p = prop.f_c_param[mat_id[n]];
@@ -158,20 +174,19 @@ namespace hfp3d {
             double pr_slip = f_state.mr_slip[n];
             // updating the "damage %" (state)
             //todo: think about consistency of "damage" in opening & slip
+            if (dl_slip >= 1.0) {
+                // f_state.mr_slip[n] = 1.0;
+                // f_state.mr_open[n] = 1.0;
+            }
             if (dl_slip > pr_slip) {
                 f_state.mr_slip[n] = dl_slip;
-            }
-            if (dl_slip >= 1.0) {
-                f_state.mr_slip[n] = 1.0;
-                // f_state.mr_open[n] = 1.0;
             }
             if (dl_open >= 1.0) {
                 f_state.mr_open[n] = 1.0;
                 // f_state.mr_slip[n] = 1.0;
-            } else {
-                if (dl_open > pr_open) {
-                    f_state.mr_open[n] = dl_open;
-                }
+            }
+            if (dl_open > pr_open) {
+                f_state.mr_open[n] = dl_open;
             }
         }
     }

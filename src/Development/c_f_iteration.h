@@ -7,32 +7,35 @@
 // See the LICENSE.TXT file for more details. 
 //
 
-#ifndef HFPX3D_CF_ITERATION_H
-#define HFPX3D_CF_ITERATION_H
+#ifndef INC_HFPX3D_CF_ITERATION_H
+#define INC_HFPX3D_CF_ITERATION_H
 
 #include <il/Array.h>
 #include <il/Array2D.h>
 #include <il/StaticArray.h>
+#include "src/Core/model_parameters.h"
+#include "src/Core/surface_mesh_utilities.h"
 #include "src/Solvers/system_assembly.h"
 #include "cohesion_friction.h"
 
 namespace hfp3d {
 
+    // one iteration step of the volume control scheme on a pre-existing mesh
     double vc_cf_iteration
             (const Mesh_Data_T &m_data_p, // mesh & solution @ prev time step
-             const Properties_T &prop,
 
              const SAE_T &orig_vc_sys,
              const DoF_Handle_T &orig_dof_h,
 
-             const F_C_Model &f_c_model, // friction-cohesion model
+             const Properties_T &prop, // material properties incl. contact
              const Num_Param_T &n_par, // simulation parameters
+
              const Load_T &load, // stress at infinity
-             double d_vol, // injected volume between the time steps
+             double new_vol, // total injected volume at the current time step
 
              il::io_t,
              Mesh_Data_T &m_data); // mesh & solution @ current time step
 
 }
 
-#endif //HFPX3D_CF_ITERATION_H
+#endif //INC_HFPX3D_CF_ITERATION_H

@@ -14,27 +14,26 @@
 #include <il/StaticArray.h>
 #include <il/linear_algebra.h>
 #include <il/linear_algebra/dense/factorization/LU.h>
-#include "src/Solvers/system_assembly.h"
-#include "src/Core/element_utilities.h"
 #include "src/Core/tensor_utilities.h"
-#include "cohesion_friction.h"
+#include "src/Core/element_utilities.h"
 #include "src/Core/surface_mesh_utilities.h"
-#include "c_f_iteration.h"
+#include "src/Solvers/system_assembly.h"
+#include "cohesion_friction.h"
 
 namespace hfp3d {
 
     double vc_cf_iteration
     // This function performs one iteration step
     // of the volume control scheme on a pre-existing mesh
-    // with ability to add new elements (this part is under development)
+    // (ability to add new elements is under development)
             (const Mesh_Data_T &m_data_p, // mesh & solution @ prev time step
-             const Properties_T &prop,
 
              const SAE_T &orig_vc_sys, // for pre-meshed surface case
              const DoF_Handle_T &orig_dof_h,
 
-             F_C_Model &f_c_model,
+             const Properties_T &prop,
              const Num_Param_T &n_par, // simulation parameters
+
              const Load_T &load, // stress at infinity
              double new_vol, // total injected volume @ current time step
 
@@ -57,8 +56,9 @@ namespace hfp3d {
         IL_EXPECT_FAST(orig_ndof > 0 && orig_ndof <= full_ndof);
         IL_EXPECT_FAST(orig_ndof == orig_vc_sys.matrix.size(0));
         IL_EXPECT_FAST(orig_vc_sys.matrix.size(0) == orig_vc_sys.matrix.size(1));
-        IL_EXPECT_FAST(m_data.mat_id.size(0) == num_of_ele);
-        IL_EXPECT_FAST(m_data.mat_id.size(1) == nnpe);
+        IL_EXPECT_FAST(m_data.mat_id.size() == num_of_nod);
+//        IL_EXPECT_FAST(m_data.mat_id.size(0) == num_of_ele);
+//        IL_EXPECT_FAST(m_data.mat_id.size(1) == nnpe);
 
         il::Array<double> dd_v = get_dd_vector_from_md(m_data, true);
 
@@ -82,13 +82,15 @@ namespace hfp3d {
 
         // "fracture state", by node (.dd should be in local coordinates)
         // includes friction, shear cohesion & opening cohesion
-        f_c_model.match_f_c
-                (m_data.dd, n_par.is_dd_local, il::io, m_data.frac_state);
+        match_f_c(prop, m_data.mat_id,
+                  m_data.dd, n_par.is_dd_local,
+                  il::io, m_data.frac_state);
 
         il::Array<double> delta_trac{orig_ndof, 0.0};
 
         il::int_t dd_dof_dec = 0, pp_dof_inc = 0;
 
+#pragma omp parallel for
         for (il::int_t el = 0; el < num_of_ele;  ++el) {
             // vertices' coordinates
             il::StaticArray2D<double, 3, 3> el_vert;
@@ -134,7 +136,8 @@ namespace hfp3d {
                 il::int_t gnn = el * nnpe + lnn;
 
                 // mat ID of the node (CP)
-                int mat_id_cp = m_data.mat_id(el, lnn);
+                int mat_id_cp = m_data.mat_id[gnn];
+//                int mat_id_cp = m_data.mat_id(el, lnn);
 
                 // status of CP (partial/total breakup)
                 //double prev_cp_st = m_data_p.frac_state.mr_open[gnn];
@@ -299,6 +302,7 @@ namespace hfp3d {
         pressure += delta_p;
 
         // DD, pressure, nodes' "state" (damage %) adjustment
+#pragma omp parallel for
         for (il::int_t el = 0; el < num_of_ele;  ++el) {
             // Vertices' coordinates
             il::StaticArray2D<double, 3, 3> el_vert;
@@ -400,7 +404,9 @@ namespace hfp3d {
                 // cp_sl_state * cp_sl_state;
                 // iter_cp_st = sqrt(iter_cp_st);
 
-                double cr_op_cp = f_c_model.cr_open();
+                // local friction-cohesion parameters
+                F_C_Param_T f_c_p = prop.f_c_param[m_data.mat_id[gnn]];
+                double cr_op_cp = f_c_p.cr_open;
                 double cp_op_st = dd_cp[2] / cr_op_cp;
                 if (cp_op_st >= 1.0 || cp_fr_state >= 1.0) {
                     cp_op_st = 1.0;
