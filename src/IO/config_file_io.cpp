@@ -12,8 +12,9 @@
 #include <il/String.h>
 #include <il/Array.h>
 #include <il/Array2D.h>
-#include "config_file_io.h"
+#include "src/IO/config_file_io.h"
 #include "src/IO/mesh_file_io.h"
+#include "src/IO/data_file_io.h"
 #include "src/Core/surface_mesh_utilities.h"
 #include "src/Core/model_parameters.h"
 
@@ -65,14 +66,14 @@ namespace hfp3d{
 
         //il::String src_f_name(src_dir.c_str());
         il::String d_name;
-        il::String in_dir_name((src_dir + "/").c_str());
+        il::String in_dir_name(src_dir.c_str());
         il::String m_c_f_name;
         il::String m_n_f_name;
         il::String in_f_format;
-        il::String obs_dir_name((src_dir + "/").c_str());
+        il::String obs_dir_name(src_dir.c_str());
         il::String o_p_f_name;
         il::String obs_f_format;
-        il::String out_dir_name((src_dir + "/").c_str());
+        il::String out_dir_name(src_dir.c_str());
         il::String out_f_format;
         il::String mf_name(io_param.matr_f_name.c_str());
         il::String of_name(io_param.out_f_name.c_str());
@@ -101,9 +102,11 @@ namespace hfp3d{
         il::int_t pos = config.search("mesh_input_directory");
         if (config.found(pos) && config.value(pos).isString()) {
             d_name = config.value(pos).asString();
+            if (d_name.begin() != "/")
+                in_dir_name.append('/');
             in_dir_name.append(d_name);
-            if (!d_name.hasSuffix("/"))
-                in_dir_name.append("/");
+            if (d_name.end() != "/") // (!d_name.hasSuffix("/"))
+                in_dir_name.append('/');
             io_param.input_dir = in_dir_name.asCString();
         } else {
             // use default directory
@@ -284,9 +287,11 @@ namespace hfp3d{
         pos = config.search("observ_crd_directory");
         if (config.found(pos) && config.value(pos).isString()) {
             d_name = config.value(pos).asString();
+            if (d_name.begin() != "/")
+                obs_dir_name.append('/');
             obs_dir_name.append(d_name);
-            if (!d_name.hasSuffix("/"))
-                obs_dir_name.append("/");
+            if (d_name.end() != "/") // (!d_name.hasSuffix("/"))
+                obs_dir_name.append('/');
         } else {
             obs_dir_name = il::String(io_param.input_dir.c_str());
         }
@@ -311,9 +316,11 @@ namespace hfp3d{
         pos = config.search("output_directory");
         if (config.found(pos) && config.value(pos).isString()) {
             d_name = config.value(pos).asString();
+            if (d_name.begin() != "/")
+                out_dir_name.append('/');
             out_dir_name.append(d_name);
-            if (!d_name.hasSuffix("/"))
-                out_dir_name.append("/");
+            if (d_name.end() != "/") // (!d_name.hasSuffix("/"))
+                out_dir_name.append('/');
         } else {
             out_dir_name = il::String(io_param.output_dir.c_str());
         }

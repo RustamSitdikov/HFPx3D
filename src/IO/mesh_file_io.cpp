@@ -19,7 +19,7 @@
 #include <il/Status.h>
 #include <il/String.h>
 #include <il/io/numpy/numpy.h>
-#include "mesh_file_io.h"
+#include "data_file_io.h"
 
 namespace hfp3d {
 
@@ -43,9 +43,9 @@ namespace hfp3d {
              const il::String &crd_f_name,
              il::io_t, il::Status &status) {
         //
-        il::String f_path(src_dir);
-        if (!f_path.hasSuffix("/"))
-            f_path.append("/");
+        il::String f_path = src_dir;
+        if (f_path.end() != "/") // (!f_path.hasSuffix("/"))
+            f_path.append('/');
         f_path.append(crd_f_name);
         il::Array2D<double> p_crd = il::load<il::Array2D<double>>
                 (f_path, il::io, status);
@@ -122,8 +122,8 @@ namespace hfp3d {
              il::io_t, il::Status &status) {
         //
         il::String f_path(src_dir);
-        if (!f_path.hasSuffix("/"))
-            f_path.append("/");
+        if (f_path.end() != "/") // (!f_path.hasSuffix("/"))
+            f_path.append('/');
         f_path.append(crd_f_name);
         std::string line = "", subline = "";
         char delim = ',';
@@ -236,9 +236,9 @@ namespace hfp3d {
 // (32-bit integer)
 // and node coordinates matrix (3*N_nodes) from numpy binary files
         il::Status status{};
-        il::String c_f_path(src_dir); c_f_path.append("/");
+        il::String c_f_path(src_dir); c_f_path.append('/');
         c_f_path.append(conn_f_name);
-        il::String n_f_path(src_dir); n_f_path.append("/");
+        il::String n_f_path(src_dir); n_f_path.append('/');
         n_f_path.append(node_f_name);
 
         il::Array2D<int> mesh_conn_tmp = il::load<il::Array2D<int>>
