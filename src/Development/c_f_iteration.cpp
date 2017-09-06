@@ -14,6 +14,7 @@
 #include <il/StaticArray.h>
 #include <il/linear_algebra.h>
 #include <il/linear_algebra/dense/factorization/LU.h>
+//#include <il/linear_algebra/dense/factorization/linearSolve.h>
 #include "src/Core/tensor_utilities.h"
 #include "src/Core/element_utilities.h"
 #include "src/Core/surface_mesh_utilities.h"
@@ -137,7 +138,7 @@ namespace hfp3d {
 
                 // mat ID of the node (CP)
                 int mat_id_cp = m_data.mat_id[gnn];
-//                int mat_id_cp = m_data.mat_id(el, lnn);
+                // int mat_id_cp = m_data.mat_id(el, lnn);
 
                 // status of CP (partial/total breakup)
                 //double prev_cp_st = m_data_p.frac_state.mr_open[gnn];
@@ -257,7 +258,8 @@ namespace hfp3d {
                 }
 
                 // rotation of traction adj. to the reference coordinate system
-                dt_cp = il::dot(ele_s.r_tensor, il::Blas::kTranspose, dt_cp);
+                dt_cp = il::dot(ele_s.r_tensor, il::Blas::Transpose, dt_cp);
+                // il::Blas::kTranspose
 
                 // adding traction adjustments to the right hand side
                 for (int i = 0; i < 2; ++i) {
@@ -288,8 +290,11 @@ namespace hfp3d {
 
         // solving the system
         il::Status status{};
-        il::LU<il::Array2D<double>> lu_dc
-                (trc_vc_sys.matrix, il::io, status);
+        il::LU<il::Array2D<double>> lu_dc(trc_vc_sys.matrix, il::io, status);
+        // if (!status.ok()) {
+        //     // The matrix is singular to the machine precision.
+        //     // You should deal with the error.
+        // }
         status.abortOnError();
         // double cnd = lu_dc.condition_number(il::Norm::L2, );
         // std::cout << cnd << std::endl;
@@ -354,7 +359,8 @@ namespace hfp3d {
 
                 // converting the nodal DD back to reference coordinate system
                 if (!n_par.is_dd_local) {
-                    dd_n = il::dot(ele_s.r_tensor, il::Blas::kTranspose, dd_n);
+                    dd_n = il::dot(ele_s.r_tensor, il::Blas::Transpose, dd_n);
+                    // il::Blas::kTranspose
                 }
                 
                 // updating the "global" DD array

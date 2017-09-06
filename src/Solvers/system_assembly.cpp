@@ -144,8 +144,8 @@ namespace hfp3d {
                     il::StaticArray2D<double, 3, 18> trac_el2p_loc =
                             nv_dot_sim(nrm_cp_loc, stress_infl_el2p_loc_h);
                     il::StaticArray2D<double, 3, 18> trac_cp_glob =
-                            il::dot(r_tensor_s, il::Blas::kTranspose,
-                                    trac_el2p_loc);
+                            il::dot(r_tensor_s, il::Blas::Transpose,
+                                    trac_el2p_loc); // il::Blas::kTranspose
 
                     // Alternative 3: calculating traction
                     // in terms of local coordinates at CP
