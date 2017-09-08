@@ -488,44 +488,38 @@ class StringViewPrinter:
 	def to_string(self):
 		return "\"%s\"" % self.string
 
-class ConstStringViewPrinter:
-	def __init__(self, val):
-		self.val = val
-		self.size = self.val['size_'] - self.val['data_']
-		self.string = ""
-		for k in range(0, self.size):
-			self.string += chr(self.val['data_'][k])
-
-	def to_string(self):
-		return "\"%s\"" % self.string
-
 class StringPrinter:
 	def __init__(self, val):
 		self.val = val
+		n = self.val['large_']['capacity']
+		if n >= 2**63:
+			n = n - 2**63
+		if n >= 2**62:
+			n = n - 2**62
+			if (n - 2**62 >= 2**61):
+				self.type = "byte"
+				n = n - 2**61
+			else:
+				self.type = "wtf8"
+		else:
+			if n >= 2**61:
+				n = n - 2**61
+				self.type = "utf8"
+			else:
+				self.type = "ascii"
 		if self.val['large_']['capacity'] >= 2**63:
 			self.is_small = False
 			self.size = self.val['large_']['size']
-			self.capacity = self.val['large_']['capacity'] - 2**63
-			self.string = ""
-			for k in range(0, self.size):
-				self.string += chr(self.val['large_']['data'][k])
+			self.capacity = 8 * n
+			self.string = self.val['large_']['data'].string()
 		else:
 			self.is_small = True
-			self.size = 23 - self.val['data_'][23]
-			self.capacity = 23
-			self.string = ""
-			for k in range(0, self.size):
-				self.string += chr(self.val['data_'][k])
-
-	# def children(self):
-	# 	yield "size", self.size
-	# 	yield "capacity", self.capacity
-	# 	# yield "value", ""\"%s\"" % self.string
-	# 	yield ("value \"%s\"" % self.string), 1
+			self.size = int(self.val['small_'][23]) % 32
+			self.capacity = 22
+			self.string = self.val['small_'].string()
 
 	def to_string(self):
-		# return "[string: \"%s\"] [size: %s] [capacity: %s] [is small: %s]" % (self.string, self.size, self.capacity, self.is_small)
-		return "\"%s\"" % self.string
+		return "[string: \"%s\"] [type: %s] [size: %s] [capacity: %s] [is small: %s]" % (self.string, self.type, self.size, self.capacity, self.is_small)
 
 class MapPrinter:
 	def __init__(self, val):
@@ -717,7 +711,6 @@ def build_insideloop_dictionary ():
 	pretty_printers_dict[re.compile('^il::StaticArray4D<.*>$')]  = lambda val: StaticArray4DPrinter(val)
 	pretty_printers_dict[re.compile('^il::String$')]  = lambda val: StringPrinter(val)
 	pretty_printers_dict[re.compile('^il::StringView$')]  = lambda val: StringViewPrinter(val)
-	pretty_printers_dict[re.compile('^il::ConstStringView$')]  = lambda val: ConstStringViewPrinter(val)
 	pretty_printers_dict[re.compile('^il::Map<il::String.*>$')]  = lambda val: MapStringPrinter(val)
 	pretty_printers_dict[re.compile('^il::Info$')]  = lambda val: InfoPrinter(val)
 	pretty_printers_dict[re.compile('^il::Status$')]  = lambda val: StatusPrinter(val)

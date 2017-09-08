@@ -15,67 +15,67 @@ TEST(String, default_constructor) {
   il::String s{};
   const char* p = s.asCString();
 
-  ASSERT_TRUE(s.size() == 0 && s.isSmall() && s.capacity() == 23 &&
+  ASSERT_TRUE(s.size() == 0 && s.isSmall() && s.capacity() == 22 &&
               p[0] == '\0');
 }
 
 TEST(String, c_string_constructor_0) {
-  il::String s{"A quite small string !!"};
+  il::String s = "A quite small string !";
   const char* p = s.asCString();
 
-  ASSERT_TRUE(s.size() == 23 && s.isSmall() && s.capacity() == 23 &&
-              0 == std::strcmp(p, "A quite small string !!"));
+  ASSERT_TRUE(s.size() == 22 && s.isSmall() && s.capacity() == 22 &&
+              0 == std::strcmp(p, "A quite small string !"));
 }
 
 TEST(String, c_string_constructor_1) {
-  il::String s{"A quite large string !!!"};
+  il::String s = "A quite large string !!";
   const char* p = s.asCString();
 
-  ASSERT_TRUE(s.size() == 24 && !s.isSmall() &&
-              0 == std::strcmp(p, "A quite large string !!!"));
+  ASSERT_TRUE(s.size() == 23 && !s.isSmall() &&
+              0 == std::strcmp(p, "A quite large string !!"));
 }
 
 TEST(String, c_string_constructor_2) {
-  il::String s{"A quite\0 large string !!!"};
+  il::String s = "A quite\0 large string !!!";
   const char* p = s.asCString();
 
-  ASSERT_TRUE(s.size() == 7 && s.isSmall() && 0 == std::strcmp(p, "A quite"));
+  ASSERT_TRUE(s.size() == 25 && !s.isSmall() && 0 == std::strcmp(p, "A quite\0 large string !!!"));
 }
 
 TEST(String, reserve_0) {
-  il::String s{"A quite small string !!"};
+  il::String s{"A quite small string!"};
 
-  s.reserve(23);
-  ASSERT_TRUE(s.size() == 23 && s.isSmall() && s.capacity() == 23 &&
-              0 == std::strcmp(s.asCString(), "A quite small string !!"));
+  s.reserve(22);
+  ASSERT_TRUE(s.size() == 21 && s.isSmall() && s.capacity() == 22 &&
+              0 == std::strcmp(s.asCString(), "A quite small string!"));
 }
 
 TEST(String, reserve_1) {
-  il::String s{"A quite small string !!"};
+  il::String s{"A quite small string !"};
 
   s.reserve(24);
-  ASSERT_TRUE(s.size() == 23 && !s.isSmall() && s.capacity() == 24 &&
-              0 == std::strcmp(s.asCString(), "A quite small string !!"));
+  ASSERT_TRUE(s.size() == 22 && !s.isSmall() && s.capacity() >= 24 &&
+              0 == std::strcmp(s.asCString(), "A quite small string !"));
 }
 
 TEST(String, reserve_2) {
-  il::String s{"A quite large string !!!"};
+  il::String s{"A quite large string !!"};
 
   s.reserve(30);
-  ASSERT_TRUE(s.size() == 24 && !s.isSmall() && s.capacity() == 30 &&
-              0 == std::strcmp(s.asCString(), "A quite large string !!!"));
+  ASSERT_TRUE(s.size() == 23 && !s.isSmall() && s.capacity() >= 30 &&
+              0 == std::strcmp(s.asCString(), "A quite large string !!"));
 }
 
 TEST(String, append_0) {
   il::String s{"Hello"};
   s.append(" world!");
 
-  ASSERT_TRUE(s.size() == 12 && s.isSmall() && s.capacity() == 23 &&
+  ASSERT_TRUE(s.size() == 12 && s.isSmall() && s.capacity() == 22 &&
               0 == std::strcmp(s.asCString(), "Hello world!"));
 }
 
 TEST(String, append_1) {
-  il::String s{"Hello"};
+  il::String s = "Hello";
   s.append(" world! I am so happy to be there");
 
   ASSERT_TRUE(s.size() == 38 && !s.isSmall() && s.capacity() >= 38 &&
@@ -105,10 +105,10 @@ TEST(String, append_3) {
                                "Hello world! I am so happy to be there"));
 }
 
-TEST(String, append_4) {
-  il::String s = "HelloHelloHelloHello";
-  s.append(s);
-
-  ASSERT_TRUE(s.size() == 40 &&
-              s == "HelloHelloHelloHelloHelloHelloHelloHello");
-}
+//TEST(String, append_4) {
+//  il::String s = "HelloHelloHelloHello";
+//  s.append(s);
+//
+//  ASSERT_TRUE(s.size() == 40 &&
+//              s == "HelloHelloHelloHelloHelloHelloHelloHello");
+//}

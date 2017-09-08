@@ -12,8 +12,7 @@
 
 #include <cmath>
 #include <complex>
-
-#include <il/container/1d/Array.h>
+#include <il/base.h>
 
 namespace il {
 
@@ -40,94 +39,27 @@ T min(T a, T b, T c, T d) {
   return min(min(a, b), min(c, d));
 }
 
-template <typename T>
-T min(const il::Array<T>& A) {
-  IL_EXPECT_FAST(A.size() > 0);
-  T ans{A[0]};
-  for (il::int_t k = 0; k < A.size(); ++k) {
-    if (A[k] < ans) {
-      ans = A[k];
-    }
-  }
-  return ans;
-}
 
-template <typename T>
-T max(T a, T b, T c) {
-  auto temp = T{max(b, c)};
-  return a >= temp ? a : temp;
-}
+//template <typename T>
+//T max(T a, T b, T c) {
+//  auto temp = T{max(b, c)};
+//  return a >= temp ? a : temp;
+//}
+//
+//template <typename T>
+//T max(T a, T b, T c, T d) {
+//  return max(max(a, b), max(c, d));
+//}
 
-template <typename T>
-T max(T a, T b, T c, T d) {
-  return max(max(a, b), max(c, d));
-}
-
-template <typename T>
-T max(const il::Array<T>& v) {
-  IL_EXPECT_FAST(v.size() > 0);
-  T max{v[0]};
-  for (il::int_t k = 0; k < v.size(); ++k) {
-    if (v[k] > max) {
-      max = v[k];
-    }
-  }
-  return max;
-}
-
-template <typename T>
-T mean(const il::Array<T>& v) {
-  IL_EXPECT_FAST(v.size() > 0);
-  T ans = 0;
-  for (il::int_t i = 0; i < v.size(); ++i) {
-    ans += v[i];
-  }
-  ans /= v.size();
-  return ans;
-}
-
-template <typename T>
-T sigma(const il::Array<T>& v) {
-  IL_EXPECT_FAST(v.size() > 1);
-  T mean = 0;
-  for (il::int_t i = 0; i < v.size(); ++i) {
-    mean += v[i];
-  }
-  mean /= v.size();
-  T sigma = 0;
-  for (il::int_t i = 0; i < v.size(); ++i) {
-    sigma += (v[i] - mean) * (v[i] - mean);
-  }
-  sigma /= v.size() - 1;
-  sigma = std::sqrt(sigma);
-  return sigma;
-}
-
-template <typename T>
-void transvection(il::Array<T>& x, il::int_t k1, T lambda, il::int_t k2) {
-  x[k1] += lambda * x[k2];
-}
-
-template <typename T>
-void dilation(il::Array<T>& x, il::int_t k, T lambda) {
-  x[k] *= lambda;
-}
-
-template <typename T>
-void swap(il::Array<T>& x, il::int_t k1, il::int_t k2) {
-  T temp{x[k1]};
-  x[k1] = x[k2];
-  x[k2] = temp;
-}
 
 template <typename T>
 T abs(T x) {
   return x >= 0 ? x : -x;
 }
 
-// Template for pow(x,N) where N is a positive il::int_t constant.
+// Template for pow(x,N) where N is a positive int constant.
 // General case, N is not a power of 2:
-template <bool IsPowerOf2, il::int_t N, typename T>
+template <bool IsPowerOf2, int N, typename T>
 class powN {
  public:
   static T p(T x) {
@@ -140,7 +72,7 @@ class powN {
 };
 
 // Partial template specialization for N a power of 2
-template <il::int_t N, typename T>
+template <int N, typename T>
 class powN<true, N, T> {
  public:
   static T p(T x) {
@@ -169,14 +101,14 @@ class powN<true, 0, T> {
 };
 
 // Function template for x to the power of N
-template <il::int_t N, typename T>
+template <int N, typename T>
 static T ipow(T x) {
   // (N & N-1) == 0 if N is a power of 2
   return powN<(N & (N - 1)) == 0, N, T>::p(x);
 }
 
 template <typename T>
-double ipow(T x, il::int_t n) {
+double ipow(T x, int n) {
   IL_EXPECT_FAST(n >= 0);
   T ans = 1;
   while (n != 0) {
@@ -244,24 +176,23 @@ static const int table_log2_64[64] = {
     62, 57, 46, 52, 38, 26, 32, 41, 50, 36, 17, 19, 29, 10, 13, 21,
     56, 45, 25, 31, 35, 16, 9,  12, 44, 24, 15, 8,  23, 7,  6,  5};
 
-inline int next_log2_64(std::uint64_t x) {
+inline int nextLog2(std::size_t x) {
   //  x |= x >> 1;
   //  x |= x >> 2;
   //  x |= x >> 4;
   //  x |= x >> 8;
   //  x |= x >> 16;
   //  x |= x >> 32;
-  //  const il::int_t index =
-  //      static_cast<il::int_t>((x * 0x07EDD5E59A4E28C2) >> 58);
+  //  const int index =
+  //      static_cast<int>((x * 0x07EDD5E59A4E28C2) >> 58);
   //
   //  return table_log2_64[index];
-  std::uint64_t power = 1;
+  std::size_t power = 1;
   int k = 0;
   while (power < x) {
     power *= 2;
     k += 1;
   }
-
   return k;
 }
 

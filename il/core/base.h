@@ -27,15 +27,29 @@
 // Multiple platforms
 ////////////////////////////////////////////////////////////////////////////////
 
-#if defined(WIN32) || defined(_WIN32) || \
-    defined(__WIN32) && !defined(__CYGWIN__)
-#define IL_WINDOWS
-#else
+//#if defined(WIN32) || defined(_WIN32) || \
+//    defined(__WIN32) && !defined(__CYGWIN__)
+//#define IL_WINDOWS
+//#else
 #define IL_UNIX
+//#endif
+
+#if _WIN32 || _WIN64
+#if _WIN64
+#define IL_64_BIT
+#else
+#define IL-32_BIT
+#endif
 #endif
 
-//#define IL_32_BIT
+// Check GCC
+#if __GNUC__
+#if __x86_64__ || __ppc64__
 #define IL_64_BIT
+#else
+#define IL_32_BIT
+#endif
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // Assertions
@@ -108,6 +122,14 @@ inline void abort() { std::abort(); }
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
+// Helper functions
+////////////////////////////////////////////////////////////////////////////////
+
+inline constexpr unsigned char operator"" _uchar(unsigned long long n) {
+  return static_cast<unsigned char>(n);
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // Namespace il
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -127,6 +149,26 @@ T max(T a, T b) {
 }
 
 template <typename T>
+T max(T a, T b, T c) {
+  return max(max(a, b), c);
+}
+
+template <typename T>
+T max(T a, T b, T c, T d) {
+  return max(max(a, b), max(c, d));
+}
+
+template <typename T>
+T max(T a, T b, T c, T d, T e) {
+  return max(max(a, b), max(c, d), e);
+}
+
+template <typename T>
+T max(T a, T b, T c, T d, T e, T f) {
+  return max(max(a, b), max(c, d), max(e, f));
+}
+
+template <typename T>
 T min(T a, T b) {
   return a <= b ? a : b;
 }
@@ -139,6 +181,10 @@ struct io_t {};
 const io_t io{};
 struct value_t {};
 const value_t value{};
+struct unsafe_t {};
+const unsafe_t unsafe{};
+struct safe_t {};
+const safe_t safe{};
 struct emplace_t {};
 const emplace_t emplace{};
 struct align_t {};

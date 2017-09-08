@@ -70,7 +70,7 @@ class SaveHelper<il::Array<T>> {
 
     il::NumpyInfo numpy_info;
     numpy_info.shape = il::Array<il::int_t>{il::value, {v.size()}};
-    numpy_info.type = il::numpyType<T>::value;
+    numpy_info.type = il::String{il::StringType::Ascii, il::numpyType<T>::value, il::size(il::numpyType<T>::value)};
     numpy_info.fortran_order = true;
 
     il::Status info_status{};
@@ -123,7 +123,7 @@ class SaveHelper<il::Array2D<T>> {
 
     il::NumpyInfo numpy_info;
     numpy_info.shape = il::Array<il::int_t>{il::value, {A.size(0), A.size(1)}};
-    numpy_info.type = il::numpyType<T>::value;
+    numpy_info.type = il::String{il::StringType::Ascii, il::numpyType<T>::value, il::size(il::numpyType<T>::value)};
     numpy_info.fortran_order = true;
 
     il::Status info_status{};
@@ -184,7 +184,7 @@ class LoadHelper<il::Array<T>> {
       return v;
     }
 
-    if (!(numpy_info.type == il::numpyType<T>::value)) {
+    if (!(numpy_info.type.isEqual(il::numpyType<T>::value))) {
       status.setError(il::Error::BinaryFileWrongType);
       IL_SET_SOURCE(status);
       return v;
@@ -240,7 +240,7 @@ class LoadHelper<il::Array2D<T>> {
       return v;
     }
 
-    if (!(numpy_info.type == il::numpyType<T>::value)) {
+    if (!(numpy_info.type.isEqual(il::numpyType<T>::value))) {
       status.setError(il::Error::BinaryFileWrongType);
       IL_SET_SOURCE(status);
       return v;
