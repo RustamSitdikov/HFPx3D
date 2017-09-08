@@ -33,9 +33,9 @@ namespace hfp3d {
     // to be read from a .toml file
     struct Properties_T {
         // number of materials (solids, liquids, surfaces)
-        int n_solid = 1;
-        int n_liquid = 1;
-        int n_surface = 1;
+        il::int_t n_solid = 1;
+        il::int_t n_liquid = 1;
+        il::int_t n_surface = 1;
 
         // shear moduli, for each solid ID
         il::Array<double> mu;

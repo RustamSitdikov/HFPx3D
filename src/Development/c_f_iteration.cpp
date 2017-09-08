@@ -7,19 +7,20 @@
 // See the LICENSE.TXT file for more details. 
 //
 
-#include <complex>
+//#include <complex>
 #include <cmath>
 #include <il/Array.h>
 #include <il/Array2D.h>
 #include <il/StaticArray.h>
 #include <il/linear_algebra.h>
 #include <il/linear_algebra/dense/factorization/LU.h>
-//#include <il/linear_algebra/dense/factorization/linearSolve.h>
+#include <il/linear_algebra/dense/factorization/linearSolve.h>
 #include "src/Core/tensor_utilities.h"
 #include "src/Core/element_utilities.h"
 #include "src/Core/surface_mesh_utilities.h"
 #include "src/Solvers/system_assembly.h"
 #include "cohesion_friction.h"
+#include "c_f_iteration.h"
 
 namespace hfp3d {
 
@@ -275,7 +276,7 @@ namespace hfp3d {
         m_data.dof_h_dd.n_dof = orig_dof_h.n_dof - dd_dof_dec;
         // m_data.dof_h_pp.n_dof = orig_dof_h.n_dof + pp_dof_inc;
 
-        // system of linear algebraic equations
+        // system of linear algebraic equations (truncated to active DoF)
         SAE_T trc_vc_sys;
         // check if the used matrix is smaller that the original matrix
         if(m_data.dof_h_dd.n_dof > 0 && m_data.dof_h_dd.n_dof <= orig_ndof) {
@@ -285,23 +286,24 @@ namespace hfp3d {
                     (orig_vc_sys.matrix, orig_dof_h,
                      m_data.dof_h_dd, delta_trac, delta_v);
         } else {
-            // growing mesh
+            // todo: growing mesh
         }
 
         // solving the system
         il::Status status{};
-        il::LU<il::Array2D<double>> lu_dc(trc_vc_sys.matrix, il::io, status);
-        // if (!status.ok()) {
-        //     // The matrix is singular to the machine precision.
-        //     // You should deal with the error.
-        // }
-        status.abortOnError();
-        // double cnd = lu_dc.condition_number(il::Norm::L2, );
-        // std::cout << cnd << std::endl;
-        il::Array<double> dd_pp_incr_v = lu_dc.solve(trc_vc_sys.rhs_v);
-        // dd_pp_incr_v = il::linear_solve
-        // (trc_vc_sys.matrix, trc_vc_sys.rhside, il::io, status);
-        
+        il::Array<double> dd_pp_incr_v{};
+        dd_pp_incr_v = il::linearSolve
+                (trc_vc_sys.matrix, trc_vc_sys.rhs_v, il::io, status);
+//        il::LU<il::Array2D<double>> lu_dec(trc_vc_sys.matrix, il::io, status);
+//        // if (!status.ok()) {
+//        //     // The matrix is singular to the machine precision.
+//        //     // You should deal with the error.
+//        // }
+//        status.abortOnError();
+//        // double cnd = lu_dec.condition_number(il::Norm::L2, );
+//        // std::cout << cnd << std::endl;
+//        dd_pp_incr_v = lu_dec.solve(trc_vc_sys.rhs_v);
+
         // adjusting pressure
         double delta_p = dd_pp_incr_v[m_data.dof_h_dd.n_dof];
         pressure += delta_p;

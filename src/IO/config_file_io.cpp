@@ -7,9 +7,11 @@
 // See the LICENSE.TXT file for more details. 
 //
 
-#include <il/io/toml/toml.h>
+#include <il/Toml.h>
+//#include <il/io/toml/toml.h>
 #include <il/Status.h>
 #include <il/String.h>
+#include <il/Map.h>
 #include <il/Array.h>
 #include <il/Array2D.h>
 #include "src/IO/config_file_io.h"
@@ -25,12 +27,17 @@ namespace hfp3d{
 
         IO_param_T default_p;
 
-        // source files directory (containing main.cpp)
-        std::string src_f = __FILE__;
-        while (src_f.find("\\")!=std::string::npos) {
-            src_f.replace(src_f.find("\\"),1,"/");
+        if (src_path.size() > 0) {
+            default_p.src_dir = src_path;
+        } else {
+            // source files directory (containing main.cpp)
+            std::string src_f = __FILE__;
+            while (src_f.find("\\")!=std::string::npos) {
+                src_f.replace(src_f.find("\\"),1,"/");
+            }
+            default_p.src_dir = src_f.substr(0, src_f.rfind("/"));
         }
-        default_p.src_dir = src_f.substr(0, src_f.rfind("/"));
+
 
         default_p.cf_name = default_p.src_dir + "/config.toml";
 
@@ -66,18 +73,18 @@ namespace hfp3d{
 
         //il::String src_f_name(src_dir.c_str());
         il::String d_name;
-        il::String in_dir_name(src_dir.c_str());
+        il::String in_dir_name = il::toString(src_dir); //.c_str()
         il::String m_c_f_name;
         il::String m_n_f_name;
         il::String in_f_format;
-        il::String obs_dir_name(src_dir.c_str());
+        il::String obs_dir_name = il::toString(src_dir);
         il::String o_p_f_name;
         il::String obs_f_format;
-        il::String out_dir_name(src_dir.c_str());
+        il::String out_dir_name = il::toString(src_dir);
         il::String out_f_format;
-        il::String mf_name(io_param.matr_f_name.c_str());
-        il::String of_name(io_param.out_f_name.c_str());
-        il::String sf_name(io_param.strs_f_name.c_str());
+        il::String mf_name = il::toString(io_param.matr_f_name);
+        il::String of_name = il::toString(io_param.out_f_name);
+        il::String sf_name = il::toString(io_param.strs_f_name);
 
         il::int_t array_origin;
 
@@ -87,11 +94,11 @@ namespace hfp3d{
         // reading configuration & parameters
         il::String config_f_name;
         if (src_dir.size() == 0 && f_path.size() > 0) {
-            config_f_name = il::String((io_param.src_dir + src_p).c_str());
+            config_f_name = il::toString(io_param.src_dir + src_p);
         } else if (src_dir.size() == f_path.size()) {
-            config_f_name = il::String(io_param.cf_name.c_str());
+            config_f_name = il::toString(io_param.cf_name);
         } else {
-            config_f_name = il::String(src_p.c_str());
+            config_f_name = il::toString(src_p);
         }
         auto config =
                 il::load<il::MapArray<il::String, il::Dynamic>>
@@ -110,7 +117,7 @@ namespace hfp3d{
             io_param.input_dir = in_dir_name.asCString();
         } else {
             // use default directory
-            in_dir_name = il::String(io_param.input_dir.c_str());
+            in_dir_name = il::toString(io_param.input_dir);
         }
         pos = config.search("mesh_conn_fname");
         if (config.found(pos) && config.value(pos).isString()) {
@@ -171,7 +178,7 @@ namespace hfp3d{
         props.mu = il::Array<double>{props.n_solid};
         props.nu = il::Array<double>{props.n_solid};
         props.mu[0] = 1.0; // default
-        props.nu[0] = 0.35; // default
+        props.nu[0] = 0.0; // default // 0.35
         pos = config.search("solid");
         if (config.found(pos) && config.value(pos).isMapArray()) {
             const il::MapArray<il::String, il::Dynamic> &solid =
@@ -293,7 +300,7 @@ namespace hfp3d{
             if (d_name.end() != "/") // (!d_name.hasSuffix("/"))
                 obs_dir_name.append('/');
         } else {
-            obs_dir_name = il::String(io_param.input_dir.c_str());
+            obs_dir_name = il::toString(io_param.input_dir);
         }
         io_param.obs_p_dir = obs_dir_name.asCString();
         pos = config.search("observ_crd_fname");
@@ -308,7 +315,7 @@ namespace hfp3d{
         if (config.found(pos) && config.value(pos).isString()) {
             obs_f_format = config.value(pos).asString();
         } else {
-            obs_f_format = "npy32";
+            obs_f_format = il::toString("npy32");
         }
         io_param.obs_p_f_format = obs_f_format.asCString();
 
@@ -322,11 +329,11 @@ namespace hfp3d{
             if (d_name.end() != "/") // (!d_name.hasSuffix("/"))
                 out_dir_name.append('/');
         } else {
-            out_dir_name = il::String(io_param.output_dir.c_str());
+            out_dir_name = il::toString(io_param.output_dir);
         }
-        mf_name = il::String(io_param.matr_f_name.c_str());
-        of_name = il::String(io_param.out_f_name.c_str());
-        sf_name = il::String(io_param.strs_f_name.c_str());
+        mf_name = il::toString(io_param.matr_f_name);
+        of_name = il::toString(io_param.out_f_name);
+        sf_name = il::toString(io_param.strs_f_name);
         pos = config.search("output_signature");
         if (config.found(pos) && config.value(pos).isString()) {
             mf_name.append(config.value(pos).asString());
@@ -337,13 +344,13 @@ namespace hfp3d{
         if (config.found(pos) && config.value(pos).isString()) {
             out_f_format = config.value(pos).asString();
         } else {
-            out_f_format = "csv";
+            out_f_format = il::toString("csv");
         }
         io_param.out_f_format = out_f_format.asCString();
         if (true) {
-            mf_name.append(".csv");
-            of_name.append(".csv");
-            sf_name.append(".csv");
+            mf_name.append(il::toString(".csv"));
+            of_name.append(il::toString(".csv"));
+            sf_name.append(il::toString(".csv"));
         }
 //todo: add binary output
         io_param.matr_f_name = mf_name.asCString();
