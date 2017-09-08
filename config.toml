@@ -105,9 +105,10 @@ compressibility = 5.1e-10   # compressibility is in Pa^(-1)
 viscosity = 3.0e-3          # viscosity is in Pa*s
 
 # Surfaces
+Surface_types_No = 2
 #[fault_1]
 #id = 0
-Contact_model_id = 0
+Contact_model_id = 0 # Dugdale cohesion / Mohr-Coulomb friction
 #Contact_model_type = "F_C_BFW"
 # "Cohesive crack" parameters
 Max_tensile_stress = 1.0

@@ -17,8 +17,9 @@
 //#include <ittnotify.h>
 
 #include <il/Timer.h>
+#include <il/Toml.h>
+//#include <il/io/toml/toml.h>
 #include <il/Status.h>
-#include <il/io/toml/toml.h>
 #include <il/String.h>
 #include <il/Array.h>
 #include <il/Array2D.h>
@@ -26,10 +27,13 @@
 //#include <il/StaticArray2D.h>
 #include <il/linear_algebra.h>
 #include <il/linear_algebra/dense/factorization/LU.h>
-//#include <il/linear_algebra/dense/factorization/linearSolve.h>
+#include <il/linear_algebra/dense/factorization/linearSolve.h>
 
 #include "src/IO/config_file_io.h"
 #include "src/IO/mesh_file_io.h"
+#include "src/IO/data_file_io.h"
+#include "src/Development/c_f_iteration.h"
+#include "src/Development/cohesion_friction.h"
 #include "src/Solvers/system_assembly.h"
 #include "src/Core/model_parameters.h"
 #include "src/Core/surface_mesh_utilities.h"
@@ -73,10 +77,10 @@ int main(int argc, char* argv[]) {
                        mesh_data, mat_props, load_data,
                        num_param, sim_param, io_param, status);
 
-    il::String out_dir(io_param.output_dir.c_str());
-    il::String mf_name(io_param.matr_f_name.c_str());
-    il::String of_name(io_param.out_f_name.c_str());
-    il::String sf_name(io_param.strs_f_name.c_str());
+    il::String out_dir = il::toString(io_param.output_dir);
+    il::String mf_name = il::toString(io_param.matr_f_name);
+    il::String of_name = il::toString(io_param.out_f_name);
+    il::String sf_name = il::toString(io_param.strs_f_name);
 
     // number of elements
     il::int_t num_elems = mesh_data.mesh.conn.size(1);
@@ -154,18 +158,18 @@ int main(int argc, char* argv[]) {
     // solving the system
     il::Array<double> dd_v{sae.n_dof};
 
-    il::LU<il::Array2D<double>> lu_decomposition(sae.matrix, il::io, status);
-    // if (!status.ok()) {
-    //     // The matrix is singular to the machine precision.
-    //     // You should deal with the error.
-    // }
+    dd_v = il::linearSolve(sae.matrix, sae.rhs_v, il::io, status);
     status.abortOnError();
-    // double cnd = lu_decomposition.conditionNumber(il::Norm::L2, );
-    // std::cout << cnd << std::endl;
-    dd_v = lu_decomposition.solve(sae.rhs_v);
 
-//    dd_v = il::linearSolve(sae.matrix, sae.rhs_v, il::io, status);
+//    il::LU<il::Array2D<double>> lu_decomposition(sae.matrix, il::io, status);
+//    // if (!status.ok()) {
+//    //     // The matrix is singular to the machine precision.
+//    //     // You should deal with the error.
+//    // }
 //    status.abortOnError();
+//    // double cnd = lu_decomposition.conditionNumber(il::Norm::L2, );
+//    // std::cout << cnd << std::endl;
+//    dd_v = lu_decomposition.solve(sae.rhs_v)
 
     timer.stop();
     std::cout << ": " << timer.elapsed() << "s" << std::endl;
