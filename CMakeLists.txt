@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.6)
+
+project(HFPx3DUnitTest CXX)
+
 project(HFPx3D)
+
 set(CMAKE_CXX_STANDARD 11)
 
 # some options related to IL
@@ -50,12 +54,12 @@ endif()
 set(SOURCE_FILES_DIR ${PROJECT_SOURCE_DIR}/src)
 
 set(SOURCE_FILES
-        main.cpp
         il/io/numpy/numpy.cpp
         il/io/toml/toml.cpp
         ${SOURCE_FILES_DIR}/IO/config_file_io.cpp
         ${SOURCE_FILES_DIR}/IO/mesh_file_io.cpp
         ${SOURCE_FILES_DIR}/IO/data_file_io.h
+        ${SOURCE_FILES_DIR}/IO/data_file_io.cpp
         ${SOURCE_FILES_DIR}/Core/surface_mesh_utilities.cpp
         ${SOURCE_FILES_DIR}/Core/tensor_utilities.cpp
         ${SOURCE_FILES_DIR}/Core/element_utilities.cpp
@@ -66,7 +70,7 @@ set(SOURCE_FILES
         ${SOURCE_FILES_DIR}/Development/c_f_iteration.cpp
         )
 
-add_executable(HFPx3D ${SOURCE_FILES})
+add_executable(HFPx3D ${SOURCE_FILES} main.cpp)
 
 ####### IL_MKL case
 ## ENV{MKLROOT} is smth. like /opt/intel/compilers_and_libraries_2017.0.102/mac/mkl
@@ -94,7 +98,8 @@ if (IL_MKL)
         endif()
     endif()
 
-    target_compile_definitions(HFPx3D PRIVATE IL_MKL=1 IL_BLAS=1)
+    target_compile_definitions(HFPx3D PRIVATE IL_MKL=1 IL_BLAS=1 IL_OPENMP=1)
+    target_compile_definitions(HFPx3DUnitTest PRIVATE IL_MKL=1 IL_BLAS=1 IL_OPENMP=1)
 
 ####### IL_OPENBLAS case
 elseif (IL_OPENBLAS)
@@ -125,4 +130,51 @@ if (IL_MKL)
                 /usr/bin/install_name_tool -add_rpath $ENV{MKLROOT}/lib
                 $<TARGET_FILE:HFPx3D>)
     endif()
+endif()
+
+################################################################################
+# For Unit Tests  HFPx3DUnitTest
+################################################################################
+
+set(SR_FOLDER "${CMAKE_SOURCE_DIR}/src")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_FOLDER='\"${SR_FOLDER}\"'")
+
+set(UNIT_TEST_FILES
+        src/Core/_test/SF_test.cpp
+        src/Elasticity/_test/integration_test.cpp
+        src/Solvers/_test/assembly_test.cpp
+        gtest/src/gtest-all.cc)
+
+add_executable(HFPx3DUnitTest ${SOURCE_FILES} ${UNIT_TEST_FILES} test.cpp)
+
+target_link_libraries(HFPx3DUnitTest ${CMAKE_MKL_LIBRARIES} ${CMAKE_OPENBLAS_LIBRARIES})
+# target_link_libraries(HFPx3DUnitTest mkl_intel_lp64 mkl_core
+# mkl_intel_thread dl iomp5 pthread m)
+
+# should be the same -> make sure the MKLROOT is defined under linux
+if(APPLE)
+    target_include_directories(HFPx3DUnitTest PUBLIC ${CMAKE_SOURCE_DIR}
+            ${CMAKE_SOURCE_DIR}/gtest $ENV{MKLROOT}/include)
+elseif(UNIX)
+    target_include_directories(HFPx3DUnitTest PUBLIC ${CMAKE_SOURCE_DIR}
+            ${CMAKE_SOURCE_DIR}/gtest  /opt/intel/mkl/include)
+else() #Windows
+    target_include_directories(HFPx3DUnitTest PUBLIC ${CMAKE_SOURCE_DIR}
+            ${CMAKE_SOURCE_DIR}/gtest)
+
+endif()
+
+# For unit tests: The precondition of our functions are checked with assert
+# macros that terminate the program in debug mode. In order to test those macros
+# in our unit tests, the flag IL_UNIT_TEST turns them into exceptions that can
+# be caught and checked.
+target_compile_options(HFPx3DUnitTest PRIVATE "-DIL_UNIT_TEST")
+
+if(APPLE)
+    # below for some under mac os sierra ;(
+    add_custom_command(TARGET HFPx3DUnitTest
+            POST_BUILD COMMAND
+            /usr/bin/install_name_tool -add_rpath /opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/lib
+            $<TARGET_FILE:HFPx2DUnitTest>)
 endif()
