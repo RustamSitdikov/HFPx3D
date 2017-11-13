@@ -8,10 +8,13 @@ This is a temporary script file.
 import scipy.io as spio
 import numpy as npy
 
+meshfile='single_triangle'
 #meshfile='pennymesh24el'
+#meshfile='pennymesh40el'
+#meshfile='pennymesh85el'
 #meshfile='pennymesh121el'
 #meshfile='pennymesh533el'
-meshfile='pennymesh1025el'
+#meshfile='pennymesh1025el'
 
 n = int(32) # 32 or 64
 

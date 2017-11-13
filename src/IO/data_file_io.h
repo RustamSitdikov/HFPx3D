@@ -26,6 +26,17 @@ namespace hfp3d {
 
 // loading data
 
+    il::Array2D<double> load_data_from_csv
+            (const std::string &src_dir,
+             const std::string &crd_f_name,
+             il::io_t, il::Status &status);
+
+//    // overload for il::String
+//    il::Array2D<double> load_data_from_csv
+//            (const il::String &src_dir,
+//             const il::String &crd_f_name,
+//             il::io_t, il::Status &status);
+
 // saving data (il::Array<double> or il::Array2D<double>)
 
     template <typename T>
