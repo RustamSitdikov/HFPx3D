@@ -132,10 +132,12 @@ namespace hfp3d {
     }
 }
 
-// Reference: analytical solution for normally loaded penny-shaped crack
-// in infinite elastic solid medium
+// Reference solutions
 
 namespace ref{
+
+// analytical solution for normally loaded penny-shaped crack
+// in infinite elastic solid medium
 
 // DD on the surface
     il::StaticArray<double, 3> get_dd_at_pt
