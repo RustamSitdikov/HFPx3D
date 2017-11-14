@@ -22,7 +22,7 @@ TEST(sf_test_1, t1) {
     double tol = 1e-06;
 
     // elastic properties
-    double G = 1.0, nu = 0.35;
+    double G = 1.0, poiss_r = 0.35;
 
     // connectivity
     il::StaticArray2D<il::int_t, 3, 1> mesh_conn;

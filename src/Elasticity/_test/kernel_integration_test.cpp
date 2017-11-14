@@ -30,7 +30,7 @@ TEST(kernel_integration_1, t1) {
     double tol = 1e-06;
 
     // elastic properties
-    double G = 1.0, nu = 0.35;
+    double G = 1.0, poiss_r = 0.35;
 
     // connectivity
     il::StaticArray2D<il::int_t, 3, 1> mesh_conn;
@@ -71,7 +71,7 @@ TEST(kernel_integration_1, t1) {
     hfp3d::HZ hz = hfp3d::make_el_pt_hz(nodes_crd, observ_pt_1, r_tensor);
 
     il::StaticArray2D<double, 6, 18> bem_matrix_1 =
-        hfp3d::make_local_3dbem_submatrix(1, G, nu, hz.h, hz.z, tau, sfm);
+        hfp3d::make_local_3dbem_submatrix(1, G, poiss_r, hz.h, hz.z, tau, sfm);
 
 
     std::string work_directory
@@ -120,7 +120,7 @@ TEST(kernel_integration_2, t1) {
     double tol = 1e-06;
 
     // elastic properties
-    double G = 1.0, nu = 0.35;
+    double G = 1.0, poiss_r = 0.35;
 
     // connectivity
     il::StaticArray2D<il::int_t, 3, 1> mesh_conn;
@@ -161,7 +161,7 @@ TEST(kernel_integration_2, t1) {
     hfp3d::HZ hz = hfp3d::make_el_pt_hz(nodes_crd, observ_pt_2, r_tensor);
 
     il::StaticArray2D<double, 6, 18> bem_matrix_2 =
-            hfp3d::make_local_3dbem_submatrix(1, G, nu, hz.h, hz.z, tau, sfm);
+            hfp3d::make_local_3dbem_submatrix(1, G, poiss_r, hz.h, hz.z, tau, sfm);
 
 
     std::string work_directory
@@ -210,7 +210,7 @@ TEST(kernel_integration_3, t1) {
     double tol = 1e-06;
 
     // elastic properties
-    double G = 1.0, nu = 0.35;
+    double G = 1.0, poiss_r = 0.35;
 
     // connectivity
     il::StaticArray2D<il::int_t, 3, 1> mesh_conn;
@@ -252,7 +252,7 @@ TEST(kernel_integration_3, t1) {
     hfp3d::HZ hz = hfp3d::make_el_pt_hz(nodes_crd, observ_pt_3, r_tensor);
 
     il::StaticArray2D<double, 6, 18> bem_matrix_3 =
-            hfp3d::make_local_3dbem_submatrix(1, G, nu, hz.h, hz.z, tau, sfm);
+            hfp3d::make_local_3dbem_submatrix(1, G, poiss_r, hz.h, hz.z, tau, sfm);
 
     std::string work_directory
             {"C:/Users/nikolski/ClionProjects/HFPx3D/src/Elasticity/_test/"};

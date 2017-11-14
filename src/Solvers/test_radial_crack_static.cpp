@@ -37,7 +37,7 @@ namespace hfp3d {
         il::Status status{};
 
         // elastic properties
-        mat_props.mu[0] = 1.0, mat_props.nu[0] = 0.35;
+        mat_props.shear_m[0] = 1.0, mat_props.poiss_r[0] = 0.35;
 
         hfp3d::load_mesh_from_numpy_32
                 (work_directory, m_c_f_name, m_n_f_name, 1,
@@ -60,7 +60,7 @@ namespace hfp3d {
         hfp3d::SAE_T sae;
         // matrix
         sae.matrix = hfp3d::make_3dbem_matrix_s
-                (mat_props.mu[0], mat_props.nu[0],
+                (mat_props.shear_m[0], mat_props.poiss_r[0],
                  mesh_data.mesh,
                  num_param,
                  il::io, mesh_data.dof_h_dd);
@@ -112,8 +112,8 @@ namespace hfp3d {
                 }
                 // calculating the the reference solution
                 ref_dd = ref::get_dd_at_pt
-                        (mat_props.mu[0],
-                         mat_props.nu[0],
+                        (mat_props.shear_m[0],
+                         mat_props.poiss_r[0],
                          1.0,
                          load_data.s_inf[2],
                          el_np[np]);
@@ -141,13 +141,13 @@ namespace ref{
 
 // DD on the surface
     il::StaticArray<double, 3> get_dd_at_pt
-            (double G,
-             double nu,
+            (double shear_m,
+             double poiss_r,
              double a,
              double p,
              il::StaticArray<double, 3> crd) {
 
-        double scale = (4.0 * (1.0 - nu) * a * p) / (G * hfp3d::pi);
+        double scale = (4.0 * (1.0 - poiss_r) * a * p) / (shear_m * hfp3d::pi);
 
         double x2 = crd[0] * crd[0],
                 y2 = crd[1] * crd[1];
@@ -162,13 +162,13 @@ namespace ref{
 
 // Stress field
     il::StaticArray<double, 6> get_stress_at_pt
-            (double G,
-             double nu,
+            (double shear_m,
+             double poiss_r,
              double a,
              double p,
              il::StaticArray<double, 3> crd) {
 
-        double scale = p / G,
+        double scale = p / shear_m,
                 fac = 2. / hfp3d::pi;
 
         double a2 = a * a;
@@ -214,10 +214,10 @@ namespace ref{
 
         il::StaticArray<double, 6> sv;
 
-        sv[0] = -scale * fac * (z * Fxxz + Fxx + 2. * nu * Fyy);
-        sv[1] = -scale * fac * (z * Fyyz + Fyy + 2. * nu * Fxx);
+        sv[0] = -scale * fac * (z * Fxxz + Fxx + 2. * poiss_r * Fyy);
+        sv[1] = -scale * fac * (z * Fyyz + Fyy + 2. * poiss_r * Fxx);
         sv[2] = scale *(1. - fac * (z * Fzzz - Fzz));
-        sv[3] = -scale * fac * (z * Fxyz + (1. - 2. * nu) * Fxy);
+        sv[3] = -scale * fac * (z * Fxyz + (1. - 2. * poiss_r) * Fxy);
         sv[4] = -scale * fac * (z * Fxzz);
         sv[5] = -scale * fac * (z * Fyzz);
 

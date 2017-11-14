@@ -38,9 +38,9 @@ namespace hfp3d {
         il::int_t n_surface = 1;
 
         // shear moduli, for each solid ID
-        il::Array<double> mu {n_solid, 1.0};
+        il::Array<double> shear_m {n_solid, 1.0};
         // Poisson ratios, for each solid ID
-        il::Array<double> nu {n_solid, 0.0};
+        il::Array<double> poiss_r {n_solid, 0.0};
 
 //        // solid IDs, for each surface ID (for "plus" and "minus" sides)
 //        // note: different moduli and Poisson ratios will affect the assembly!

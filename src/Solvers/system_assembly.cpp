@@ -28,7 +28,7 @@ namespace hfp3d {
 
     // Static matrix assembly
     il::Array2D<double> make_3dbem_matrix_s
-            (double mu, double nu,
+            (double shear_m, double poiss_r,
              const Mesh_Geom_T &mesh,
              const Num_Param_T &n_par,
              il::io_t, DoF_Handle_T &dof_hndl) {
@@ -125,9 +125,9 @@ namespace hfp3d {
                     // w.r. to the source element's local coordinate system
                     il::StaticArray2D<double, 6, 18> stress_infl_el2p_loc_h =
                             make_local_3dbem_submatrix
-                                    (1, mu, nu, hz.h, hz.z, tau, sfm);
+                                    (1, shear_m, poiss_r, hz.h, hz.z, tau, sfm);
                     //stress_infl_el2p_loc_t = make_local_3dbem_submatrix
-                    // (0, mu, nu, hz.h, hz.z, tau, sfm);
+                    // (0, shear_m, poiss_r, hz.h, hz.z, tau, sfm);
 
                     // Multiplication by nrm_cp_glob
 
@@ -277,7 +277,7 @@ namespace hfp3d {
     // Stress at given points (m_pts_crd) vs DD (m_data.dd)
     // at nodal points (mesh.nods)
     il::Array2D<double> make_3dbem_stress_f_s
-            (double mu, double nu,
+            (double shear_m, double poiss_r,
              const Mesh_Data_T &m_data,
              const Load_T &load,
              const Num_Param_T &n_par,
@@ -345,10 +345,10 @@ namespace hfp3d {
                 // w.r. to the source element's local coordinate system
                 il::StaticArray2D<double, 6, 18> stress_infl_el2p_loc_h =
                         make_local_3dbem_submatrix
-                                (1, mu, nu, hz.h, hz.z, tau, sfm);
+                                (1, shear_m, poiss_r, hz.h, hz.z, tau, sfm);
                 //il::StaticArray2D<double, 6, 18> stress_infl_el2p_loc_t =
                 // make_local_3dbem_submatrix
-                // (0, mu, nu, hz.h, hz.z, tau, sfm);
+                // (0, shear_m, poiss_r, hz.h, hz.z, tau, sfm);
 
                 // Rotating stress at m_pt
                 // to the reference ("global") coordinate system
@@ -454,7 +454,7 @@ namespace hfp3d {
 
     // Volume Control matrix assembly (additional row $ column)
     il::Array2D<double> make_3dbem_matrix_vc
-            (double mu, double nu,
+            (double shear_m, double poiss_r,
              const Mesh_Geom_T &mesh,
              const Num_Param_T &n_par,
              il::io_t, DoF_Handle_T &dof_hndl) {
@@ -481,7 +481,7 @@ namespace hfp3d {
         il::Array2D<double> global_matrix;
         global_matrix.reserve(num_dof + 1, num_dof + 1);
         global_matrix = make_3dbem_matrix_s
-                        (mu, nu, mesh, n_par, il::io, dof_hndl);
+                        (shear_m, poiss_r, mesh, n_par, il::io, dof_hndl);
         IL_EXPECT_FAST(global_matrix.size(0) == num_dof);
         IL_EXPECT_FAST(global_matrix.size(1) == num_dof);
 

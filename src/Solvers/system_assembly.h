@@ -33,7 +33,7 @@ namespace hfp3d {
 
     // Static matrix assembly
     il::Array2D<double> make_3dbem_matrix_s
-            (double mu, double nu,
+            (double shear_m, double poiss_r,
              const Mesh_Geom_T &mesh,
              const Num_Param_T &n_par,
              il::io_t, DoF_Handle_T &dof_hndl);
@@ -46,7 +46,7 @@ namespace hfp3d {
 
     // Stress at given points (m_pts_crd) vs DD at nodal points (nodes_crd)
     il::Array2D<double> make_3dbem_stress_f_s
-            (double mu, double nu,
+            (double shear_m, double poiss_r,
              const Mesh_Data_T &m_data,
              const Load_T &load,
              const Num_Param_T &n_par,
@@ -56,7 +56,7 @@ namespace hfp3d {
 
     // Volume Control matrix assembly (additional row $ column)
     il::Array2D<double> make_3dbem_matrix_vc
-            (double mu, double nu,
+            (double shear_m, double poiss_r,
              const Mesh_Geom_T &mesh,
              const Num_Param_T &n_par,
              il::io_t, DoF_Handle_T &dof_hndl);

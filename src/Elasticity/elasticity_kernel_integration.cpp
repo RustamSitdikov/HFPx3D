@@ -34,7 +34,7 @@ namespace hfp3d {
     il::StaticArray2D<double, 6, 18>
     make_local_3dbem_submatrix
             (const int kernel_id,
-             double mu, double nu, double h, std::complex<double> z,
+             double shear_m, double poiss_r, double h, std::complex<double> z,
              const il::StaticArray<std::complex<double>, 3> &tau,
              const il::StaticArray2D<std::complex<double>, 6, 6> &sfm) {
         // This function assembles a local "stiffness" sub-matrix
@@ -50,7 +50,7 @@ namespace hfp3d {
         il::StaticArray2D<double, 6, 18> stress_el_2_el_infl{0.0};
 
         // scaling ("-" sign comes from traction Somigliana ID, H-term)
-        double scale = - mu / (4.0 * hfp3d::pi * (1.0 - nu));
+        double scale = - shear_m / (4.0 * hfp3d::pi * (1.0 - poiss_r));
 
         // tz[m] and d[m] can be calculated here
         il::StaticArray<std::complex<double>, 3> tz, d, dtau;
@@ -122,9 +122,9 @@ namespace hfp3d {
                 if (fabs(h) < hfp3d::h_tol) {
                     il::StaticArray3D<std::complex<double>, 6, 4, 3>
                             s_incr_n =
-                            hfp3d::s_integral_lim(kernel_id, nu, eixn, dm),
+                            hfp3d::s_integral_lim(kernel_id, poiss_r, eixn, dm),
                             s_incr_m =
-                            hfp3d::s_integral_lim(kernel_id, nu, eixm, dm);
+                            hfp3d::s_integral_lim(kernel_id, poiss_r, eixm, dm);
                     for (int j = 0; j < 6; ++j) {
                         for (int k = 0; k < 4; ++k) {
                             for (int l = 0; l < 3; ++l) {
@@ -147,8 +147,8 @@ namespace hfp3d {
                     // coefficients, by 2nd index:
                     // 0: S11+S22; 1: S11-S22+2*I*S12; 2: S13+S23; 3: S33
                     il::StaticArray4D<std::complex<double>, 6, 4, 3, 9>
-                            c_n = hfp3d::s_integral_gen(kernel_id, nu, eixn, h, dm),
-                            c_m = hfp3d::s_integral_gen(kernel_id, nu, eixm, h, dm);
+                            c_n = hfp3d::s_integral_gen(kernel_id, poiss_r, eixn, h, dm),
+                            c_m = hfp3d::s_integral_gen(kernel_id, poiss_r, eixm, h, dm);
                     // combining constituing functions & coefficients
                     blas(1.0, c_n, f_n, 1.0, il::io, s_ij_infl_mon);
                     blas(-1.0, c_m, f_m, 1.0, il::io, s_ij_infl_mon);
@@ -165,8 +165,8 @@ namespace hfp3d {
                                 f_n_red = hfp3d::integral_cst_fun_red(h, dm, an),
                                 f_m_red = hfp3d::integral_cst_fun_red(h, dm, am);
                         il::StaticArray4D<std::complex<double>, 6, 4, 3, 5>
-                                c_n_red = hfp3d::s_integral_red(kernel_id, nu, eipn, h),
-                                c_m_red = hfp3d::s_integral_red(kernel_id, nu, eipm, h);
+                                c_n_red = hfp3d::s_integral_red(kernel_id, poiss_r, eipn, h),
+                                c_m_red = hfp3d::s_integral_red(kernel_id, poiss_r, eipm, h);
                         blas(1.0, c_n_red, f_n_red, 1.0,
                              il::io, s_ij_infl_mon);
                         blas(-1.0, c_m_red, f_m_red, 1.0,
@@ -215,15 +215,15 @@ namespace hfp3d {
 
     il::StaticArray4D<std::complex<double>, 6, 4, 3, 9> s_integral_gen
             (const int kernel_id,
-             double nu, std::complex<double> eix,
+             double poiss_r, std::complex<double> eix,
              double h, std::complex<double> d) {
         il::StaticArray4D<std::complex<double>, 6, 4, 3, 9> c;
         switch (kernel_id) {
             case 1:
-                c = s_ij_gen_h(nu, eix, h, d);
+                c = s_ij_gen_h(poiss_r, eix, h, d);
                 break;
             case 0:
-                // c = s_ij_gen_t(nu, eix, h, d);
+                // c = s_ij_gen_t(poiss_r, eix, h, d);
                 break;
             default:break;
         }
@@ -232,15 +232,15 @@ namespace hfp3d {
 
     il::StaticArray4D<std::complex<double>, 6, 4, 3, 5> s_integral_red
             (const int kernel_id,
-             double nu, std::complex<double> eix,
+             double poiss_r, std::complex<double> eix,
              double h) {
         il::StaticArray4D<std::complex<double>, 6, 4, 3, 5> c;
         switch (kernel_id) {
             case 1:
-                c = s_ij_red_h(nu, eix, h);
+                c = s_ij_red_h(poiss_r, eix, h);
                 break;
             case 0:
-                // c = s_ij_red_t(nu, eix, h, d);
+                // c = s_ij_red_t(poiss_r, eix, h, d);
                 break;
             default:break;
         }
@@ -249,15 +249,15 @@ namespace hfp3d {
 
     il::StaticArray3D<std::complex<double>, 6, 4, 3> s_integral_lim
             (const int kernel_id,
-             double nu, std::complex<double> eix,
+             double poiss_r, std::complex<double> eix,
              std::complex<double> d) {
         il::StaticArray3D<std::complex<double>, 6, 4, 3> c;
         switch (kernel_id) {
             case 1:
-                c = s_ij_lim_h(nu, eix, d);
+                c = s_ij_lim_h(poiss_r, eix, d);
                 break;
             case 0:
-                // c = s_ij_lim_t(nu, eix, sgnh, d);
+                // c = s_ij_lim_t(poiss_r, eix, sgnh, d);
                 break;
             default:break;
         }
@@ -269,10 +269,10 @@ namespace hfp3d {
 // of any kernel of the elasticity equation
 // over a part of a polygonal element.
 // Example of usage:
-// dot(S11_22H(nu, eix, h, d), integral_cst_fun(h, d, a, x, eix))
-// dot(S11_22H_red(nu, eip, h, d), integral_cst_fun_red(h, d, a))
-// dot(S13_23T(nu, eix, h, d), integral_cst_fun(h, d, a, x, eix))
-// dot(S33T_red(nu, eip, h, d), integral_cst_fun_red(h, d, a))
+// dot(S11_22H(poiss_r, eix, h, d), integral_cst_fun(h, d, a, x, eix))
+// dot(S11_22H_red(poiss_r, eip, h, d), integral_cst_fun_red(h, d, a))
+// dot(S13_23T(poiss_r, eix, h, d), integral_cst_fun(h, d, a, x, eix))
+// dot(S33T_red(poiss_r, eip, h, d), integral_cst_fun_red(h, d, a))
 // where eip = std::exp(I*std::arg(t-z));
 // eix = std::exp(I*x); x = std::arg(t-z)-std::arg(d);
 // a = std::fabs(t-z-d)*sign(x);

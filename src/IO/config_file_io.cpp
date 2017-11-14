@@ -175,10 +175,10 @@ namespace hfp3d{
             props.n_solid = config.value(pos).toInteger();
             if (props.n_solid == 0) props.n_solid = 1;
         }
-        props.mu = il::Array<double>{props.n_solid};
-        props.nu = il::Array<double>{props.n_solid};
-        props.mu[0] = 1.0; // default
-        props.nu[0] = 0.0; // default // 0.35
+        props.shear_m = il::Array<double>{props.n_solid};
+        props.poiss_r = il::Array<double>{props.n_solid};
+        props.shear_m[0] = 1.0; // default
+        props.poiss_r[0] = 0.0; // default // 0.35
         pos = config.search("solid");
         if (config.found(pos) && config.value(pos).isMapArray()) {
             const il::MapArray<il::String, il::Dynamic> &solid =
@@ -186,36 +186,36 @@ namespace hfp3d{
 
             il::int_t j = solid.search("Poisson_ratio");
             if (solid.found(j) && solid.value(j).isDouble()) {
-                props.nu[0] = solid.value(j).toDouble();
+                props.poiss_r[0] = solid.value(j).toDouble();
             }
 
             j = solid.search("Shear_modulus");
             if (solid.found(j) && solid.value(j).isDouble()) {
-                props.mu[0] = solid.value(j).toDouble();
+                props.shear_m[0] = solid.value(j).toDouble();
             } else {
                 j = solid.search("Young_modulus");
                 if (solid.found(j) && solid.value(j).isDouble()) {
                     double ym = (solid.value(j).toDouble());
-                    props.mu[0] = ym / 2.0 /
-                                             (1.0 + props.nu[0]);
+                    props.shear_m[0] = ym / 2.0 /
+                                             (1.0 + props.poiss_r[0]);
                 }
             }
         } else {
             pos = config.search("Poisson_ratio");
             if (config.found(pos) && config.value(pos).isDouble()) {
-                props.nu[0] = (config.value(pos).toDouble());
+                props.poiss_r[0] = (config.value(pos).toDouble());
             }
             pos = config.search("Shear_modulus");
             if (config.found(pos)) {
                 if(config.value(pos).isDouble()) {
-                    props.mu[0] = (config.value(pos).toDouble());
+                    props.shear_m[0] = (config.value(pos).toDouble());
                 }
             } else {
                 pos = config.search("Young_modulus");
                 if(config.found(pos) && config.value(pos).isDouble()) {
                     double ym = (config.value(pos).toDouble());
-                    props.mu[0] = ym / 2.0 /
-                                             (1.0 + props.nu[0]);
+                    props.shear_m[0] = ym / 2.0 /
+                                             (1.0 + props.poiss_r[0]);
                 }
             }
         }

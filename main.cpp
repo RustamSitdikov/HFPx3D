@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
     hfp3d::SAE_T sae;
     // matrix
     sae.matrix = hfp3d::make_3dbem_matrix_s
-            (mat_props.mu[0], mat_props.nu[0],
+            (mat_props.shear_m[0], mat_props.poiss_r[0],
              mesh_data.mesh,
              num_param,
              il::io, mesh_data.dof_h_dd);
@@ -261,7 +261,7 @@ int main(int argc, char* argv[]) {
         // calculate stresses at m_pts_crd
         il::Array2D<double> stress_m_pts(m_pts_crd.size(0), 6);
         stress_m_pts = hfp3d::make_3dbem_stress_f_s
-            (mat_props.mu[0], mat_props.nu[0],
+            (mat_props.shear_m[0], mat_props.poiss_r[0],
              mesh_data, load_data, num_param, m_pts_crd);
 
         timer.stop();

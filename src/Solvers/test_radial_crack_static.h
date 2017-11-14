@@ -30,16 +30,16 @@ namespace ref {
 
 // DD on the surface
     il::StaticArray<double, 3> get_dd_at_pt
-            (double G,
-             double nu,
+            (double shear_m,
+             double poiss_r,
              double a,
              double p,
              il::StaticArray<double, 3> crd);
 
 // Stress field
     il::StaticArray<double, 6> get_stress_at_pt
-            (double G,
-             double nu,
+            (double shear_m,
+             double poiss_r,
              double a,
              double p,
              il::StaticArray<double, 3> crd);

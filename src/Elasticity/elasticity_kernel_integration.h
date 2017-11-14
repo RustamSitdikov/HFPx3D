@@ -24,7 +24,7 @@ namespace hfp3d {
 // with 2nd order polynomial approximating (shape) functions)
     il::StaticArray2D<double, 6, 18> make_local_3dbem_submatrix
             (const int kernel_id,
-             double mu, double nu, double h, std::complex<double> z,
+             double shear_m, double poiss_r, double h, std::complex<double> z,
              const il::StaticArray<std::complex<double>, 3> &tau,
              const il::StaticArray2D<std::complex<double>, 6, 6> &sfm);
 
@@ -43,17 +43,17 @@ namespace hfp3d {
 
     il::StaticArray4D<std::complex<double>, 6, 4, 3, 9> s_integral_gen
                 (const int ker,
-                 double nu, std::complex<double> eix,
+                 double poiss_r, std::complex<double> eix,
                  double h, std::complex<double> d);
 
     il::StaticArray4D<std::complex<double>, 6, 4, 3, 5> s_integral_red
                 (const int kernel_id,
-                 double nu, std::complex<double> eix,
+                 double poiss_r, std::complex<double> eix,
                  double h);
 
     il::StaticArray3D<std::complex<double>, 6, 4, 3> s_integral_lim
                 (const int ker,
-                 double nu, std::complex<double> eix,
+                 double poiss_r, std::complex<double> eix,
                  std::complex<double> d);
 
 
@@ -61,10 +61,10 @@ namespace hfp3d {
 // of any kernel of the elasticity equation
 // over a part of a polygonal element.
 // Example of usage:
-// dot(S11_22H(nu, eix, h, d), integral_cst_fun(h, d, a, x, eix))
-// dot(S11_22H_red(nu, eip, h, d), integral_cst_fun_red(h, d, a))
-// dot(S13_23T(nu, eix, h, d), integral_cst_fun(h, d, a, x, eix))
-// dot(S33T_red(nu, eip, h, d), integral_cst_fun_red(h, d, a))
+// dot(S11_22H(poiss_r, eix, h, d), integral_cst_fun(h, d, a, x, eix))
+// dot(S11_22H_red(poiss_r, eip, h, d), integral_cst_fun_red(h, d, a))
+// dot(S13_23T(poiss_r, eix, h, d), integral_cst_fun(h, d, a, x, eix))
+// dot(S33T_red(poiss_r, eip, h, d), integral_cst_fun_red(h, d, a))
 // where eip = std::exp(I*std::arg(t-z));
 // eix = std::exp(I*x); x = std::arg(t-z)-std::arg(d);
 // a = std::fabs(t-z-d)*sign(x);

@@ -4,23 +4,37 @@
 
 mesh_input_directory = "Mesh_Files"
 
+#mesh_conn_fname = "Elems_single_triangle_32.csv"
+#nodes_crd_fname = "Nodes_single_triangle_32.csv"
+#output_signature = "_single_triangle"
+
 #mesh_conn_fname = "Elems_pennymesh24el_32.npy"
 #nodes_crd_fname = "Nodes_pennymesh24el_32.npy"
+#output_signature = "_psc_24_ele"
+
+mesh_conn_fname = "Elems_pennymesh24el_32.npy"
+nodes_crd_fname = "Nodes_pennymesh24el_32.npy"
+output_signature = "_psc_40_ele"
 
 #mesh_conn_fname = "Elems_pennymesh121el_32.npy"
 #nodes_crd_fname = "Nodes_pennymesh121el_32.npy"
+#output_signature = "_psc_121_ele"
 
 #mesh_conn_fname = "Elems_pennymesh1025el_32.npy"
 #nodes_crd_fname = "Nodes_pennymesh1025el_32.npy"
+#output_signature = "_psc_1025_ele"
 
 #mesh_conn_fname = "Elems_elliptical_124_el_32.npy"
 #nodes_crd_fname = "Nodes_elliptical_124_el_32.npy"
+#output_signature = "_elc_124_ele"
 
 #mesh_conn_fname = "Elems_elliptical_440_el_32.npy"
 #nodes_crd_fname = "Nodes_elliptical_440_el_32.npy"
+#output_signature = "_elc_440_ele"
 
-mesh_conn_fname = "Elems_elliptical_550_el_32.npy"
-nodes_crd_fname = "Nodes_elliptical_550_el_32.npy"
+#mesh_conn_fname = "Elems_elliptical_550_el_32.npy"
+#nodes_crd_fname = "Nodes_elliptical_550_el_32.npy"
+#output_signature = "_elc_550_ele"
 
 mesh_input_format = "npy32"
 # choose from "npy32", "npy64", "csv"
@@ -37,13 +51,6 @@ do_save_matrix = false
 do_save_solution = true
 do_postprocess = true
 output_directory = "Test_Output"
-
-#output_signature = "_psc_24_ele"
-#output_signature = "_psc_121_ele"
-#output_signature = "_psc_1025_ele"
-#output_signature = "_elc_124_ele"
-#output_signature = "_elc_440ele"
-output_signature = "_elc_550_ele"
 
 output_format = "csv"
 # choose from "npy32", "npy64", "csv"
