@@ -66,6 +66,8 @@ set(SOURCE_FILES
         ${SOURCE_FILES_DIR}/Elasticity/h_potential.cpp
         ${SOURCE_FILES_DIR}/Elasticity/elasticity_kernel_integration.cpp
         ${SOURCE_FILES_DIR}/Solvers/system_assembly.cpp
+        ${SOURCE_FILES_DIR}/Solvers/test_radial_crack_static.cpp
+        ${SOURCE_FILES_DIR}/Solvers/test_radial_crack_static.h
         ${SOURCE_FILES_DIR}/Development/cohesion_friction.cpp
         ${SOURCE_FILES_DIR}/Development/c_f_iteration.cpp
         )
@@ -141,9 +143,11 @@ set(SR_FOLDER "${CMAKE_SOURCE_DIR}/src")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_FOLDER='\"${SR_FOLDER}\"'")
 
 set(UNIT_TEST_FILES
-        src/Core/_test/SF_test.cpp
-        src/Elasticity/_test/integration_test.cpp
-        src/Solvers/_test/assembly_test.cpp
+        ${SOURCE_FILES_DIR}/Solvers/_test/solver_test.cpp
+        ${SOURCE_FILES_DIR}/Solvers/_test/matrix_assembly_test.cpp
+        ${SOURCE_FILES_DIR}/Elasticity/_test/kernel_integration_test.cpp
+        #${SOURCE_FILES_DIR}/Core/_test/dof_handle_test.cpp
+        ${SOURCE_FILES_DIR}/Core/_test/element_shape_functions_test.cpp
         gtest/src/gtest-all.cc)
 
 add_executable(HFPx3DUnitTest ${SOURCE_FILES} ${UNIT_TEST_FILES} test.cpp)

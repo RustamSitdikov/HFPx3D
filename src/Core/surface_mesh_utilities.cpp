@@ -57,6 +57,9 @@ namespace hfp3d {
                 }
             }
         }
+        // P0 elements
+        if (nnpe == 1) {}
+        // P1 or P2 elements
         if (nnpe >= 3) {
             il::int_t dof_dec = 0;
             for (il::int_t el = 0; el < n_ele; ++el) {
@@ -79,7 +82,7 @@ namespace hfp3d {
                             ++dof_dec;
                             d_h.dof_h(el, ldof) = -1;
                         }
-                    } else if (ap_order > 1 && tip_type == 2 && v >= 3) {
+                    } else if (tip_type == 2 && v >= 3) {
                         // the vertex across the v-th node
                         int w = (v - 3) / edge_nn;
                         if (w < 3) {

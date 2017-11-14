@@ -79,7 +79,7 @@ TEST(kernel_integration_1, t1) {
     std::string tf_name{"integration_test_triangle_pt1.csv"};
 
     // loading reference matrix (built with MATLAB code)
-    il::Status status;
+    il::Status status{};
     il::Array2D<double> bem_matrix_matlab =
             hfp3d::load_data_from_csv
                     (work_directory, tf_name, il::io, status);
@@ -169,7 +169,7 @@ TEST(kernel_integration_2, t1) {
     std::string tf_name{"integration_test_triangle_pt2.csv"};
 
     // loading reference matrix (built with MATLAB code)
-    il::Status status;
+    il::Status status{};
     il::Array2D<double> bem_matrix_matlab =
             hfp3d::load_data_from_csv
                     (work_directory, tf_name, il::io, status);
@@ -259,7 +259,7 @@ TEST(kernel_integration_3, t1) {
     std::string tf_name{"integration_test_triangle_pt3.csv"};
 
     // loading reference matrix (built with MATLAB code)
-    il::Status status;
+    il::Status status{};
     il::Array2D<double> bem_matrix_matlab =
             hfp3d::load_data_from_csv
                     (work_directory, tf_name, il::io, status);
