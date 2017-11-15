@@ -18,7 +18,15 @@ namespace hfp3d {
     double test_dd_radial_crack_static
             (std::string work_directory,
              std::string m_c_f_name,
-             std::string m_n_f_name);
+             std::string m_n_f_name,
+             int tt, double tol, bool echo);
+
+    double test_stresses_radial_crack_static
+            (std::string work_directory,
+             std::string m_c_f_name,
+             std::string m_n_f_name,
+             il::int_t n_m_p,
+             double tol, bool echo);
 }
 
 // Reference solutions

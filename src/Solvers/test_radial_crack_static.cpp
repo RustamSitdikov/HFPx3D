@@ -8,6 +8,7 @@
 //
 
 #include <cmath>
+#include <random>
 #include <il/math.h>
 #include <il/Status.h>
 #include <il/Array2D.h>
@@ -26,7 +27,8 @@ namespace hfp3d {
     double test_dd_radial_crack_static
             (std::string work_directory,
              std::string m_c_f_name,
-             std::string m_n_f_name) {
+             std::string m_n_f_name,
+             int tt, double tol, bool echo) {
 
         // initializing the mesh etc.
         Mesh_Data_T mesh_data;
@@ -44,7 +46,7 @@ namespace hfp3d {
                  il::io, mesh_data.mesh);
 
         // numerical model parameters
-        num_param.tip_type = 1;
+        num_param.tip_type = tt;
         num_param.is_dd_local = false;
         num_param.beta = 0.125;
 
@@ -83,14 +85,13 @@ namespace hfp3d {
 //        status.abortOnError();
 
         // comparison with the reference solution
-        double err, diff_ij;
-        il::int_t local_dof, global_dof, num_el = mesh_data.mesh.conn.size(1);
-        il::StaticArray<double, 3> ref_dd;
-        il::StaticArray2D<double, 3, 3> el_vert;
-        il::StaticArray<il::StaticArray<double, 3>, 6> el_np;
-        il::StaticArray<double, 3> np_dd;
-        for (int el = 0; el < num_el; ++el) {
+        il::int_t n_ex_n = 0;
+        il::int_t num_el = mesh_data.mesh.conn.size(1);
+        double err = 0.0;
+        double r_tol = 0.2 * std::sqrt(hfp3d::pi / num_el / std::sqrt(3.0));
+        for (il::int_t el = 0; el < num_el; ++el) {
             // Vertices' coordinates
+            il::StaticArray2D<double, 3, 3> el_vert;
             for (il::int_t j = 0; j < 3; ++j) {
                 il::int_t n = mesh_data.mesh.conn(j, el);
                 for (il::int_t k = 0; k < 3; ++k) {
@@ -98,33 +99,205 @@ namespace hfp3d {
                 }
             }
             // All 6 nodes' coordinates
+            il::StaticArray<il::StaticArray<double, 3>, 6> el_np;
             el_np = hfp3d::el_cp_uniform(el_vert, 0.0);
             // DD vectors at 6 nodes
             for (int np = 0; np < 6; ++np) {
-                for (int j = 0; j < 3; ++j) {
-                    local_dof = np * 3 + j;
-                    global_dof = mesh_data.dof_h_dd.dof_h(el, local_dof);
-                    if (global_dof == -1) {
-                        np_dd[j] = 0.0;
-                    } else {
-                        np_dd[j] = dd_v[global_dof];
+                double r;
+                r = el_np[np][0] * el_np[np][0] + el_np[np][1] * el_np[np][1];
+                r = std::sqrt(r);
+                r = std::fabs(r - 1.0);
+                // excluding nodes close to the tip
+                if ((num_param.tip_type == 1 && np < 3 && r < r_tol)
+                    || (num_param.tip_type == 0 && r < r_tol)
+                    || (num_param.tip_type == 2 && r < r_tol)) {
+                    ++n_ex_n;
+                    if (echo) {
+                        std::cout << "[          ] nod. " << np+1
+                                  << " of el. " << el+1
+                                  << " excluded "
+                                  << std::endl;
+                    }
+                } else {
+                    il::StaticArray<double, 3> np_dd;
+                    for (int j = 0; j < 3; ++j) {
+                        il::int_t local_dof, global_dof;
+                        local_dof = np * 3 + j;
+                        global_dof = mesh_data.dof_h_dd.dof_h(el, local_dof);
+                        if (global_dof == -1) {
+                            np_dd[j] = 0.0;
+                        } else {
+                            np_dd[j] = dd_v[global_dof];
+                        }
+                    }
+                    // calculating the the reference solution
+                    il::StaticArray<double, 3> ref_dd;
+                    ref_dd = ref::get_dd_at_pt
+                            (mat_props.shear_m[0],
+                             mat_props.poiss_r[0],
+                             1.0,
+                             load_data.s_inf[2],
+                             el_np[np]);
+                    // calculating the difference with the reference solution
+                    for (int j = 0; j < 3; ++j) {
+                        double diff_ij = std::fabs(np_dd[j] - ref_dd[j]);
+                        if (diff_ij > tol && echo) {
+                            std::cout << "[          ] nod. " << np+1
+                                      << " of el. "<< el+1
+                                      << ", dof " << j+1
+                                      << ", err = " << diff_ij
+                                      << std::endl;
+                        }
+                        if (diff_ij > err) {
+                            err = diff_ij;
+                        }
                     }
                 }
-                // calculating the the reference solution
+            }
+        }
+        //if (echo) {
+            std::cout << "[          ] " << n_ex_n
+                      << " of " << num_el * 6
+                      << " nodes excluded "
+                      << std::endl;
+        //}
+        return err;
+    }
+
+    double test_stresses_radial_crack_static
+            (std::string work_directory,
+             std::string m_c_f_name,
+             std::string m_n_f_name,
+             il::int_t n_m_p,
+             double tol, bool echo) {
+
+        // initializing the mesh etc.
+        Mesh_Data_T mesh_data;
+        hfp3d::Properties_T mat_props;
+        hfp3d::Num_Param_T num_param;
+        hfp3d::Load_T load_data;
+
+        il::Status status{};
+
+        // elastic properties
+        mat_props.shear_m[0] = 1.0, mat_props.poiss_r[0] = 0.35;
+
+        hfp3d::load_mesh_from_numpy_32
+                (work_directory, m_c_f_name, m_n_f_name, 1,
+                 il::io, mesh_data.mesh);
+
+        // numerical model parameters
+        num_param.tip_type = 1;
+        num_param.is_dd_local = false;
+        num_param.beta = 0.125;
+
+        // load (S_inf)
+        load_data.s_inf = il::StaticArray<double, 6> {0.0};
+        load_data.s_inf[2] = 1.0;
+
+        // substituting the reference solution
+        il::int_t num_el = mesh_data.mesh.conn.size(1);
+        mesh_data.dd = il::Array2D<double> {num_el * 6, 3, 0.0};
+        for (il::int_t el = 0; el < num_el; ++el) {
+            // Vertices' coordinates
+            il::StaticArray2D<double, 3, 3> el_vert;
+            for (int j = 0; j < 3; ++j) {
+                il::int_t n = mesh_data.mesh.conn(j, el);
+                for (il::int_t k = 0; k < 3; ++k) {
+                    el_vert(k, j) = mesh_data.mesh.nods(k, n);
+                }
+            }
+            // All 6 nodes' coordinates
+            il::StaticArray<il::StaticArray<double, 3>, 6> el_n_c;
+            el_n_c = hfp3d::el_cp_uniform(el_vert, 0.0);
+            // DD vectors at 6 nodes
+            for (int np = 0; np < 6; ++np) {
+                // calculating the reference solution for dd
+                il::StaticArray<double, 3> ref_dd;
                 ref_dd = ref::get_dd_at_pt
                         (mat_props.shear_m[0],
                          mat_props.poiss_r[0],
                          1.0,
                          load_data.s_inf[2],
-                         el_np[np]);
-                // calculating the difference with the reference solution
-                diff_ij = 0.0;
+                         el_n_c[np]);
+                // substituting the reference solution into dd of mesh_data
+                il::int_t nn = el * 6 + np;
                 for (int j = 0; j < 3; ++j) {
-                    diff_ij += std::pow(np_dd[j] - ref_dd[j], 2);
+                    mesh_data.dd(nn, j) = ref_dd[j];
                 }
-                diff_ij = std::sqrt(diff_ij);
+            }
+        }
+
+        // defining points to monitor stresses
+        std::random_device rd;  //Will be used to obtain a seed for the random number engine
+        std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+        std::uniform_real_distribution<> distr(-2.0, 2.0);
+        il::Array2D<double> m_pts_crd {3, n_m_p, 0.0};
+        double rm;
+        double r_tol = 0.02 * std::sqrt(hfp3d::pi / num_el / std::sqrt(3.0));
+        il::int_t pt = 0;
+        while (pt < n_m_p) {
+            for (int j = 0; j < 3; ++j) {
+                m_pts_crd(j, pt) = distr(gen);
+            }
+            rm = 1.0;
+            for (il::int_t el = 0; el < num_el; ++el) {
+                // Vertices' coordinates
+                il::StaticArray2D<double, 3, 3> el_vert;
+                for (int k = 0; k < 3; ++k) {
+                    il::int_t n = mesh_data.mesh.conn(k, el);
+                    double r2 = 0.0;
+                    for (int j = 0; j < 3; ++j) {
+                        el_vert(j, k) = mesh_data.mesh.nods(j, n);
+                        r2 += std::pow(m_pts_crd(j, pt) - el_vert(j, k), 2);
+                    }
+                    r2 = std::sqrt(r2);
+                    if (r2 < rm) {
+                        rm = r2;
+                    }
+                }
+            }
+            if (rm >= r_tol) {
+                if (echo) {
+                    std::cout << "[          ] (" << m_pts_crd(0, pt)
+                              << ", " << m_pts_crd(1, pt)
+                              << ", " << m_pts_crd(2, pt)
+                              << ")" << std::endl;
+                }
+                ++pt;
+            }
+        }
+
+        // calculating stresses at m_pts_crd
+        // (substituting the dd vector into stresses)
+        il::Array2D<double> stress_m_pts(m_pts_crd.size(0), 6);
+        stress_m_pts = hfp3d::make_3dbem_stress_f_s
+                (mat_props.shear_m[0], mat_props.poiss_r[0],
+                 mesh_data, load_data, num_param, m_pts_crd);
+
+        double err = 0.0, diff_ij;
+        for (il::int_t pt = 0; pt < n_m_p; ++pt) {
+            il::StaticArray<double, 3> p_crd;
+            for (int j = 0; j < 3; ++j) {
+                p_crd[j] = m_pts_crd(j, pt);
+            }
+            il::StaticArray<double, 6> ref_stress;
+            ref_stress = ref::get_stress_at_pt
+                    (mat_props.shear_m[0],
+                     mat_props.poiss_r[0],
+                     1.0,
+                     load_data.s_inf[2],
+                     p_crd);
+            for (int j = 0; j < 6; ++j) {
+                diff_ij = std::fabs(stress_m_pts(pt, j) - ref_stress[j]);
                 if (diff_ij > err) {
                     err = diff_ij;
+                }
+                if (diff_ij > tol && echo) {
+                    std::cout << "[          ] pt. " << pt+1
+                              << ", S_" << j+1
+                              << ", err = " << diff_ij
+                              << std::endl;
                 }
             }
         }
@@ -152,10 +325,13 @@ namespace ref{
         double x2 = crd[0] * crd[0],
                 y2 = crd[1] * crd[1];
 
-        double r = std::sqrt(x2 + y2); // ignores the 3rd coordinate
+        double r2 = (x2 + y2); // ignores the 3rd coordinate
+        double a2 = a * a;
 
         il::StaticArray<double, 3> dd {0.0};
-        dd[2] = scale * std::sqrt(1.0 - r);
+        if (r2 / a2 < 1.0) {
+            dd[2] = scale * std::sqrt(1.0 - r2 / a2);
+        }
 
         return dd;
     };
