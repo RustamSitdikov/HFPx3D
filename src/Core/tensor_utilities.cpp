@@ -60,7 +60,7 @@ namespace hfp3d {
         // Triple product (rt_left dot S dot rt_right)
         // for stress influence matrix (sim, 6*18)
         il::StaticArray2D<double, 3, 3>
-                rt_tr = transpose3x3(rt),
+                // rt_tr = transpose3x3(rt),
                 sm_3x3,
                 sm_3x3_intermd,
                 sm_3x3_rotated;
@@ -77,8 +77,8 @@ namespace hfp3d {
             sm_3x3(2, 1) = sim(5, k);
 
             sm_3x3_intermd = il::dot(sm_3x3, rt);
-            sm_3x3_rotated = il::dot(rt_tr, sm_3x3_intermd);
-            // sm_3x3_rotated = il::dot(rt_tr, il::Blas::Transpose, sm_3x3_intermd);
+            // sm_3x3_rotated = il::dot(rt_tr, sm_3x3_intermd);
+            sm_3x3_rotated = il::dot(rt, il::Blas::Transpose, sm_3x3_intermd);
 
             sim_rotated(0, k) = sm_3x3_rotated(0, 0);
             sim_rotated(1, k) = sm_3x3_rotated(1, 1);
