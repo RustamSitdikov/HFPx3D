@@ -1,6 +1,8 @@
 # Configuration file for HFPx3D
 
+################################################################################
 ### Triangulation data
+################################################################################
 
 mesh_input_directory = "Mesh_Files"
 
@@ -12,9 +14,9 @@ mesh_input_directory = "Mesh_Files"
 #nodes_crd_fname = "Nodes_pennymesh24el_32.npy"
 #output_signature = "_psc_24_ele"
 
-mesh_conn_fname = "Elems_pennymesh24el_32.npy"
-nodes_crd_fname = "Nodes_pennymesh24el_32.npy"
-output_signature = "_psc_40_ele"
+#mesh_conn_fname = "Elems_pennymesh40el_32.npy"
+#nodes_crd_fname = "Nodes_pennymesh40el_32.npy"
+#output_signature = "_psc_40_ele"
 
 #mesh_conn_fname = "Elems_pennymesh121el_32.npy"
 #nodes_crd_fname = "Nodes_pennymesh121el_32.npy"
@@ -32,20 +34,16 @@ output_signature = "_psc_40_ele"
 #nodes_crd_fname = "Nodes_elliptical_440_el_32.npy"
 #output_signature = "_elc_440_ele"
 
-#mesh_conn_fname = "Elems_elliptical_550_el_32.npy"
-#nodes_crd_fname = "Nodes_elliptical_550_el_32.npy"
-#output_signature = "_elc_550_ele"
+mesh_conn_fname = "Elems_elliptical_550_el_32.npy"
+nodes_crd_fname = "Nodes_elliptical_550_el_32.npy"
+output_signature = "_elc_550_ele"
 
 mesh_input_format = "npy32"
 # choose from "npy32", "npy64", "csv"
 
-# observation points (to calculate stresses)
-observ_crd_directory = "Test_Output"
-observ_crd_fname = "observation_points.csv"
-observ_input_format = "csv"
-# choose from "npy32", "npy64", "csv"
-
+################################################################################
 ### Output
+################################################################################
 
 do_save_matrix = false
 do_save_solution = true
@@ -55,7 +53,20 @@ output_directory = "Test_Output"
 output_format = "csv"
 # choose from "npy32", "npy64", "csv"
 
+# output_signature = "_elc_550_ele"
+
+################################################################################
+# observation points (to calculate stresses)
+################################################################################
+
+observ_crd_directory = "Test_Output"
+observ_crd_fname = "observation_points.csv"
+observ_input_format = "csv"
+# choose from "npy32", "npy64", "csv"
+
+################################################################################
 ### Numerical simulation parameters
+################################################################################
 
 # index of 1st element in array (input files)
 array_origin = 1
@@ -76,7 +87,9 @@ is_tr_local = false
 # true -> local (for each element)
 # false -> global (reference)
 
+################################################################################
 ### Load
+################################################################################
 
 # In-situ stress (positive compression) + initial pore pressure
 S_xx = 0
@@ -92,7 +105,9 @@ Source = 0
 Constant_injection_rate = 1.0
 Constant_overpressure = 3.0e-1
 
+################################################################################
 ### Material properties
+################################################################################
 
 # Solids
 number_solids = 1
