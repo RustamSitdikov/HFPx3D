@@ -35,6 +35,12 @@ namespace hfp3d {
              const il::StaticArray2D<double, 3, 3>& rt_r,
              const il::StaticArray2D<double, 6, 18>& sim);
 
+// Transposition
+
+    template<typename T>
+    il::StaticArray2D<T, 3, 3> transpose3x3
+            (il::StaticArray2D<T, 3, 3>);
+
 // Matrix-submatrix operations
 
     template <typename T_sub, typename T_A>

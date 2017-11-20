@@ -158,18 +158,18 @@ int main(int argc, char* argv[]) {
     // solving the system
     il::Array<double> dd_v{sae.n_dof};
 
-    dd_v = il::linearSolve(sae.matrix, sae.rhs_v, il::io, status);
-    status.abortOnError();
-
-//    il::LU<il::Array2D<double>> lu_decomposition(sae.matrix, il::io, status);
-//    // if (!status.ok()) {
-//    //     // The matrix is singular to the machine precision.
-//    //     // You should deal with the error.
-//    // }
+//    dd_v = il::linearSolve(sae.matrix, sae.rhs_v, il::io, status);
 //    status.abortOnError();
-//    // double cnd = lu_decomposition.conditionNumber(il::Norm::L2, );
-//    // std::cout << cnd << std::endl;
-//    dd_v = lu_decomposition.solve(sae.rhs_v)
+
+    il::LU<il::Array2D<double>> lu_decomposition(sae.matrix, il::io, status);
+    // if (!status.ok()) {
+    //     // The matrix is singular to the machine precision.
+    //     // You should deal with the error.
+    // }
+    status.abortOnError();
+    // double cnd = lu_decomposition.conditionNumber(il::Norm::L2, );
+    // std::cout << cnd << std::endl;
+    dd_v = lu_decomposition.solve(sae.rhs_v);
 
     timer.stop();
     std::cout << ": " << timer.elapsed() << "s" << std::endl;

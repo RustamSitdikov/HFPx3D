@@ -31,20 +31,21 @@ namespace hfp3d {
 
 /////// Elastostatics utilities ///////
 
-    // Static matrix assembly
+    // Elastostatic matrix assembly
     il::Array2D<double> make_3dbem_matrix_s
             (double shear_m, double poiss_r,
              const Mesh_Geom_T &mesh,
              const Num_Param_T &n_par,
              il::io_t, DoF_Handle_T &dof_hndl);
 
-    // Add S_inf to the RHS
+    // Adding in-situ stress (S_inf) to the right-hand side
     void add_s_inf_to_3dbem_rhs
             (const Mesh_Data_T &mesh_data,
              const Load_T &load,
              il::io_t, SAE_T &sae);
 
-    // Stress at given points (m_pts_crd) vs DD at nodal points (nodes_crd)
+    // Reconstruction of stresses at given points (m_pts_crd)
+    // due to DD (m_data.dd) at nodal points (m_data.mesh.nods + edge nodes)
     il::Array2D<double> make_3dbem_stress_f_s
             (double shear_m, double poiss_r,
              const Mesh_Data_T &m_data,

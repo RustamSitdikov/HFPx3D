@@ -26,7 +26,7 @@
 
 namespace hfp3d {
 
-    // Static matrix assembly
+    // Elastostatic matrix assembly
     il::Array2D<double> make_3dbem_matrix_s
             (double shear_m, double poiss_r,
              const Mesh_Geom_T &mesh,
@@ -218,7 +218,7 @@ namespace hfp3d {
         return global_matrix;
     }
 
-    // Add S_inf (induced tractions) to the RHS
+    // Adding in-situ stress (S_inf) to the right-hand side
     void add_s_inf_to_3dbem_rhs
             (const Mesh_Data_T &mesh_data,
              const Load_T &load,
@@ -274,8 +274,8 @@ namespace hfp3d {
     }
 
 
-    // Stress at given points (m_pts_crd) vs DD (m_data.dd)
-    // at nodal points (mesh.nods)
+    // Reconstruction of stresses at given points (m_pts_crd)
+    // due to DD (m_data.dd) at nodal points (m_data.mesh.nods + edge nodes)
     il::Array2D<double> make_3dbem_stress_f_s
             (double shear_m, double poiss_r,
              const Mesh_Data_T &m_data,
@@ -283,9 +283,10 @@ namespace hfp3d {
              const Num_Param_T &n_par,
              const il::Array2D<double> &m_pts_crd) {
     // This function calculates Stress at given points (m_pts_crd)
-    // vs DD (m_data.DD) at nodal points (mesh.nods)
+    // vs DD (m_data.dd) at nodal points (m_data.mesh.nods + edge nodes)
     // using boundary mesh geometry data:
-    // mesh connectivity (mesh.conn) and nodes' coordinates (mesh.nods)
+    // mesh connectivity (m_data.mesh.conn)
+    // and nodes' coordinates (m_data.mesh.nods)
 
     // Naive way: no ACA. For parallel assembly, uncomment line 424
 
@@ -309,22 +310,21 @@ namespace hfp3d {
         for (il::int_t source_elem = 0; source_elem < num_ele; ++source_elem) {
             // Vertices' coordinates
             il::StaticArray2D<double, 3, 3> el_vert_s;
-            //il::StaticArray<double, 3> vert_wts_t;
+            //il::StaticArray<double, 3> vert_wts_s;
             for (il::int_t j = 0; j < 3; ++j) {
                 il::int_t n = m_data.mesh.conn(j, source_elem);
                 for (il::int_t k = 0; k < 3; ++k) {
                     el_vert_s(k, j) = m_data.mesh.nods(k, n);
                 }
-                // get vert_wts_s[j]
+                // set vert_wts_s[j]
             }
 
-            // Basis (shape) functions and
-            // rotation tensor (r_tensor_s) of the element (source_elem)
+            // Basis (shape) functions and rotation tensor of the el-t
             il::StaticArray2D<double, 3, 3> r_tensor_s;
             il::StaticArray2D<std::complex<double>, 6, 6> sfm =
                     make_el_sfm_uniform(el_vert_s, il::io, r_tensor_s);
             //il::StaticArray2D<std::complex<double>, 6, 6> sfm =
-            // make_el_sfm_nonuniform(r_tensor, el_vert, vert_wts_s);
+            // make_el_sfm_nonuniform(r_tensor_s, el_vert, vert_wts_s);
 
             // Complex-valued positions of "source" element nodes
             il::StaticArray<std::complex<double>, 3> tau =
@@ -359,7 +359,8 @@ namespace hfp3d {
                 if (!n_par.is_dd_local) {
                     // Re-relating DD-to stress influence to DD
                     // w.r. to the reference coordinate system
-                    il::StaticArray2D<double, 6, 3> stress_infl_n2p_loc,
+                    il::StaticArray2D<double, 6, 3>
+                            stress_infl_n2p_loc,
                             stress_infl_n2p_glob;
                     for (int n_s = 0; n_s < 6; ++n_s) {
                         // taking a block (one node of the "source" element)
@@ -401,9 +402,10 @@ namespace hfp3d {
                 // re-arranging local DDs into a vector
                 il::StaticArray<double, 18> ele_disp_vect;
                 for (il::int_t k = 0; k < 6; ++k) {
+                    il::int_t np = source_elem * 6 + k;
                     for (il::int_t j = 0; j < 3; ++j) {
                         il::int_t l = 3 * k + j;
-                        ele_disp_vect[l] = m_data.dd(k, j);
+                        ele_disp_vect[l] = m_data.dd(np, j);
                     }
                 }
                 // Multiplying by element DD and adding the result to stresses

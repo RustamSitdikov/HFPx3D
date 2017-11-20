@@ -59,27 +59,33 @@ namespace hfp3d {
              const il::StaticArray2D<double, 6, 18> &sim) {
         // Triple product (rt_left dot S dot rt_right)
         // for stress influence matrix (sim, 6*18)
-        il::StaticArray2D<double, 3, 3> sm_3x3, sm_3x3_interm, sm_3x3_rotated;
+        il::StaticArray2D<double, 3, 3>
+                rt_tr = transpose3x3(rt),
+                sm_3x3,
+                sm_3x3_intermd,
+                sm_3x3_rotated;
         il::StaticArray2D<double, 6, 18> sim_rotated{0.0};
         for (int k = 0; k < sim.size(1); ++k) {
-            for (int j = 0; j < 3; ++j) {
-                int l = (j + 1) % 3;
-                int m = (l + 1) % 3;
-                int n = 3 + m;
-                sm_3x3(j, j) = sim(j, k);
-                sm_3x3(l, m) = sim(n, k);
-                sm_3x3(m, l) = sm_3x3(l, m);
-            }
-            sm_3x3_interm = il::dot(sm_3x3, rt);
-            sm_3x3_rotated = il::dot(rt, il::Blas::Transpose, sm_3x3_interm);
-            // il::Blas::kTranspose
-            for (int j = 0; j < 3; ++j) {
-                int l = (j + 1) % 3;
-                int m = (l + 1) % 3;
-                int n = 3 + m;
-                sim_rotated(j, k) = sm_3x3_rotated(j, j);
-                sim_rotated(n, k) = sm_3x3_rotated(l, m); // sm_3x3_R(m, l);
-            }
+            sm_3x3(0, 0) = sim(0, k);
+            sm_3x3(1, 1) = sim(1, k);
+            sm_3x3(2, 2) = sim(2, k);
+            sm_3x3(0, 1) = sim(3, k);
+            sm_3x3(0, 2) = sim(4, k);
+            sm_3x3(1, 2) = sim(5, k);
+            sm_3x3(1, 0) = sim(3, k);
+            sm_3x3(2, 0) = sim(4, k);
+            sm_3x3(2, 1) = sim(5, k);
+
+            sm_3x3_intermd = il::dot(sm_3x3, rt);
+            sm_3x3_rotated = il::dot(rt_tr, sm_3x3_intermd);
+            // sm_3x3_rotated = il::dot(rt_tr, il::Blas::Transpose, sm_3x3_intermd);
+
+            sim_rotated(0, k) = sm_3x3_rotated(0, 0);
+            sim_rotated(1, k) = sm_3x3_rotated(1, 1);
+            sim_rotated(2, k) = sm_3x3_rotated(2, 2);
+            sim_rotated(3, k) = sm_3x3_rotated(0, 1);
+            sim_rotated(4, k) = sm_3x3_rotated(0, 2);
+            sim_rotated(5, k) = sm_3x3_rotated(1, 2);
         }
         return sim_rotated;
     }
@@ -93,25 +99,41 @@ namespace hfp3d {
         il::StaticArray2D<double, 3, 3> sm_3x3, sm_3x3_interm, sm_3x3_rotated;
         il::StaticArray2D<double, 6, 18> sim_rotated{0.0};
         for (int k = 0; k < sim.size(1); ++k) {
-            for (int j = 0; j < 3; ++j) {
-                int l = (j + 1) % 3;
-                int m = (l + 1) % 3;
-                int n = 3 + m;
-                sm_3x3(j, j) = sim(j, k);
-                sm_3x3(l, m) = sim(n, k);
-                sm_3x3(m, l) = sm_3x3(l, m);
-            }
+            sm_3x3(0, 0) = sim(0, k);
+            sm_3x3(1, 1) = sim(1, k);
+            sm_3x3(2, 2) = sim(2, k);
+            sm_3x3(0, 1) = sim(3, k);
+            sm_3x3(0, 2) = sim(4, k);
+            sm_3x3(1, 2) = sim(5, k);
+            sm_3x3(1, 0) = sim(3, k);
+            sm_3x3(2, 0) = sim(4, k);
+            sm_3x3(2, 1) = sim(5, k);
+
             sm_3x3_interm = il::dot(sm_3x3, rt_right);
             sm_3x3_rotated = il::dot(rt_left, sm_3x3_interm);
-            for (int j = 0; j < 3; ++j) {
-                int l = (j + 1) % 3;
-                int m = (l + 1) % 3;
-                int n = 3 + m;
-                sim_rotated(j, k) = sm_3x3_rotated(j, j);
-                sim_rotated(n, k) = sm_3x3_rotated(l, m); // sm_3x3_R(m, l);
-            }
+
+            sim_rotated(0, k) = sm_3x3_rotated(0, 0);
+            sim_rotated(1, k) = sm_3x3_rotated(1, 1);
+            sim_rotated(2, k) = sm_3x3_rotated(2, 2);
+            sim_rotated(3, k) = sm_3x3_rotated(0, 1);
+            sim_rotated(4, k) = sm_3x3_rotated(0, 2);
+            sim_rotated(5, k) = sm_3x3_rotated(1, 2);
         }
         return sim_rotated;
+    }
+
+// Transposition
+
+    template<typename T>
+    il::StaticArray2D<T, 3, 3> transpose3x3
+            (il::StaticArray2D<T, 3, 3> m) {
+        il::StaticArray2D<T, 3, 3> m_tr;
+        for (int j = 0; j < 3; ++j) {
+            for (int k = 0; k < 3; ++k) {
+                m_tr(j, k) = m(k, j);
+            }
+        }
+        return m_tr;
     }
 
 // Matrix-submatrix operations

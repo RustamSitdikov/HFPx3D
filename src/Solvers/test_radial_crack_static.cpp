@@ -234,7 +234,7 @@ namespace hfp3d {
         std::uniform_real_distribution<> distr(-2.0, 2.0);
         il::Array2D<double> m_pts_crd {3, n_m_p, 0.0};
         double rm;
-        double r_tol = 0.02 * std::sqrt(hfp3d::pi / num_el / std::sqrt(3.0));
+        double r_tol = 0.2 * std::sqrt(hfp3d::pi / num_el / std::sqrt(3.0));
         il::int_t pt = 0;
         while (pt < n_m_p) {
             for (int j = 0; j < 3; ++j) {
